@@ -1,0 +1,9 @@
+# Local-machine overrides (auto-loaded by `docker compose`).
+# Use this when host port 5432 is already in use — it publishes Postgres
+# on 5433 instead. The container still listens on 5432 internally, so
+# only DATABASE_URL's host port needs to match (see backend/.env.example).
+services:
+  db:
+    # !override replaces the base ports list instead of merging with it
+    ports: !override
+      - "5433:5432"
