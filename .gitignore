@@ -1,0 +1,32 @@
+# Python virtual environments
+venv/
+.venv/
+env/
+
+# Byte-compiled / cache
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environment files — contain secrets, never commit
+.env
+.env.local
+.env.*.local
+
+# Local databases
+*.db
+*.sqlite
+*.sqlite3
+
+# Logs
+*.log
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# Docker local state
+run.broken-*/
+run.stale-*/

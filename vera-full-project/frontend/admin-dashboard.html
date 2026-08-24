@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Véra Hair Co. — Admin Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+  :root{
+    --ink:#2B1B14; --cream:#FAF5EE; --panel:#FFFFFF; --blush:#E7C7B4; --gold:#AD8752; --wine:#5C2431;
+    --text:#3A2E27; --text-soft:#7A6A5F; --line:#EEE3D6; --sidebar:#241811;
+    --ok:#4C8C5C; --warn:#C98A2C; --danger:#B5443A;
+    --radius:16px; --ease:cubic-bezier(.22,.61,.36,1);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Inter',sans-serif;color:var(--text);background:#F6F0E6;-webkit-font-smoothing:antialiased;}
+  h1,h2,h3,.serif{font-family:'Fraunces',serif;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  ::-webkit-scrollbar{width:8px;height:8px;}
+  ::-webkit-scrollbar-thumb{background:var(--line);border-radius:100px;}
+
+  .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
+
+  /* ---- Sidebar ---- */
+  .sidebar{background:var(--sidebar);color:#EFE6DA;padding:24px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
+  .side-logo{font-family:'Fraunces',serif;font-size:19px;font-weight:600;padding:0 10px;margin-bottom:8px;}
+  .side-logo span{color:var(--gold);font-style:italic;}
+  .side-sub{font-size:11px;color:#B8A995;padding:0 10px;margin-bottom:28px;letter-spacing:.04em;text-transform:uppercase;}
+  .nav-group{margin-bottom:22px;}
+  .nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#8A7862;padding:0 10px;margin-bottom:8px;}
+  .nav-link{
+    display:flex;align-items:center;gap:11px;padding:10px 10px;border-radius:10px;
+    font-size:13.5px;font-weight:500;color:#D8CBBB;margin-bottom:2px;transition:background .2s, color .2s;
+  }
+  .nav-link svg{width:17px;height:17px;stroke:currentColor;flex-shrink:0;}
+  .nav-link:hover{background:rgba(255,255,255,.06);color:#fff;}
+  .nav-link.active{background:var(--gold);color:#241811;font-weight:700;}
+  .nav-badge{margin-left:auto;background:var(--wine);color:#fff;font-size:10px;font-weight:700;padding:1px 7px;border-radius:100px;}
+  .side-foot{margin-top:auto;display:flex;align-items:center;gap:10px;padding:12px 10px;border-top:1px solid rgba(255,255,255,.08);}
+  .side-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(150deg,var(--blush),var(--gold));flex-shrink:0;}
+  .side-foot div small{display:block;color:#8A7862;font-size:11px;}
+  .side-foot div strong{font-size:12.5px;}
+
+  /* ---- Main ---- */
+  .main{padding:26px 34px 60px;max-width:1400px;}
+  .topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:28px;flex-wrap:wrap;gap:16px;}
+  .topbar h1{font-size:25px;font-weight:500;}
+  .topbar p{font-size:13px;color:var(--text-soft);margin-top:4px;}
+  .topbar-actions{display:flex;gap:10px;align-items:center;}
+  .search-box{
+    display:flex;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);
+    border-radius:100px;padding:9px 16px;font-size:12.5px;color:var(--text-soft);min-width:220px;
+  }
+  .search-box svg{width:14px;height:14px;flex-shrink:0;}
+  .search-box input{border:none;outline:none;font-size:12.5px;font-family:inherit;flex:1;background:none;}
+  .btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:100px;font-size:12.5px;font-weight:700;}
+  .btn-primary{background:var(--ink);color:#fff;}
+  .btn-outline{border:1.5px solid var(--line);color:var(--text);background:#fff;}
+  .btn svg{width:14px;height:14px;}
+
+  .view{display:none;}
+  .view.active{display:block;}
+
+  /* ---- Stat cards ---- */
+  .stat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px;margin-bottom:24px;}
+  .stat-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:20px 22px;}
+  .stat-top{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:14px;}
+  .stat-icon{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;background:rgba(173,135,82,.14);}
+  .stat-icon svg{width:17px;height:17px;stroke:var(--wine);}
+  .stat-delta{font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:100px;}
+  .stat-delta.up{color:var(--ok);background:rgba(76,140,92,.12);}
+  .stat-delta.down{color:var(--danger);background:rgba(181,68,58,.12);}
+  .stat-value{font-family:'Fraunces',serif;font-size:26px;font-weight:600;margin-bottom:4px;}
+  .stat-label{font-size:12.5px;color:var(--text-soft);}
+
+  /* ---- Panels ---- */
+  .panel{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:22px;margin-bottom:22px;}
+  .panel-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:18px;flex-wrap:wrap;gap:10px;}
+  .panel-head h3{font-size:16px;font-weight:600;font-family:'Fraunces',serif;}
+  .panel-head .tabs{display:flex;gap:6px;background:#F4EEE3;padding:4px;border-radius:100px;}
+  .panel-head .tabs button{font-size:11.5px;font-weight:600;padding:6px 14px;border-radius:100px;color:var(--text-soft);}
+  .panel-head .tabs button.active{background:#fff;color:var(--ink);box-shadow:0 2px 6px rgba(0,0,0,.08);}
+
+  .two-col{display:grid;grid-template-columns:1.5fr 1fr;gap:22px;}
+
+  table{width:100%;border-collapse:collapse;}
+  th{text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-soft);padding:0 12px 10px;font-weight:700;}
+  td{padding:12px;font-size:13px;border-top:1px solid var(--line);vertical-align:middle;}
+  tr:hover td{background:#FBF7F0;}
+  .cell-prod{display:flex;align-items:center;gap:10px;}
+  .cell-thumb{width:38px;height:44px;border-radius:8px;background-size:cover;background-position:center;flex-shrink:0;}
+  .cell-prod strong{display:block;font-size:12.5px;}
+  .cell-prod span{font-size:11px;color:var(--text-soft);}
+  .badge{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:700;padding:4px 10px;border-radius:100px;}
+  .badge.ok{color:var(--ok);background:rgba(76,140,92,.12);}
+  .badge.warn{color:var(--warn);background:rgba(201,138,44,.12);}
+  .badge.danger{color:var(--danger);background:rgba(181,68,58,.12);}
+  .badge.neutral{color:var(--text-soft);background:#F1EAE0;}
+  .row-actions{display:flex;gap:6px;}
+  .icon-mini{width:28px;height:28px;border-radius:8px;display:flex;align-items:center;justify-content:center;background:#F4EEE3;}
+  .icon-mini svg{width:13px;height:13px;}
+  .icon-mini:hover{background:var(--blush);}
+
+  .stock-bar{width:70px;height:6px;background:var(--line);border-radius:100px;overflow:hidden;display:inline-block;margin-right:8px;vertical-align:middle;}
+  .stock-bar i{display:block;height:100%;background:var(--ok);}
+  .stock-bar.low i{background:var(--warn);}
+  .stock-bar.crit i{background:var(--danger);}
+
+  .chart-wrap{position:relative;height:230px;}
+
+  .kpi-mini{display:flex;justify-content:space-between;align-items:center;padding:12px 0;border-bottom:1px solid var(--line);}
+  .kpi-mini:last-child{border-bottom:none;}
+  .kpi-mini span{font-size:12.5px;color:var(--text-soft);}
+  .kpi-mini strong{font-size:13px;}
+
+  .empty-note{font-size:12px;color:var(--text-soft);background:#F4EEE3;padding:12px 14px;border-radius:10px;margin-top:6px;}
+
+  select.filter{border:1px solid var(--line);border-radius:100px;padding:8px 14px;font-size:12px;font-family:inherit;background:#fff;color:var(--text);}
+
+  @media (max-width:1080px){
+    .app{grid-template-columns:1fr;}
+    .sidebar{position:relative;height:auto;flex-direction:row;align-items:center;overflow-x:auto;}
+    .nav-group{display:flex;gap:4px;margin-bottom:0;}
+    .nav-label{display:none;}
+    .side-foot{display:none;}
+    .side-logo,.side-sub{display:none;}
+    .stat-grid{grid-template-columns:repeat(2,1fr);}
+    .two-col{grid-template-columns:1fr;}
+    .main{padding:20px 16px 50px;}
+  }
+
+  /* ---- Login screen ---- */
+  .login-screen{
+    position:fixed;inset:0;background:var(--sidebar);z-index:500;
+    display:flex;align-items:center;justify-content:center;padding:20px;
+  }
+  .login-card{background:#fff;border-radius:20px;padding:40px 36px;max-width:380px;width:100%;}
+  .login-card .side-logo{color:var(--ink);font-size:22px;margin-bottom:4px;}
+  .login-card .side-sub{color:var(--text-soft);margin-bottom:26px;}
+  .login-card input{
+    width:100%;padding:13px 16px;border:1px solid var(--line);border-radius:12px;
+    font-family:inherit;font-size:13.5px;margin-bottom:12px;
+  }
+  .login-card input:focus{outline:none;border-color:var(--wine);}
+  .login-card .btn-primary{width:100%;justify-content:center;padding:13px;margin-top:6px;}
+  .login-error{font-size:12px;color:var(--danger);margin-bottom:8px;display:none;}
+  .login-demo{
+    display:block;text-align:center;font-size:12px;color:var(--text-soft);margin-top:16px;
+    text-decoration:underline;cursor:pointer;
+  }
+  .login-hint{font-size:11.5px;color:var(--text-soft);background:#F4EEE3;padding:10px 12px;border-radius:10px;margin-top:16px;line-height:1.6;}
+  .conn-badge{
+    display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+    padding:5px 12px;border-radius:100px;margin-left:12px;
+  }
+  .conn-badge.live{color:var(--ok);background:rgba(76,140,92,.12);}
+  .conn-badge.demo{color:var(--warn);background:rgba(201,138,44,.12);}
+  .conn-badge span{width:6px;height:6px;border-radius:50%;background:currentColor;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN SCREEN -->
+<div class="login-screen" id="loginScreen">
+  <div class="login-card">
+    <div class="side-logo">VÉRA <span style="color:var(--gold);font-style:italic;">Admin</span></div>
+    <div class="side-sub">Sign in to your business console</div>
+    <p class="login-error" id="loginError">Incorrect email or password.</p>
+    <form id="loginForm">
+      <input type="email" id="loginEmail" placeholder="Email" value="admin@verahair.co" required>
+      <input type="password" id="loginPassword" placeholder="Password" value="ChangeMe123!" required>
+      <button class="btn btn-primary" type="submit" id="loginSubmit">Sign In</button>
+    </form>
+    <span class="login-demo" id="skipLogin">Continue in demo mode (no backend) →</span>
+    <p class="login-hint">Default seeded login: <strong>admin@verahair.co</strong> / <strong>ChangeMe123!</strong> — run <code>python -m app.seed</code> on the backend first.</p>
+  </div>
+</div>
+
+
+<div class="app">
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
+    <div class="side-logo">VÉRA <span>Admin</span></div>
+    <div class="side-sub">Business Console</div>
+
+    <div class="nav-group">
+      <div class="nav-label">Overview</div>
+      <button class="nav-link active" data-view="dashboard"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg>Dashboard</button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Catalog</div>
+      <button class="nav-link" data-view="products"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14L12 11m0 0L4 7m8 4v10M4 7v10l8 4"/></svg>Products</button>
+      <button class="nav-link" data-view="inventory"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>Inventory<span class="nav-badge">3</span></button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Sales</div>
+      <button class="nav-link" data-view="orders"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>Orders</button>
+      <button class="nav-link" data-view="customers"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 010 7"/><path d="M18 14c2.4.5 3.5 2 3.5 6"/></svg>Customers</button>
+      <button class="nav-link" data-view="appointments"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Appointments</button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Growth</div>
+      <button class="nav-link" data-view="marketing"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M4 4l16 8-16 8V4z"/></svg>Marketing</button>
+      <button class="nav-link" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M4 19V9M12 19V4M20 19v-6"/></svg>Analytics</button>
+    </div>
+
+    <div class="side-foot">
+      <div class="side-avatar"></div>
+      <div><strong>Admin User</strong><small>owner@verahair.co</small></div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- DASHBOARD -->
+    <section class="view active" id="view-dashboard">
+      <div class="topbar">
+        <div><h1>Good morning, Priya <span class="conn-badge demo" id="connBadge"><span></span>Demo Mode</span></h1><p>Here's how Véra Hair Co. is doing today · 9 Aug 2026</p></div>
+        <div class="topbar-actions">
+          <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input placeholder="Search orders, products, customers..."></div>
+          <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+        </div>
+      </div>
+
+      <div class="stat-grid">
+        <div class="stat-card">
+          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2v20M17 6H9.5a2.5 2.5 0 000 5h5a2.5 2.5 0 010 5H6"/></svg></div><span class="stat-delta up">+18.2%</span></div>
+          <div class="stat-value">₹8,42,600</div><div class="stat-label">Revenue this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></div><span class="stat-delta up">+9.4%</span></div>
+          <div class="stat-value">312</div><div class="stat-label">Orders this month</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg></div><span class="stat-delta up">+24</span></div>
+          <div class="stat-value">1,284</div><div class="stat-label">Active customers</div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6L9 17l-5-5"/></svg></div><span class="stat-delta down">-0.6%</span></div>
+          <div class="stat-value">3.8%</div><div class="stat-label">Conversion rate</div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Revenue trend</h3>
+            <div class="tabs"><button class="active">30 Days</button><button>90 Days</button><button>1 Year</button></div>
+          </div>
+          <div class="chart-wrap"><canvas id="revenueChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Top-selling wigs</h3></div>
+          <div class="chart-wrap"><canvas id="topProductsChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head"><h3>Recent orders</h3><button class="btn btn-outline" data-goto="orders">View all</button></div>
+          <table>
+            <thead><tr><th>Order</th><th>Customer</th><th>Item</th><th>Total</th><th>Status</th></tr></thead>
+            <tbody id="recentOrdersBody"></tbody>
+          </table>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Quick stats</h3></div>
+          <div class="kpi-mini"><span>AI Quiz completions</span><strong>142</strong></div>
+          <div class="kpi-mini"><span>Virtual try-ons started</span><strong>96</strong></div>
+          <div class="kpi-mini"><span>AI chat conversations</span><strong>218</strong></div>
+          <div class="kpi-mini"><span>Fittings booked this week</span><strong>27</strong></div>
+          <div class="kpi-mini"><span>Avg. order value</span><strong>₹14,220</strong></div>
+          <div class="kpi-mini"><span>Cart abandonment</span><strong>38%</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- PRODUCTS -->
+    <section class="view" id="view-products">
+      <div class="topbar">
+        <div><h1>Products</h1><p>Manage your wig, extension, and topper catalog</p></div>
+        <div class="topbar-actions">
+          <select class="filter"><option>All categories</option><option>Frontal Wigs</option><option>Closure Wigs</option><option>Glueless Wigs</option><option>Toppers</option></select>
+          <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+        </div>
+      </div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Rating</th><th>Status</th><th></th></tr></thead>
+          <tbody id="productsBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- INVENTORY -->
+    <section class="view" id="view-inventory">
+      <div class="topbar"><div><h1>Inventory</h1><p>Stock levels across warehouses, colors, and sizes</p></div></div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>SKU</th><th>Product</th><th>Color / Size</th><th>Warehouse</th><th>Units left</th><th>Status</th></tr></thead>
+          <tbody id="inventoryBody"></tbody>
+        </table>
+        <p class="empty-note">3 SKUs are below the low-stock threshold (15 units) — reorder suggestions are queued for tomorrow's supplier email.</p>
+      </div>
+    </section>
+
+    <!-- ORDERS -->
+    <section class="view" id="view-orders">
+      <div class="topbar">
+        <div><h1>Orders</h1><p>Track, fulfill, and manage every order</p></div>
+        <div class="topbar-actions">
+          <div class="panel-head tabs" style="margin:0;"><button class="active">All</button><button>Processing</button><button>Shipped</button><button>Delivered</button></div>
+        </div>
+      </div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Order</th><th>Customer</th><th>Item</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- CUSTOMERS -->
+    <section class="view" id="view-customers">
+      <div class="topbar"><div><h1>Customers</h1><p>1,284 total customers, 312 ordered this month</p></div></div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Customer</th><th>Orders</th><th>Total spent</th><th>Last order</th><th>Loyalty points</th></tr></thead>
+          <tbody id="customersBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- APPOINTMENTS -->
+    <section class="view" id="view-appointments">
+      <div class="topbar"><div><h1>Appointments</h1><p>Consultations, fittings, and styling sessions</p></div></div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Customer</th><th>Type</th><th>Stylist</th><th>Date &amp; Time</th><th>Status</th></tr></thead>
+          <tbody id="apptBody"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- MARKETING -->
+    <section class="view" id="view-marketing">
+      <div class="topbar"><div><h1>Marketing</h1><p>Email flows, coupons, and campaign performance</p></div></div>
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head"><h3>Active email flows (Brevo)</h3></div>
+          <div class="kpi-mini"><span>Welcome series</span><strong class="badge ok">Live · 42% open rate</strong></div>
+          <div class="kpi-mini"><span>Abandoned cart recovery</span><strong class="badge ok">Live · 19% recovered</strong></div>
+          <div class="kpi-mini"><span>Order confirmations</span><strong class="badge ok">Live</strong></div>
+          <div class="kpi-mini"><span>Birthday offers</span><strong class="badge ok">Live</strong></div>
+          <div class="kpi-mini"><span>Post-purchase care tips</span><strong class="badge warn">Draft</strong></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Active coupons</h3></div>
+          <div class="kpi-mini"><span>WELCOME10 — 10% off first order</span><strong>412 uses</strong></div>
+          <div class="kpi-mini"><span>FREESHIP — Free shipping over ₹8,000</span><strong>288 uses</strong></div>
+          <div class="kpi-mini"><span>FITKIT — Free sizing kit</span><strong>176 uses</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ANALYTICS -->
+    <section class="view" id="view-analytics">
+      <div class="topbar"><div><h1>Analytics</h1><p>Site performance and customer behaviour</p></div></div>
+      <div class="two-col">
+        <div class="panel">
+          <div class="panel-head"><h3>Traffic by source</h3></div>
+          <div class="chart-wrap"><canvas id="trafficChart"></canvas></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Customer locations</h3></div>
+          <div class="kpi-mini"><span>Mumbai</span><strong>24%</strong></div>
+          <div class="kpi-mini"><span>Delhi NCR</span><strong>19%</strong></div>
+          <div class="kpi-mini"><span>Bengaluru</span><strong>14%</strong></div>
+          <div class="kpi-mini"><span>Hyderabad</span><strong>9%</strong></div>
+          <div class="kpi-mini"><span>Other cities</span><strong>34%</strong></div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+</div>
+
+<script>
+  // ---- View switching ----
+  const navLinks = document.querySelectorAll('.nav-link');
+  function showView(name){
+    document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+    document.getElementById('view-' + name).classList.add('active');
+    navLinks.forEach(l => l.classList.toggle('active', l.dataset.view === name));
+    window.scrollTo({top:0, behavior:'smooth'});
+  }
+  navLinks.forEach(l => l.addEventListener('click', () => showView(l.dataset.view)));
+  document.querySelectorAll('[data-goto]').forEach(b => b.addEventListener('click', () => showView(b.dataset.goto)));
+
+  // ---- Shared render helpers ----
+  const IMG = {
+    frontal:'https://images.unsplash.com/photo-1675034743339-0b0747047727?w=100&q=70&fm=jpg&fit=crop&auto=format',
+    bob:'https://images.unsplash.com/photo-1634449571010-02389ed0f9b0?w=100&q=70&fm=jpg&fit=crop&auto=format',
+    wave:'https://images.unsplash.com/photo-1503830232159-4b417691001e?w=100&q=70&fm=jpg&fit=crop&auto=format',
+    topper:'https://images.unsplash.com/photo-1560869713-bf165a9cfac1?w=100&q=70&fm=jpg&fit=crop&auto=format'
+  };
+
+  function statusBadge(status){
+    const map = {
+      'Delivered':'ok', 'Active':'ok', 'Confirmed':'ok', 'In Stock':'ok',
+      'Out for Delivery':'warn', 'Shipped':'warn', 'Processing':'warn', 'Pending':'warn', 'Draft':'neutral', 'Low Stock':'warn',
+      'Cancelled':'danger', 'Critical':'danger'
+    };
+    return `<span class="badge ${map[status]||'neutral'}">${status}</span>`;
+  }
+  function stockBar(level, units){
+    const pct = level==='crit' ? 15 : level==='low' ? 40 : 85;
+    return `<span class="stock-bar ${level==='ok'?'':level}"><i style="width:${pct}%"></i></span>${units} left`;
+  }
+
+  function renderProducts(products){
+    document.getElementById('productsBody').innerHTML = products.map(p => `
+      <tr>
+        <td><div class="cell-prod"><div class="cell-thumb" style="background-image:url('${p.img}')"></div><div><strong>${p.name}</strong><span>${p.cat}</span></div></div></td>
+        <td>${p.cat}</td>
+        <td>${p.price}</td>
+        <td>${stockBar(p.stockLevel, p.stock)}</td>
+        <td>${p.rating}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td><div class="row-actions">
+          <button class="icon-mini" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+          <button class="icon-mini" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+        </div></td>
+      </tr>`).join('');
+  }
+
+  function renderInventory(inventory){
+    document.getElementById('inventoryBody').innerHTML = inventory.map(i => `
+      <tr><td>${i.sku}</td><td>${i.product}</td><td>${i.variant}</td><td>${i.wh}</td>
+      <td>${stockBar(i.level, i.units)}</td>
+      <td>${statusBadge(i.level==='crit'?'Critical':i.level==='low'?'Low Stock':'In Stock')}</td></tr>`).join('');
+  }
+
+  function renderOrders(orders){
+    const rows = orders.map(o => `
+      <tr><td><strong>${o.id}</strong></td><td>${o.customer}</td><td>${o.item}</td><td>${o.date||''}</td><td>${o.total}</td><td>${statusBadge(o.status)}</td>
+      <td><div class="row-actions"><button class="icon-mini" title="View"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div></td></tr>`).join('');
+    document.getElementById('ordersBody').innerHTML = rows;
+    document.getElementById('recentOrdersBody').innerHTML = orders.slice(0,5).map(o => `
+      <tr><td><strong>${o.id}</strong></td><td>${o.customer}</td><td>${o.item}</td><td>${o.total}</td><td>${statusBadge(o.status)}</td></tr>`).join('');
+  }
+
+  function renderCustomers(customers){
+    document.getElementById('customersBody').innerHTML = customers.map(c => `
+      <tr><td><strong>${c.name}</strong></td><td>${c.orders}</td><td>${c.spent}</td><td>${c.last}</td><td>${c.points} pts</td></tr>`).join('');
+  }
+
+  function renderAppointments(appts){
+    document.getElementById('apptBody').innerHTML = appts.map(a => `
+      <tr><td>${a.name}</td><td>${a.type}</td><td>${a.stylist}</td><td>${a.when}</td><td>${statusBadge(a.status)}</td></tr>`).join('');
+  }
+
+  let revenueChartInstance, topProductsChartInstance, trafficChartInstance;
+  function renderCharts(revenueLabels, revenueData, topLabels, topData){
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    Chart.defaults.color = '#7A6A5F';
+    if(revenueChartInstance) revenueChartInstance.destroy();
+    if(topProductsChartInstance) topProductsChartInstance.destroy();
+    if(trafficChartInstance) trafficChartInstance.destroy();
+
+    revenueChartInstance = new Chart(document.getElementById('revenueChart'), {
+      type:'line',
+      data:{ labels:revenueLabels, datasets:[{ data:revenueData, borderColor:'#5C2431', backgroundColor:'rgba(92,36,49,.08)', fill:true, tension:.4, pointRadius:0, borderWidth:2.5 }] },
+      options:{ plugins:{legend:{display:false}}, scales:{ x:{grid:{display:false}}, y:{grid:{color:'#EEE3D6'}, ticks:{callback:v=>'₹'+(v/1000)+'k'}} } }
+    });
+
+    topProductsChartInstance = new Chart(document.getElementById('topProductsChart'), {
+      type:'bar',
+      data:{ labels:topLabels, datasets:[{data:topData, backgroundColor:['#5C2431','#AD8752','#8C5A3C','#D9B79E','#E7C7B4'], borderRadius:8}] },
+      options:{ indexAxis:'y', plugins:{legend:{display:false}}, scales:{ x:{grid:{color:'#EEE3D6'}}, y:{grid:{display:false}} } }
+    });
+
+    trafficChartInstance = new Chart(document.getElementById('trafficChart'), {
+      type:'doughnut',
+      data:{ labels:['Instagram','Direct','Google Search','WhatsApp','Referral'], datasets:[{data:[34,26,22,12,6], backgroundColor:['#5C2431','#AD8752','#8C5A3C','#D9B79E','#E7C7B4']}] },
+      options:{ plugins:{legend:{position:'bottom', labels:{boxWidth:10, font:{size:11}}}}, cutout:'62%' }
+    });
+  }
+
+  // ---- Demo (mock) dataset ----
+  function renderMockDashboard(){
+    const products = [
+      {name:'Malaika HD Lace Frontal', cat:'Frontal Wigs', price:'₹18,999', stock:64, stockLevel:'ok', rating:'4.9 (312)', status:'Active', img:IMG.frontal},
+      {name:'Anaya Glueless Bob', cat:'Glueless Wigs', price:'₹12,499', stock:11, stockLevel:'low', rating:'4.8 (204)', status:'Active', img:IMG.bob},
+      {name:'Ishita Closure Wave', cat:'Closure Wigs', price:'₹15,999', stock:38, stockLevel:'ok', rating:'4.7 (98)', status:'Active', img:IMG.wave},
+      {name:'Kavya Silk Topper', cat:'Toppers', price:'₹9,499', stock:6, stockLevel:'crit', rating:'4.9 (156)', status:'Active', img:IMG.topper},
+      {name:'Zara 360 Frontal', cat:'Frontal Wigs', price:'₹21,499', stock:22, stockLevel:'ok', rating:'4.6 (61)', status:'Draft', img:IMG.frontal},
+    ];
+    const orders = [
+      {id:'#VR-3021', customer:'Priyanka R.', item:'Malaika HD Lace Frontal', date:'8 Aug 2026', total:'₹18,999', status:'Delivered'},
+      {id:'#VR-3020', customer:'Meera S.', item:'Anaya Glueless Bob', date:'8 Aug 2026', total:'₹12,499', status:'Out for Delivery'},
+      {id:'#VR-3019', customer:'Ananya K.', item:'Ishita Closure Wave', date:'7 Aug 2026', total:'₹15,999', status:'Shipped'},
+      {id:'#VR-3018', customer:'Divya T.', item:'Kavya Silk Topper', date:'7 Aug 2026', total:'₹9,499', status:'Processing'},
+      {id:'#VR-3017', customer:'Ritika M.', item:'Malaika HD Lace Frontal', date:'6 Aug 2026', total:'₹18,999', status:'Delivered'},
+      {id:'#VR-3016', customer:'Sneha P.', item:'Anaya Glueless Bob', date:'6 Aug 2026', total:'₹12,499', status:'Cancelled'},
+    ];
+    const customers = [
+      {name:'Priyanka R.', orders:4, spent:'₹61,200', last:'8 Aug 2026', points:612},
+      {name:'Meera S.', orders:2, spent:'₹24,998', last:'8 Aug 2026', points:250},
+      {name:'Ananya K.', orders:6, spent:'₹88,400', last:'7 Aug 2026', points:884},
+      {name:'Divya T.', orders:1, spent:'₹9,499', last:'7 Aug 2026', points:95},
+      {name:'Ritika M.', orders:3, spent:'₹47,997', last:'6 Aug 2026', points:480},
+    ];
+    const appts = [
+      {name:'Kavita N.', type:'Wig Fitting', stylist:'Rhea (Stylist)', when:'10 Aug, 11:00 AM', status:'Confirmed'},
+      {name:'Sanya D.', type:'Hair Consultation', stylist:'Rhea (Stylist)', when:'10 Aug, 2:30 PM', status:'Confirmed'},
+      {name:'Farah I.', type:'Styling Session', stylist:'Amit (Stylist)', when:'11 Aug, 12:00 PM', status:'Pending'},
+      {name:'Nisha K.', type:'Wig Fitting', stylist:'Rhea (Stylist)', when:'11 Aug, 4:00 PM', status:'Confirmed'},
+    ];
+    const inventory = [
+      {sku:'VR-FR-001', product:'Malaika HD Lace Frontal', variant:'Natural Black · 18"', wh:'Mumbai WH1', units:64, level:'ok'},
+      {sku:'VR-BB-002', product:'Anaya Glueless Bob', variant:'Dark Brown · 12"', wh:'Mumbai WH1', units:11, level:'low'},
+      {sku:'VR-CW-003', product:'Ishita Closure Wave', variant:'Natural Black · 16"', wh:'Delhi WH2', units:38, level:'ok'},
+      {sku:'VR-TP-004', product:'Kavya Silk Topper', variant:'Chocolate Brown · 8"', wh:'Delhi WH2', units:6, level:'crit'},
+      {sku:'VR-FR-005', product:'Zara 360 Frontal', variant:'Natural Black · 20"', wh:'Mumbai WH1', units:22, level:'ok'},
+    ];
+
+    renderProducts(products);
+    renderInventory(inventory);
+    renderOrders(orders);
+    renderCustomers(customers);
+    renderAppointments(appts);
+    renderCharts(
+      ['1','5','10','15','20','25','30'], [18,22,19,27,24,32,38].map(v=>v*1000),
+      ['Malaika Frontal','Ishita Wave','Anaya Bob','Kavya Topper'], [86,64,58,41]
+    );
+  }
+
+  // ---- Live backend integration ----
+  const API_BASE = window.__VERA_API_BASE__ || 'http://localhost:8010/api';
+  let authToken = null;
+
+  function fmtINR(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }
+
+  async function apiGet(path){
+    const res = await fetch(API_BASE + path, { headers: { 'Authorization': 'Bearer ' + authToken } });
+    if(!res.ok) throw new Error('Request failed: ' + path);
+    return res.json();
+  }
+
+  async function loadLiveDashboard(){
+    const [products, orders, customers, inventory, appts, summary, topProducts, revenueTrend] = await Promise.all([
+      apiGet('/products?status=Active').catch(()=>apiGet('/products')),
+      apiGet('/orders'),
+      apiGet('/customers'),
+      apiGet('/inventory'),
+      apiGet('/appointments'),
+      apiGet('/analytics/summary'),
+      apiGet('/analytics/top-products'),
+      apiGet('/analytics/revenue-trend?days=30'),
+    ]);
+
+    renderProducts(products.map(p => ({
+      name:p.name, cat:p.category, price:fmtINR(p.price),
+      stock: inventory.filter(i=>i.product_id===p.id).reduce((s,i)=>s+i.units,0),
+      stockLevel: (inventory.find(i=>i.product_id===p.id)||{}).stock_level || 'ok',
+      rating: `${p.rating} (${p.review_count})`, status:p.status,
+      img: p.image_url || IMG.frontal
+    })));
+
+    renderInventory(inventory.map(i => ({
+      sku:i.sku, product:i.product_name || '—', variant:i.variant, wh:i.warehouse, units:i.units, level:i.stock_level
+    })));
+
+    renderOrders(orders.map(o => ({
+      id:'#'+o.order_number, customer:o.customer_name,
+      item: o.items && o.items[0] ? o.items[0].product_name + (o.items.length>1?` +${o.items.length-1} more`:'') : '—',
+      date: new Date(o.created_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}),
+      total: fmtINR(o.total), status:o.status
+    })));
+
+    renderCustomers(customers.map(c => ({
+      name:c.name, orders:c.order_count, spent:fmtINR(c.total_spent),
+      last: c.created_at ? new Date(c.created_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : '—',
+      points:c.loyalty_points
+    })));
+
+    renderAppointments(appts.map(a => ({
+      name:a.customer_name, type:a.appointment_type, stylist:a.stylist,
+      when: new Date(a.scheduled_at).toLocaleString('en-IN', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit'}),
+      status:a.status
+    })));
+
+    renderCharts(
+      revenueTrend.map(r => r.date.slice(-2)), revenueTrend.map(r => r.total),
+      topProducts.map(p => p.name), topProducts.map(p => p.units_sold)
+    );
+
+    // update top stat cards with real numbers
+    const statValues = document.querySelectorAll('.stat-value');
+    if(statValues[0]) statValues[0].textContent = fmtINR(summary.revenue_this_month);
+    if(statValues[1]) statValues[1].textContent = summary.orders_this_month;
+    if(statValues[2]) statValues[2].textContent = summary.active_customers;
+    if(statValues[3]) statValues[3].textContent = summary.conversion_rate + '%';
+  }
+
+  function setConnBadge(live){
+    const badge = document.getElementById('connBadge');
+    badge.className = 'conn-badge ' + (live ? 'live' : 'demo');
+    badge.innerHTML = '<span></span>' + (live ? 'Live Backend' : 'Demo Mode');
+  }
+
+  // ---- Login handling ----
+  const loginScreen = document.getElementById('loginScreen');
+  const loginError = document.getElementById('loginError');
+
+  document.getElementById('loginForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    const submitBtn = document.getElementById('loginSubmit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Signing in...';
+    loginError.style.display = 'none';
+
+    try{
+      const res = await fetch(API_BASE + '/auth/login', {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({email, password})
+      });
+      if(!res.ok) throw new Error('bad credentials');
+      const data = await res.json();
+      authToken = data.access_token;
+      loginScreen.style.display = 'none';
+      try{
+        await loadLiveDashboard();
+        setConnBadge(true);
+      }catch(err){
+        console.log('Logged in, but live data failed to load — showing demo data.', err);
+        renderMockDashboard();
+        setConnBadge(false);
+      }
+    }catch(err){
+      loginError.textContent = 'Could not reach the backend, or the credentials are incorrect.';
+      loginError.style.display = 'block';
+    }
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Sign In';
+  });
+
+  document.getElementById('skipLogin').addEventListener('click', () => {
+    loginScreen.style.display = 'none';
+    renderMockDashboard();
+    setConnBadge(false);
+  });
+</script>
+</body>
+</html>

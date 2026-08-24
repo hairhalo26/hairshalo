@@ -1,0 +1,1452 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Véra Hair Co. — Human Hair Wigs & Extensions</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#2B1B14;
+    --cream:#FAF5EE;
+    --blush:#E7C7B4;
+    --gold:#AD8752;
+    --wine:#5C2431;
+    --text:#3A2E27;
+    --text-soft:#7A6A5F;
+    --line:rgba(43,27,20,0.12);
+    --radius:22px;
+    --ease:cubic-bezier(.22,.61,.36,1);
+    --container:1240px;
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  html{scroll-behavior:smooth;}
+  body{
+    font-family:'Inter',sans-serif;
+    color:var(--text);
+    background:var(--cream);
+    -webkit-font-smoothing:antialiased;
+    overflow-x:hidden;
+  }
+  @media (prefers-reduced-motion: reduce){
+    *{animation-duration:0.01ms !important; transition-duration:0.01ms !important;}
+  }
+  h1,h2,h3,.serif{font-family:'Fraunces',serif;}
+  a{color:inherit;text-decoration:none;}
+  img,svg{display:block;max-width:100%;}
+  button{font-family:inherit;cursor:pointer;border:none;background:none;color:inherit;}
+  .wrap{max-width:var(--container);margin:0 auto;padding:0 32px;}
+  .eyebrow{
+    font-size:12px;letter-spacing:.16em;text-transform:uppercase;
+    color:var(--gold);font-weight:600;
+  }
+  .btn{
+    display:inline-flex;align-items:center;justify-content:center;gap:8px;
+    padding:15px 30px;border-radius:100px;font-size:14px;font-weight:600;
+    letter-spacing:.02em;transition:transform .35s var(--ease), background .3s, color .3s, box-shadow .3s;
+  }
+  .btn-primary{background:var(--ink);color:var(--cream);}
+  .btn-primary:hover{transform:translateY(-2px);box-shadow:0 14px 28px -12px rgba(43,27,20,.45);}
+  .btn-outline{border:1.5px solid var(--ink);color:var(--ink);}
+  .btn-outline:hover{background:var(--ink);color:var(--cream);}
+  .btn:active{transform:translateY(0);}
+
+  /* ---------- Arch frame signature ---------- */
+  .arch{
+    border-radius: 50% 50% 4px 4px / 22% 22% 0 0;
+    overflow:hidden;
+    position:relative;
+    background:linear-gradient(160deg,#D9B79E 0%, #C9976F 45%, #8C5A3C 100%);
+  }
+  .arch::after{
+    content:'';position:absolute;inset:0;
+    background:
+      radial-gradient(120% 80% at 30% 10%, rgba(255,255,255,.35), transparent 60%),
+      repeating-linear-gradient(115deg, rgba(255,255,255,.06) 0 2px, transparent 2px 26px);
+  }
+  .arch .tag{
+    position:absolute;bottom:18px;left:18px;
+    background:rgba(250,245,238,.92);
+    padding:9px 16px;border-radius:100px;
+    font-size:12px;font-weight:600;letter-spacing:.02em;
+    display:flex;align-items:center;gap:6px;
+    box-shadow:0 8px 20px -8px rgba(0,0,0,.3);
+  }
+  .arch .tag svg{width:13px;height:13px;}
+
+  /* ---------- Announcement bar ---------- */
+  .announce{
+    background:var(--ink);color:var(--cream);text-align:center;
+    font-size:12.5px;letter-spacing:.04em;padding:10px 16px;
+  }
+
+  /* ---------- Header ---------- */
+  header{
+    position:sticky;top:0;z-index:100;
+    background:rgba(250,245,238,.85);
+    backdrop-filter:blur(14px);
+    border-bottom:1px solid transparent;
+    transition:border-color .3s, box-shadow .3s, padding .3s;
+  }
+  header.scrolled{border-color:var(--line);box-shadow:0 8px 24px -18px rgba(0,0,0,.25);}
+  .header-inner{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:22px 0;transition:padding .3s;
+  }
+  header.scrolled .header-inner{padding:14px 0;}
+  .logo{font-family:'Fraunces',serif;font-size:23px;font-weight:600;letter-spacing:.01em;}
+  .logo span{color:var(--gold);font-style:italic;}
+  nav.main-nav{display:flex;gap:34px;}
+  nav.main-nav a{
+    font-size:13.5px;font-weight:500;color:var(--text);position:relative;padding:4px 0;
+  }
+  nav.main-nav a::after{
+    content:'';position:absolute;left:0;bottom:0;width:0;height:1.5px;background:var(--gold);
+    transition:width .3s var(--ease);
+  }
+  nav.main-nav a:hover::after{width:100%;}
+  .header-icons{display:flex;align-items:center;gap:20px;}
+  .icon-btn{position:relative;width:20px;height:20px;color:var(--ink);}
+  .icon-btn svg{width:20px;height:20px;stroke:currentColor;}
+  .cart-count{
+    position:absolute;top:-8px;right:-9px;background:var(--wine);color:#fff;
+    font-size:10px;font-weight:700;width:16px;height:16px;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .burger{display:none;}
+
+  /* ---------- Mobile nav drawer ---------- */
+  .mobile-nav{
+    position:fixed;inset:0;background:var(--cream);z-index:250;
+    transform:translateY(-100%);transition:transform .45s var(--ease);
+    padding:26px 32px 40px;display:flex;flex-direction:column;overflow-y:auto;
+  }
+  .mobile-nav.active{transform:translateY(0);}
+  .mobile-nav-top{display:flex;justify-content:space-between;align-items:center;margin-bottom:30px;}
+  .mobile-nav-close svg{width:20px;height:20px;}
+  .mobile-nav a{
+    font-family:'Fraunces',serif;font-size:26px;font-weight:500;
+    padding:16px 0;border-bottom:1px solid var(--line);
+  }
+  .mobile-nav .btn{margin-top:26px;align-self:flex-start;}
+
+  /* ---------- Hero ---------- */
+  .hero{padding:70px 0 90px;}
+  .hero-grid{display:grid;grid-template-columns:1fr 0.95fr;gap:70px;align-items:center;}
+  .hero-copy h1{
+    font-size:clamp(40px,5.2vw,66px);line-height:1.05;font-weight:500;
+    margin:18px 0 22px;letter-spacing:-.01em;
+  }
+  .hero-copy h1 em{font-style:italic;color:var(--wine);}
+  .hero-copy p{font-size:16.5px;line-height:1.7;color:var(--text-soft);max-width:440px;margin-bottom:34px;}
+  .hero-btns{display:flex;gap:14px;flex-wrap:wrap;margin-bottom:38px;}
+  .hero-chips{display:flex;gap:10px;flex-wrap:wrap;}
+  .chip{
+    font-size:12px;font-weight:600;padding:8px 14px;border-radius:100px;
+    border:1px solid var(--line);color:var(--text-soft);display:flex;align-items:center;gap:6px;
+  }
+  .chip svg{width:12px;height:12px;stroke:var(--gold);}
+  .hero-visual{position:relative;}
+  .hero-visual .arch{aspect-ratio:3/4;}
+  .hero-float{
+    position:absolute;bottom:-28px;right:-24px;background:var(--cream);
+    border:1px solid var(--line);border-radius:18px;padding:16px 20px;
+    box-shadow:0 20px 40px -20px rgba(43,27,20,.3);
+    display:flex;align-items:center;gap:12px;max-width:230px;
+  }
+  .hero-float .stars{color:var(--gold);font-size:13px;letter-spacing:1px;}
+  .hero-float p{font-size:12px;color:var(--text-soft);margin-top:3px;line-height:1.4;}
+
+  /* ---------- Trust strip ---------- */
+  .trust{border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:26px 0;}
+  .trust-grid{display:flex;justify-content:space-between;gap:20px;flex-wrap:wrap;}
+  .trust-item{display:flex;align-items:center;gap:10px;font-size:13px;font-weight:600;color:var(--text);white-space:nowrap;}
+  .trust-item svg{width:18px;height:18px;stroke:var(--wine);flex-shrink:0;}
+
+  /* ---------- Section heading ---------- */
+  .section{padding:96px 0;}
+  .section-head{display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:48px;gap:24px;flex-wrap:wrap;}
+  .section-head h2{font-size:clamp(28px,3.4vw,42px);font-weight:500;line-height:1.15;}
+  .section-head p{color:var(--text-soft);font-size:15px;max-width:360px;margin-top:10px;}
+
+  /* ---------- Categories ---------- */
+  .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;}
+  .cat-card{position:relative;}
+  .cat-card .arch{aspect-ratio:3/3.6;transition:transform .5s var(--ease);}
+  .cat-card:hover .arch{transform:translateY(-6px);}
+  .cat-card h3{font-family:'Fraunces',serif;font-size:19px;font-weight:500;margin-top:16px;}
+  .cat-card p{font-size:13px;color:var(--text-soft);margin-top:4px;}
+  .cat-card .arrow{
+    display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
+    margin-top:10px;color:var(--wine);
+  }
+  .cat-card .arrow svg{width:13px;height:13px;transition:transform .3s var(--ease);}
+  .cat-card:hover .arrow svg{transform:translateX(4px);}
+
+  /* ---------- Promo banner ---------- */
+  .promo{
+    background:linear-gradient(120deg,var(--ink), #402419);
+    color:var(--cream);border-radius:28px;padding:64px 60px;
+    display:flex;justify-content:space-between;align-items:center;gap:40px;flex-wrap:wrap;
+    position:relative;overflow:hidden;
+  }
+  .promo::before{
+    content:'';position:absolute;width:420px;height:420px;border-radius:50%;
+    background:radial-gradient(circle, rgba(173,135,82,.35), transparent 70%);
+    top:-160px;right:-120px;
+  }
+  .promo h3{font-size:clamp(24px,3vw,34px);font-weight:500;max-width:480px;position:relative;}
+  .promo p{color:#D9CBBE;margin-top:10px;font-size:14.5px;max-width:420px;position:relative;}
+  .promo .btn{position:relative;background:var(--cream);color:var(--ink);flex-shrink:0;}
+  .promo .btn:hover{background:var(--gold);color:#fff;}
+
+  /* ---------- Products ---------- */
+  .prod-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;}
+  .prod-card{position:relative;}
+  .prod-media{
+    position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:3/3.7;
+    background:linear-gradient(150deg,#EAD9C6,#C9976F 60%, #7C4C34);
+  }
+  .prod-media::after{content:'';position:absolute;inset:0;background:radial-gradient(120% 70% at 25% 0%, rgba(255,255,255,.4), transparent 55%);}
+  .prod-wish{
+    position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;
+    background:rgba(250,245,238,.92);display:flex;align-items:center;justify-content:center;
+    transition:transform .25s var(--ease), background .25s;
+  }
+  .prod-wish:hover{transform:scale(1.1);background:#fff;}
+  .prod-wish svg{width:15px;height:15px;stroke:var(--wine);}
+  .prod-badge{
+    position:absolute;top:12px;left:12px;background:var(--wine);color:#fff;
+    font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:100px;letter-spacing:.02em;
+  }
+  .quick-add{
+    position:absolute;left:10px;right:10px;bottom:10px;
+    background:var(--cream);color:var(--ink);border-radius:100px;
+    padding:11px;font-size:12.5px;font-weight:700;text-align:center;
+    opacity:0;transform:translateY(10px);
+    transition:opacity .3s var(--ease), transform .3s var(--ease);
+  }
+  .prod-card:hover .quick-add{opacity:1;transform:translateY(0);}
+  .prod-info{padding-top:14px;}
+  .prod-info .cat{font-size:11px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.06em;}
+  .prod-info h4{font-family:'Fraunces',serif;font-size:16.5px;font-weight:500;margin:5px 0 6px;}
+  .swatches{display:flex;gap:6px;margin-bottom:8px;}
+  .swatch{width:14px;height:14px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px var(--line);}
+  .prod-rating{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);margin-bottom:6px;}
+  .prod-rating .stars{color:var(--gold);letter-spacing:1px;}
+  .prod-price{font-size:14.5px;font-weight:700;}
+  .prod-price .old{font-weight:500;color:var(--text-soft);text-decoration:line-through;margin-left:8px;font-size:13px;}
+
+  /* ---------- Editorial split ---------- */
+  .editorial{display:grid;grid-template-columns:0.9fr 1fr;gap:70px;align-items:center;}
+  .editorial .arch{aspect-ratio:4/4.6;}
+  .editorial-copy .eyebrow{margin-bottom:14px;}
+  .editorial-copy h2{font-size:clamp(28px,3.6vw,44px);font-weight:500;line-height:1.15;margin-bottom:18px;}
+  .editorial-copy p{color:var(--text-soft);font-size:15.5px;line-height:1.8;margin-bottom:14px;max-width:460px;}
+
+  /* ---------- Before / after ---------- */
+  .ba-wrap{max-width:680px;margin:0 auto;}
+  .ba-slider{
+    position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:16/10;
+    background-image:linear-gradient(rgba(43,27,20,.12),rgba(43,27,20,.12)), url('https://images.unsplash.com/photo-1587045525473-4861b1f9b5b2?w=1000&q=80&fm=jpg&fit=crop&auto=format');
+    background-size:cover;background-position:center;
+    user-select:none;
+  }
+  .ba-after{
+    position:absolute;inset:0;
+    background-image:linear-gradient(rgba(43,27,20,.1),rgba(43,27,20,.1)), url('https://images.unsplash.com/photo-1496440737103-cd596325d314?w=1000&q=80&fm=jpg&fit=crop&auto=format');
+    background-size:cover;background-position:center;
+    clip-path:inset(0 0 0 50%);
+  }
+  .ba-label{position:absolute;top:16px;font-size:11px;font-weight:700;letter-spacing:.08em;
+    background:rgba(250,245,238,.9);padding:6px 12px;border-radius:100px;color:var(--ink);}
+  .ba-label.before{left:16px;}
+  .ba-label.after{right:16px;}
+  .ba-handle{
+    position:absolute;top:0;bottom:0;left:50%;width:3px;background:#fff;
+    transform:translateX(-50%);cursor:ew-resize;
+  }
+  .ba-handle::after{
+    content:'⇔';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+    width:42px;height:42px;background:#fff;border-radius:50%;
+    display:flex;align-items:center;justify-content:center;font-size:16px;color:var(--ink);
+    box-shadow:0 8px 20px -8px rgba(0,0,0,.4);
+  }
+
+  /* ---------- Why choose ---------- */
+  .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
+  .why-item{background:var(--cream);padding:34px 26px;}
+  .why-item svg{width:26px;height:26px;stroke:var(--wine);margin-bottom:18px;}
+  .why-item h4{font-family:'Fraunces',serif;font-size:17px;font-weight:500;margin-bottom:8px;}
+  .why-item p{font-size:13.5px;color:var(--text-soft);line-height:1.6;}
+
+  /* ---------- Testimonials ---------- */
+  .testi-track{display:flex;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;}
+  .testi-track::-webkit-scrollbar{display:none;}
+  .testi-card{
+    scroll-snap-align:start;flex:0 0 calc(33.333% - 16px);
+    background:#fff;border:1px solid var(--line);border-radius:20px;padding:30px;
+  }
+  .testi-card .stars{color:var(--gold);font-size:14px;letter-spacing:2px;margin-bottom:14px;}
+  .testi-card p{font-size:14.5px;line-height:1.75;color:var(--text);margin-bottom:20px;}
+  .testi-person{display:flex;align-items:center;gap:12px;}
+  .testi-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(140deg,#E7C7B4,#8C5A3C);}
+  .testi-person span{display:block;font-size:13px;font-weight:700;}
+  .testi-person small{font-size:11.5px;color:var(--text-soft);}
+
+  /* ---------- FAQ ---------- */
+  .faq-wrap{max-width:740px;margin:0 auto;}
+  .faq-item{border-bottom:1px solid var(--line);}
+  .faq-q{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:22px 4px;font-size:16px;font-weight:500;font-family:'Fraunces',serif;
+  }
+  .faq-q svg{width:16px;height:16px;transition:transform .35s var(--ease);flex-shrink:0;}
+  .faq-item.open .faq-q svg{transform:rotate(45deg);}
+  .faq-a{max-height:0;overflow:hidden;transition:max-height .4s var(--ease);}
+  .faq-a p{padding:0 4px 22px;font-size:14.5px;color:var(--text-soft);line-height:1.75;max-width:600px;}
+
+  /* ---------- Newsletter ---------- */
+  .newsletter{background:var(--blush);border-radius:28px;padding:70px 60px;text-align:center;}
+  .newsletter h2{font-size:clamp(26px,3.4vw,38px);font-weight:500;margin-bottom:12px;}
+  .newsletter p{color:var(--text);opacity:.75;margin-bottom:30px;}
+  .nl-form{display:flex;max-width:420px;margin:0 auto;gap:10px;}
+  .nl-form input{
+    flex:1;padding:15px 20px;border-radius:100px;border:1.5px solid transparent;
+    background:rgba(250,245,238,.7);font-size:14px;font-family:inherit;
+  }
+  .nl-form input:focus{outline:none;border-color:var(--ink);}
+
+  /* ---------- Footer ---------- */
+  footer{padding:80px 0 30px;border-top:1px solid var(--line);margin-top:40px;}
+  .foot-grid{display:grid;grid-template-columns:1.4fr repeat(3,1fr);gap:40px;margin-bottom:60px;}
+  .foot-brand p{font-size:13.5px;color:var(--text-soft);margin:16px 0 20px;max-width:280px;line-height:1.7;}
+  .foot-social{display:flex;gap:12px;}
+  .foot-social a{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
+  .foot-social svg{width:14px;height:14px;}
+  .foot-col h5{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-soft);margin-bottom:16px;}
+  .foot-col a{display:block;font-size:13.5px;padding:6px 0;color:var(--text);}
+  .foot-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
+    font-size:12px;color:var(--text-soft);padding-top:26px;border-top:1px solid var(--line);}
+  .foot-legal{display:flex;gap:18px;flex-wrap:wrap;}
+
+  /* ---------- Cart drawer ---------- */
+  .overlay{position:fixed;inset:0;background:rgba(43,27,20,.4);opacity:0;pointer-events:none;transition:opacity .35s;z-index:200;}
+  .overlay.active{opacity:1;pointer-events:auto;}
+  .cart-drawer{
+    position:fixed;top:0;right:0;bottom:0;width:400px;max-width:90vw;background:var(--cream);
+    z-index:201;transform:translateX(100%);transition:transform .45s var(--ease);
+    display:flex;flex-direction:column;
+  }
+  .cart-drawer.active{transform:translateX(0);}
+  .cart-head{display:flex;justify-content:space-between;align-items:center;padding:24px 26px;border-bottom:1px solid var(--line);}
+  .cart-head h3{font-family:'Fraunces',serif;font-size:19px;font-weight:500;}
+  .cart-close svg{width:18px;height:18px;}
+  .cart-progress{padding:18px 26px;border-bottom:1px solid var(--line);}
+  .cart-progress-bar{height:5px;background:var(--line);border-radius:100px;margin-top:10px;overflow:hidden;}
+  .cart-progress-fill{height:100%;background:var(--wine);width:38%;border-radius:100px;transition:width .5s var(--ease);}
+  .cart-progress p{font-size:12px;color:var(--text-soft);}
+  .cart-items{flex:1;overflow-y:auto;padding:20px 26px;}
+  .cart-item{display:flex;gap:14px;margin-bottom:20px;}
+  .cart-item .thumb{width:64px;height:76px;border-radius:12px;flex-shrink:0;background:linear-gradient(150deg,#EAD9C6,#8C5A3C);}
+  .cart-item-info{flex:1;}
+  .cart-item-info h5{font-size:13.5px;font-weight:600;margin-bottom:4px;}
+  .cart-item-info small{font-size:11.5px;color:var(--text-soft);}
+  .cart-item-bottom{display:flex;justify-content:space-between;align-items:center;margin-top:8px;}
+  .qty{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:100px;padding:4px 10px;font-size:12px;}
+  .cart-foot{padding:22px 26px;border-top:1px solid var(--line);}
+  .cart-subtotal{display:flex;justify-content:space-between;font-size:14.5px;font-weight:700;margin-bottom:16px;}
+  .cart-empty{padding:60px 20px;text-align:center;color:var(--text-soft);font-size:14px;}
+
+  .toast{
+    position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
+    background:var(--ink);color:var(--cream);padding:14px 24px;border-radius:100px;
+    font-size:13px;font-weight:600;opacity:0;pointer-events:none;transition:all .4s var(--ease);z-index:300;
+    display:flex;align-items:center;gap:8px;
+  }
+  .toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+  /* ---------- AI Features ---------- */
+  .ai-section{background:linear-gradient(180deg,var(--cream),#F3E9DD);}
+  .ai-badge{
+    display:inline-flex;align-items:center;gap:6px;font-size:11px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--wine);
+    background:rgba(92,36,49,.08);padding:6px 12px;border-radius:100px;margin-bottom:14px;
+  }
+  .ai-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:26px;}
+  .ai-card{
+    background:#fff;border:1px solid var(--line);border-radius:var(--radius);
+    padding:32px 28px;display:flex;flex-direction:column;
+    transition:transform .35s var(--ease), box-shadow .35s var(--ease);
+  }
+  .ai-card:hover{transform:translateY(-6px);box-shadow:0 24px 44px -28px rgba(43,27,20,.35);}
+  .ai-icon{
+    width:52px;height:52px;border-radius:16px;background:linear-gradient(150deg,var(--blush),var(--gold));
+    display:flex;align-items:center;justify-content:center;margin-bottom:20px;
+  }
+  .ai-icon svg{width:24px;height:24px;stroke:var(--ink);}
+  .ai-card h3{font-family:'Fraunces',serif;font-size:19px;font-weight:500;margin-bottom:8px;}
+  .ai-card p{font-size:13.5px;color:var(--text-soft);line-height:1.65;margin-bottom:22px;flex:1;}
+  .ai-card button{align-self:flex-start;}
+
+  /* ---------- Modal ---------- */
+  .modal-overlay{
+    position:fixed;inset:0;background:rgba(43,27,20,.5);z-index:400;
+    opacity:0;pointer-events:none;transition:opacity .3s;
+  }
+  .modal-overlay.active{opacity:1;pointer-events:auto;}
+  .modal{
+    position:fixed;top:50%;left:50%;transform:translate(-50%,-46%);
+    width:520px;max-width:92vw;max-height:86vh;overflow-y:auto;
+    background:var(--cream);border-radius:24px;z-index:401;padding:34px;
+    opacity:0;pointer-events:none;transition:opacity .35s var(--ease), transform .35s var(--ease);
+    box-shadow:0 40px 80px -30px rgba(0,0,0,.4);
+  }
+  .modal.active{opacity:1;pointer-events:auto;transform:translate(-50%,-50%);}
+  .modal-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;}
+  .modal-close svg{width:15px;height:15px;}
+  .modal-head{margin-bottom:22px;}
+  .modal-head span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);}
+  .modal-head h3{font-family:'Fraunces',serif;font-size:22px;font-weight:500;margin-top:6px;}
+  .quiz-progress{display:flex;gap:6px;margin-bottom:26px;}
+  .quiz-progress span{height:4px;flex:1;background:var(--line);border-radius:100px;overflow:hidden;}
+  .quiz-progress span i{display:block;height:100%;width:0;background:var(--wine);transition:width .3s var(--ease);}
+  .quiz-step{display:none;}
+  .quiz-step.active{display:block;}
+  .quiz-options{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:24px;}
+  .quiz-opt{
+    border:1.5px solid var(--line);border-radius:14px;padding:16px 14px;font-size:13.5px;font-weight:600;
+    text-align:center;transition:border-color .25s, background .25s;
+  }
+  .quiz-opt:hover{border-color:var(--gold);}
+  .quiz-opt.selected{border-color:var(--wine);background:rgba(92,36,49,.06);color:var(--wine);}
+  .quiz-nav{display:flex;justify-content:space-between;gap:12px;}
+  .quiz-result{display:none;}
+  .quiz-result.active{display:block;}
+  .quiz-result-card{display:flex;gap:16px;border:1px solid var(--line);border-radius:16px;padding:16px;margin:18px 0 22px;}
+  .quiz-result-card .thumb{width:78px;height:94px;border-radius:12px;background-size:cover;background-position:center;flex-shrink:0;}
+  .quiz-result-card h4{font-family:'Fraunces',serif;font-size:16px;margin-bottom:4px;}
+  .quiz-result-card p{font-size:12.5px;color:var(--text-soft);margin-bottom:6px;}
+  .match-badge{display:inline-block;font-size:11px;font-weight:700;color:var(--wine);background:rgba(92,36,49,.08);padding:3px 10px;border-radius:100px;}
+
+  .tryon-upload{
+    border:1.5px dashed var(--line);border-radius:16px;padding:30px 20px;text-align:center;
+    cursor:pointer;margin-bottom:20px;
+  }
+  .tryon-upload svg{width:26px;height:26px;stroke:var(--gold);margin:0 auto 10px;}
+  .tryon-upload p{font-size:13px;color:var(--text-soft);}
+  .tryon-preview{position:relative;border-radius:16px;overflow:hidden;aspect-ratio:3/3.4;background:var(--line);margin-bottom:18px;display:none;}
+  .tryon-preview.active{display:block;}
+  .tryon-preview img{width:100%;height:100%;object-fit:cover;}
+  .tryon-overlay{position:absolute;inset:0;opacity:.55;mix-blend-mode:multiply;transition:opacity .3s;}
+  .tryon-styles{display:flex;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+  .tryon-style-btn{
+    border:1.5px solid var(--line);border-radius:100px;padding:9px 16px;font-size:12.5px;font-weight:600;
+  }
+  .tryon-style-btn.selected{border-color:var(--wine);background:rgba(92,36,49,.06);color:var(--wine);}
+  .tryon-note{font-size:11.5px;color:var(--text-soft);line-height:1.6;background:rgba(173,135,82,.1);padding:12px 14px;border-radius:12px;}
+
+  /* ---------- Chat widget ---------- */
+  .chat-fab{
+    position:fixed;bottom:26px;right:26px;width:58px;height:58px;border-radius:50%;
+    background:var(--ink);color:var(--cream);display:flex;align-items:center;justify-content:center;
+    box-shadow:0 16px 32px -14px rgba(43,27,20,.5);z-index:250;transition:transform .3s var(--ease);
+  }
+  .chat-fab:hover{transform:scale(1.06);}
+  .chat-fab svg{width:24px;height:24px;}
+  .chat-dot{position:absolute;top:6px;right:6px;width:10px;height:10px;border-radius:50%;background:#5DBE7A;border:2px solid var(--cream);}
+  .chat-panel{
+    position:fixed;bottom:96px;right:26px;width:360px;max-width:88vw;height:480px;max-height:70vh;
+    background:var(--cream);border-radius:22px;box-shadow:0 30px 60px -20px rgba(0,0,0,.4);
+    z-index:251;display:flex;flex-direction:column;overflow:hidden;
+    opacity:0;transform:translateY(16px) scale(.97);pointer-events:none;
+    transition:opacity .3s var(--ease), transform .3s var(--ease);
+  }
+  .chat-panel.active{opacity:1;transform:translateY(0) scale(1);pointer-events:auto;}
+  .chat-head{background:var(--ink);color:var(--cream);padding:18px 20px;display:flex;justify-content:space-between;align-items:center;}
+  .chat-head-info{display:flex;align-items:center;gap:10px;}
+  .chat-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(150deg,var(--blush),var(--gold));display:flex;align-items:center;justify-content:center;font-size:14px;}
+  .chat-head h5{font-size:13.5px;font-weight:700;}
+  .chat-head small{font-size:11px;opacity:.7;display:flex;align-items:center;gap:5px;}
+  .chat-head small::before{content:'';width:6px;height:6px;background:#5DBE7A;border-radius:50%;}
+  .chat-close-btn svg{width:16px;height:16px;}
+  .chat-messages{flex:1;overflow-y:auto;padding:18px;display:flex;flex-direction:column;gap:12px;}
+  .msg{max-width:82%;padding:11px 14px;border-radius:16px;font-size:13px;line-height:1.55;}
+  .msg.bot{background:#fff;border:1px solid var(--line);align-self:flex-start;border-bottom-left-radius:4px;}
+  .msg.user{background:var(--wine);color:#fff;align-self:flex-end;border-bottom-right-radius:4px;}
+  .chat-quick{display:flex;flex-wrap:wrap;gap:6px;padding:0 18px 12px;}
+  .chat-quick button{font-size:11.5px;font-weight:600;border:1px solid var(--line);border-radius:100px;padding:7px 12px;background:#fff;}
+  .chat-input-row{display:flex;gap:8px;padding:14px;border-top:1px solid var(--line);}
+  .chat-input-row input{flex:1;border:1px solid var(--line);border-radius:100px;padding:11px 16px;font-size:12.5px;font-family:inherit;background:#fff;}
+  .chat-input-row input:focus{outline:none;border-color:var(--wine);}
+  .chat-send{width:38px;height:38px;border-radius:50%;background:var(--ink);color:#fff;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+  .chat-send svg{width:15px;height:15px;}
+  .typing-dots{display:flex;gap:3px;padding:4px 2px;}
+  .typing-dots span{width:5px;height:5px;background:var(--text-soft);border-radius:50%;animation:blink 1.2s infinite;}
+  .typing-dots span:nth-child(2){animation-delay:.2s;}
+  .typing-dots span:nth-child(3){animation-delay:.4s;}
+  @keyframes blink{0%,80%,100%{opacity:.25;}40%{opacity:1;}}
+
+  @media (max-width:640px){
+    .ai-grid{grid-template-columns:1fr;}
+    .chat-panel{right:12px;left:12px;width:auto;bottom:90px;}
+    .chat-fab{right:18px;bottom:18px;}
+  }
+  @media (max-width:980px){
+    nav.main-nav{display:none;}
+    .burger{display:flex;width:22px;height:16px;flex-direction:column;justify-content:space-between;}
+    .burger span{height:1.6px;background:var(--ink);border-radius:2px;}
+    .hero-grid{grid-template-columns:1fr;gap:44px;}
+    .hero-float{position:static;margin-top:20px;max-width:none;}
+    .cat-grid{grid-template-columns:repeat(2,1fr);}
+    .prod-grid{grid-template-columns:repeat(2,1fr);}
+    .why-grid{grid-template-columns:repeat(2,1fr);}
+    .editorial{grid-template-columns:1fr;gap:36px;}
+    .editorial .order-2{order:-1;}
+    .testi-card{flex:0 0 85%;}
+    .foot-grid{grid-template-columns:repeat(2,1fr);}
+    .promo{padding:44px 30px;}
+    .newsletter{padding:50px 26px;}
+    .section{padding:66px 0;}
+  }
+  @media (max-width:560px){
+    .wrap{padding:0 20px;}
+    .cat-grid,.prod-grid,.why-grid{grid-template-columns:1fr 1fr;}
+    .foot-grid{grid-template-columns:1fr;gap:30px;}
+    .nl-form{flex-direction:column;}
+  }
+</style>
+</head>
+<body>
+
+<div class="announce">Complimentary virtual consultation with every order &nbsp;·&nbsp; Ships pan-India in 3–5 days</div>
+
+<header id="siteHeader">
+  <div class="wrap header-inner">
+    <a href="#" class="logo">VÉRA <span>Hair Co.</span></a>
+    <nav class="main-nav">
+      <a href="#collections">Wigs</a>
+      <a href="#collections">Extensions</a>
+      <a href="#bestsellers">Toppers</a>
+      <a href="#editorial">Hair Care</a>
+      <a href="#faq">Book a Fitting</a>
+    </nav>
+    <div class="header-icons">
+      <button class="icon-btn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
+      <button class="icon-btn" aria-label="Account"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></button>
+      <button class="icon-btn" aria-label="Wishlist"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
+      <button class="icon-btn" id="cartBtn" aria-label="Cart">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>
+        <span class="cart-count" id="cartCount">2</span>
+      </button>
+      <button class="burger" id="burgerBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- MOBILE NAV -->
+<div class="mobile-nav" id="mobileNav">
+  <div class="mobile-nav-top">
+    <a href="#" class="logo">VÉRA <span>Hair Co.</span></a>
+    <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <a href="#collections">Wigs</a>
+  <a href="#collections">Extensions</a>
+  <a href="#bestsellers">Toppers</a>
+  <a href="#editorial">Hair Care</a>
+  <a href="#faq">Book a Fitting</a>
+  <a href="#collections" class="btn btn-primary">Shop Now</a>
+</div>
+
+<!-- HERO -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div class="hero-copy">
+      <span class="eyebrow">Premium Human Hair</span>
+      <h1>Hair that moves<br>like it's <em>always</em><br>been yours.</h1>
+      <p>Hand-tied human hair wigs and extensions with a natural hairline, breathable lace, and a fit built for everyday wear — from your first install to your best hair day.</p>
+      <div class="hero-btns">
+        <a href="#collections" class="btn btn-primary">Shop Wigs</a>
+        <a href="#faq" class="btn btn-outline">Book a Fitting</a>
+      </div>
+      <div class="hero-chips">
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>100% Human Hair</span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>HD Lace, Natural Hairline</span>
+        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Free Cap Size Guidance</span>
+      </div>
+    </div>
+    <div class="hero-visual">
+      <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.18), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1496440737103-cd596325d314?w=900&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
+        <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="var(--wine)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Glueless &amp; Beginner-Friendly</span>
+      </div>
+      <div class="hero-float">
+        <div class="stars">★★★★★</div>
+        <p>"Blends into my natural hairline better than anything I've tried." — Priyanka, verified buyer</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TRUST -->
+<div class="trust">
+  <div class="wrap trust-grid">
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>100% Human Hair</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg>Natural Scalp Finish</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Secure Payments</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 12l7 7 11-13"/></svg>7-Day Fit Guarantee</div>
+    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M5 12h14M13 5l7 7-7 7"/></svg>Fast Pan-India Delivery</div>
+  </div>
+</div>
+
+<!-- CATEGORIES -->
+<section class="section" id="collections">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Find your perfect install</h2></div>
+      <p>Every texture and density, made for a natural finish and easy everyday wear.</p>
+    </div>
+    <div class="cat-grid">
+      <div class="cat-card">
+        <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1583599499601-6ace8c41b622?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">Best for beginners</span></div>
+        <h3>Glueless Wigs</h3>
+        <p>Adjustable straps, no glue required</p>
+        <a href="#" class="arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      </div>
+      <div class="cat-card">
+        <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1589424214513-b672297bf8c4?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">Undetectable lace</span></div>
+        <h3>HD Lace Wigs</h3>
+        <p>Melts seamlessly into your skin tone</p>
+        <a href="#" class="arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      </div>
+      <div class="cat-card">
+        <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1546877625-cb8c71916608?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">Everyday styling</span></div>
+        <h3>Closure Wigs</h3>
+        <p>Versatile parting, low-maintenance wear</p>
+        <a href="#" class="arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      </div>
+      <div class="cat-card">
+        <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1591155048800-93b29d215ed8?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">360° styling freedom</span></div>
+        <h3>Frontal Wigs</h3>
+        <p>Full hairline for updos and edges</p>
+        <a href="#" class="arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- PROMO -->
+<div class="wrap">
+  <div class="promo">
+    <div>
+      <h3>Free cap sizing kit with your first wig order.</h3>
+      <p>Get a precise, comfortable fit before you buy — we'll mail a sizing kit and walk you through it over WhatsApp.</p>
+    </div>
+    <a href="#" class="btn">Claim Your Kit</a>
+  </div>
+</div>
+
+<!-- BEST SELLERS -->
+<section class="section" id="bestsellers">
+  <div class="wrap">
+    <div class="section-head">
+      <div><h2>Best sellers</h2></div>
+      <p>Our most-loved units, chosen by customers who wear them every day.</p>
+    </div>
+    <div class="prod-grid">
+      <div class="prod-card">
+        <div class="prod-media" style="background-image:linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1675034743339-0b0747047727?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
+          <span class="prod-badge">Bestseller</span>
+          <button class="prod-wish"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
+          <div class="quick-add" data-add data-name="Malaika HD Lace Frontal" data-price="18999">Quick Add</div>
+        </div>
+        <div class="prod-info">
+          <span class="cat">Frontal Wig</span>
+          <h4>Malaika HD Lace Frontal</h4>
+          <div class="swatches"><span class="swatch" style="background:#2B1B14"></span><span class="swatch" style="background:#5C3A24"></span><span class="swatch" style="background:#8C5A3C"></span></div>
+          <div class="prod-rating"><span class="stars">★★★★★</span>4.9 (312)</div>
+          <div class="prod-price">₹18,999</div>
+        </div>
+      </div>
+      <div class="prod-card">
+        <div class="prod-media" style="background-image:linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1634449571010-02389ed0f9b0?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
+          <button class="prod-wish"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
+          <div class="quick-add" data-add data-name="Anaya Glueless Bob" data-price="12499">Quick Add</div>
+        </div>
+        <div class="prod-info">
+          <span class="cat">Glueless Wig</span>
+          <h4>Anaya Glueless Bob</h4>
+          <div class="swatches"><span class="swatch" style="background:#2B1B14"></span><span class="swatch" style="background:#5C3A24"></span></div>
+          <div class="prod-rating"><span class="stars">★★★★★</span>4.8 (204)</div>
+          <div class="prod-price">₹12,499 <span class="old">₹14,999</span></div>
+        </div>
+      </div>
+      <div class="prod-card">
+        <div class="prod-media" style="background-image:linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1503830232159-4b417691001e?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
+          <span class="prod-badge">New</span>
+          <button class="prod-wish"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
+          <div class="quick-add" data-add data-name="Ishita Closure Wave" data-price="15999">Quick Add</div>
+        </div>
+        <div class="prod-info">
+          <span class="cat">Closure Wig</span>
+          <h4>Ishita Closure Wave</h4>
+          <div class="swatches"><span class="swatch" style="background:#8C5A3C"></span><span class="swatch" style="background:#B08D57"></span></div>
+          <div class="prod-rating"><span class="stars">★★★★★</span>4.7 (98)</div>
+          <div class="prod-price">₹15,999</div>
+        </div>
+      </div>
+      <div class="prod-card">
+        <div class="prod-media" style="background-image:linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1560869713-bf165a9cfac1?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
+          <button class="prod-wish"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
+          <div class="quick-add" data-add data-name="Kavya Silk Topper" data-price="9499">Quick Add</div>
+        </div>
+        <div class="prod-info">
+          <span class="cat">Hair Topper</span>
+          <h4>Kavya Silk Topper</h4>
+          <div class="swatches"><span class="swatch" style="background:#2B1B14"></span><span class="swatch" style="background:#3A2E27"></span></div>
+          <div class="prod-rating"><span class="stars">★★★★★</span>4.9 (156)</div>
+          <div class="prod-price">₹9,499</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- AI FEATURES -->
+<section class="section ai-section" id="ai-features">
+  <div class="wrap">
+    <div class="section-head">
+      <div>
+        <span class="ai-badge"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6z"/></svg> AI-Powered</span>
+        <h2>Shop smarter, with a little AI help</h2>
+      </div>
+      <p>Get matched to the right unit, preview a style, or ask a question — all before you add to bag.</p>
+    </div>
+    <div class="ai-grid">
+      <div class="ai-card">
+        <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.6 10.8c.5.4.6 1 .6 1.5v.7h6v-.7c0-.5.1-1.1.6-1.5A6 6 0 0012 3z"/></svg></div>
+        <h3>AI Wig Finder</h3>
+        <p>Answer 4 quick questions about your face shape, hair goals, and budget — get a personalised match instantly.</p>
+        <button class="btn btn-outline" id="openQuiz">Take the Quiz</button>
+      </div>
+      <div class="ai-card">
+        <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M8 18c0-2.2 1.8-3.5 4-3.5s4 1.3 4 3.5"/></svg></div>
+        <h3>Virtual Try-On</h3>
+        <p>Upload a selfie and preview how different lengths and textures could look on you — no commitment needed.</p>
+        <button class="btn btn-outline" id="openTryon">Try It On</button>
+      </div>
+      <div class="ai-card">
+        <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 01-8.9 8.4 8.6 8.6 0 01-3.6-.8L3 20l1-4.9a8.3 8.3 0 01-1-4A8.4 8.4 0 0111.9 3a8.5 8.5 0 019.1 8.5z"/></svg></div>
+        <h3>24/7 AI Assistant</h3>
+        <p>Ask about sizing, shipping, maintenance, or appointments — get instant answers any time, day or night.</p>
+        <button class="btn btn-outline" id="openChatFromCard">Chat Now</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- EDITORIAL -->
+<section class="section" id="editorial">
+  <div class="wrap editorial">
+    <div class="arch order-2" style="aspect-ratio:4/4.6;background-image:linear-gradient(160deg, rgba(43,27,20,.18), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">Density: Soft &amp; natural</span></div>
+    <div class="editorial-copy">
+      <span class="eyebrow">The Véra Difference</span>
+      <h2>Looks natural. Feels like yours.</h2>
+      <p>Every unit starts with ethically sourced human hair, hand-tied strand by strand onto breathable Swiss lace. No stiff parting, no plastic shine — just movement, softness, and a scalp-like finish that holds up to real, everyday life.</p>
+      <p>Our stylists size, trim, and customise the hairline for you before it ships, so what arrives is ready to wear from day one.</p>
+      <a href="#" class="btn btn-outline">Discover Our Hair</a>
+    </div>
+  </div>
+</section>
+
+<!-- BEFORE / AFTER -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head" style="justify-content:center;text-align:center;flex-direction:column;align-items:center;">
+      <h2>The difference is in the detail</h2>
+      <p>Drag to compare — from natural roots to a completely blended install.</p>
+    </div>
+    <div class="ba-wrap">
+      <div class="ba-slider" id="baSlider">
+        <span class="ba-label before">Before</span>
+        <span class="ba-label after">After</span>
+        <div class="ba-after" id="baAfter"></div>
+        <div class="ba-handle" id="baHandle"></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- WHY CHOOSE -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head"><h2>Why customers choose Véra</h2></div>
+    <div class="why-grid">
+      <div class="why-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
+        <h4>100% Human Hair</h4>
+        <p>Natural movement, softness, and full styling versatility — heat-safe up to 180°C.</p>
+      </div>
+      <div class="why-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg>
+        <h4>Ethically Sourced</h4>
+        <p>Every bundle is hand-selected for quality, consistency, and traceable origin.</p>
+      </div>
+      <div class="why-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
+        <h4>Long Lasting</h4>
+        <p>With proper care, our units stay soft and full for 12+ months of regular wear.</p>
+      </div>
+      <div class="why-item">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M4 12c2-4 6-6 8-6s6 2 8 6c-2 4-6 6-8 6s-6-2-8-6z"/><circle cx="12" cy="12" r="2.4"/></svg>
+        <h4>Natural Finish</h4>
+        <p>HD lace and hand-plucked hairlines blend seamlessly with your own skin tone.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- TESTIMONIALS -->
+<section class="section">
+  <div class="wrap">
+    <div class="section-head"><h2>Loved, daily</h2></div>
+    <div class="testi-track">
+      <div class="testi-card">
+        <div class="stars">★★★★★</div>
+        <p>"The lace genuinely disappears into my hairline. I stopped worrying about it within the first hour of wearing it out."</p>
+        <div class="testi-person"><div class="testi-avatar"></div><div><span>Priyanka R.</span><small>Verified Customer</small></div></div>
+      </div>
+      <div class="testi-card">
+        <div class="stars">★★★★★</div>
+        <p>"I'm a first-time wig wearer and the glueless strap made it so easy. Fit guidance over WhatsApp made all the difference."</p>
+        <div class="testi-person"><div class="testi-avatar"></div><div><span>Meera S.</span><small>Verified Customer</small></div></div>
+      </div>
+      <div class="testi-card">
+        <div class="stars">★★★★★</div>
+        <p>"Softer and more natural-moving than the unit I paid nearly double for elsewhere. It's now the only brand I recommend."</p>
+        <div class="testi-person"><div class="testi-avatar"></div><div><span>Ananya K.</span><small>Verified Customer</small></div></div>
+      </div>
+      <div class="testi-card">
+        <div class="stars">★★★★★</div>
+        <p>"Ordered a topper for thinning at my crown — it blends so well that my hairdresser couldn't tell where it started."</p>
+        <div class="testi-person"><div class="testi-avatar"></div><div><span>Divya T.</span><small>Verified Customer</small></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="section" id="faq">
+  <div class="wrap">
+    <div class="section-head" style="justify-content:center;text-align:center;flex-direction:column;align-items:center;">
+      <h2>Questions, answered</h2>
+    </div>
+    <div class="faq-wrap">
+      <div class="faq-item">
+        <div class="faq-q">How do I choose the right cap size?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="faq-a"><p>We send a free sizing kit with a measuring guide, or you can book a virtual fitting and our stylists will measure with you over video call.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How long does a human hair wig last?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="faq-a"><p>With proper washing, conditioning, and storage, most customers get 12–18 months of regular wear from a single unit.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Can I colour or heat style the hair?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="faq-a"><p>Yes — since it's 100% human hair, it can be safely heat-styled up to 180°C and coloured up to two shades darker at a professional salon.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">Do you offer returns or exchanges?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="faq-a"><p>Unworn units in original packaging can be exchanged within 7 days. Our fit guarantee covers sizing issues on your first order.</p></div>
+      </div>
+      <div class="faq-item">
+        <div class="faq-q">How long does shipping take?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+        <div class="faq-a"><p>Most orders ship within 24 hours and arrive in 3–5 business days across India, with live tracking sent to your email and WhatsApp.</p></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- NEWSLETTER -->
+<div class="wrap">
+  <div class="newsletter">
+    <h2>Your best hair starts here</h2>
+    <p>Styling tips, new arrivals, and offers — straight to your inbox.</p>
+    <form class="nl-form" onsubmit="event.preventDefault(); this.reset(); showToast('Thanks — you\'re on the list.');">
+      <input type="email" placeholder="Enter your email" required>
+      <button class="btn btn-primary" type="submit">Join Us</button>
+    </form>
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="wrap">
+    <div class="foot-grid">
+      <div class="foot-brand">
+        <a href="#" class="logo">VÉRA <span>Hair Co.</span></a>
+        <p>Premium human hair wigs and extensions, fitted and finished for a completely natural, everyday wear.</p>
+        <div class="foot-social">
+          <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
+          <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M14 9h3V6h-3c-1.7 0-3 1.3-3 3v2H8v3h3v6h3v-6h3l1-3h-4V9c0-.6.4-1 1-1z"/></svg></a>
+          <a href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 21l1.4-4.2A9 9 0 1112 21a9 9 0 01-4.2-1L3 21z"/></svg></a>
+        </div>
+      </div>
+      <div class="foot-col">
+        <h5>Shop</h5>
+        <a href="#">Wigs</a><a href="#">Extensions</a><a href="#">Toppers</a><a href="#">Best Sellers</a>
+      </div>
+      <div class="foot-col">
+        <h5>Help</h5>
+        <a href="#">Contact</a><a href="#">Shipping</a><a href="#">Returns</a><a href="#">FAQ</a>
+      </div>
+      <div class="foot-col">
+        <h5>About</h5>
+        <a href="#">Our Story</a><a href="#">Hair Care Guide</a><a href="#">Reviews</a>
+      </div>
+    </div>
+    <div class="foot-bottom">
+      <span>© 2026 Véra Hair Co. All rights reserved.</span>
+      <div class="foot-legal"><a href="#">Privacy Policy</a><a href="#">Terms</a><a href="#">Refund Policy</a></div>
+    </div>
+  </div>
+</footer>
+
+<!-- CART -->
+<div class="overlay" id="overlay"></div>
+<div class="cart-drawer" id="cartDrawer">
+  <div class="cart-head">
+    <h3>Your Bag</h3>
+    <button class="cart-close" id="cartClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="cart-progress">
+    <p><strong>₹6,001</strong> away from free shipping</p>
+    <div class="cart-progress-bar"><div class="cart-progress-fill"></div></div>
+  </div>
+  <div class="cart-items" id="cartItems"></div>
+  <div class="cart-foot">
+    <div class="cart-subtotal"><span>Subtotal</span><span id="cartSubtotal">₹31,498</span></div>
+    <a href="#" class="btn btn-primary" id="checkoutBtn" style="width:100%;">Checkout</a>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 6L9 17l-5-5"/></svg><span id="toastMsg">Added to bag</span></div>
+
+<script>
+  // Mobile nav drawer
+  const mobileNav = document.getElementById('mobileNav');
+  document.getElementById('burgerBtn').addEventListener('click', () => mobileNav.classList.add('active'));
+  document.getElementById('mobileNavClose').addEventListener('click', () => mobileNav.classList.remove('active'));
+  mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileNav.classList.remove('active')));
+
+  // Sticky header shadow
+  const header = document.getElementById('siteHeader');
+  window.addEventListener('scroll', () => {
+    header.classList.toggle('scrolled', window.scrollY > 20);
+  });
+
+  // Toast
+  const toast = document.getElementById('toast');
+  const toastMsg = document.getElementById('toastMsg');
+  let toastTimer;
+  function showToast(msg){
+    toastMsg.textContent = msg;
+    toast.classList.add('show');
+    clearTimeout(toastTimer);
+    toastTimer = setTimeout(()=> toast.classList.remove('show'), 2200);
+  }
+
+  // Cart state
+  let cart = [
+    {name:'Malaika HD Lace Frontal', price:18999},
+    {name:'Anaya Glueless Bob', price:12499}
+  ];
+  const cartItemsEl = document.getElementById('cartItems');
+  const cartCountEl = document.getElementById('cartCount');
+  const cartSubtotalEl = document.getElementById('cartSubtotal');
+
+  function renderCart(){
+    if(cart.length === 0){
+      cartItemsEl.innerHTML = '<div class="cart-empty">Your bag is empty.</div>';
+    } else {
+      cartItemsEl.innerHTML = cart.map((item, i) => `
+        <div class="cart-item">
+          <div class="thumb"></div>
+          <div class="cart-item-info">
+            <h5>${item.name}</h5>
+            <small>Length: 18" · Natural Black</small>
+            <div class="cart-item-bottom">
+              <div class="qty">1</div>
+              <strong>₹${item.price.toLocaleString('en-IN')}</strong>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+    cartCountEl.textContent = cart.length;
+    const subtotal = cart.reduce((s,i)=>s+i.price,0);
+    cartSubtotalEl.textContent = '₹' + subtotal.toLocaleString('en-IN');
+  }
+  renderCart();
+
+  const cartDrawer = document.getElementById('cartDrawer');
+  const overlay = document.getElementById('overlay');
+  function openCart(){ cartDrawer.classList.add('active'); overlay.classList.add('active'); }
+  function closeCart(){ cartDrawer.classList.remove('active'); overlay.classList.remove('active'); }
+  document.getElementById('cartBtn').addEventListener('click', openCart);
+  document.getElementById('cartClose').addEventListener('click', closeCart);
+  overlay.addEventListener('click', closeCart);
+
+  document.querySelectorAll('[data-add]').forEach(el => {
+    el.addEventListener('click', () => {
+      cart.push({name: el.dataset.name, price: parseInt(el.dataset.price)});
+      renderCart();
+      showToast(el.dataset.name + ' added to bag');
+      openCart();
+    });
+  });
+
+  // FAQ accordion
+  document.querySelectorAll('.faq-item').forEach(item => {
+    const q = item.querySelector('.faq-q');
+    const a = item.querySelector('.faq-a');
+    q.addEventListener('click', () => {
+      const isOpen = item.classList.contains('open');
+      document.querySelectorAll('.faq-item.open').forEach(o => { o.classList.remove('open'); o.querySelector('.faq-a').style.maxHeight = null; });
+      if(!isOpen){
+        item.classList.add('open');
+        a.style.maxHeight = a.scrollHeight + 'px';
+      }
+    });
+  });
+
+  // Before / After slider
+  const baSlider = document.getElementById('baSlider');
+  const baAfter = document.getElementById('baAfter');
+  const baHandle = document.getElementById('baHandle');
+  let dragging = false;
+  function setSlider(x){
+    const rect = baSlider.getBoundingClientRect();
+    let pct = ((x - rect.left) / rect.width) * 100;
+    pct = Math.max(0, Math.min(100, pct));
+    baAfter.style.clipPath = `inset(0 0 0 ${pct}%)`;
+    baHandle.style.left = pct + '%';
+  }
+  baHandle.addEventListener('mousedown', () => dragging = true);
+  window.addEventListener('mouseup', () => dragging = false);
+  window.addEventListener('mousemove', e => { if(dragging) setSlider(e.clientX); });
+  baHandle.addEventListener('touchstart', () => dragging = true, {passive:true});
+  window.addEventListener('touchend', () => dragging = false);
+  window.addEventListener('touchmove', e => { if(dragging) setSlider(e.touches[0].clientX); }, {passive:true});
+  baSlider.addEventListener('click', e => setSlider(e.clientX));
+</script>
+<!-- QUIZ MODAL -->
+<div class="modal-overlay" id="quizOverlay"></div>
+<div class="modal" id="quizModal">
+  <button class="modal-close" id="quizClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="modal-head"><span>AI Wig Finder</span><h3>Let's find your match</h3></div>
+  <div class="quiz-progress"><span><i id="qp1"></i></span><span><i id="qp2"></i></span><span><i id="qp3"></i></span><span><i id="qp4"></i></span></div>
+
+  <div class="quiz-step active" data-step="1">
+    <p style="font-size:14px;font-weight:600;margin-bottom:14px;">What's your face shape?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-q="face" data-v="Round">Round</button>
+      <button class="quiz-opt" data-q="face" data-v="Oval">Oval</button>
+      <button class="quiz-opt" data-q="face" data-v="Square">Square</button>
+      <button class="quiz-opt" data-q="face" data-v="Heart">Heart</button>
+    </div>
+    <div class="quiz-nav"><span></span><button class="btn btn-primary" data-next="2" disabled>Next</button></div>
+  </div>
+
+  <div class="quiz-step" data-step="2">
+    <p style="font-size:14px;font-weight:600;margin-bottom:14px;">What length are you after?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-q="length" data-v="Short">Short &amp; Sleek</button>
+      <button class="quiz-opt" data-q="length" data-v="Medium">Medium Bob</button>
+      <button class="quiz-opt" data-q="length" data-v="Long">Long &amp; Flowing</button>
+      <button class="quiz-opt" data-q="length" data-v="Wavy">Wavy Volume</button>
+    </div>
+    <div class="quiz-nav"><button class="btn btn-outline" data-back="1">Back</button><button class="btn btn-primary" data-next="3" disabled>Next</button></div>
+  </div>
+
+  <div class="quiz-step" data-step="3">
+    <p style="font-size:14px;font-weight:600;margin-bottom:14px;">What's your budget?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-q="budget" data-v="Under ₹10,000">Under ₹10,000</button>
+      <button class="quiz-opt" data-q="budget" data-v="₹10,000–₹16,000">₹10,000–₹16,000</button>
+      <button class="quiz-opt" data-q="budget" data-v="₹16,000+">₹16,000+</button>
+      <button class="quiz-opt" data-q="budget" data-v="Not sure yet">Not sure yet</button>
+    </div>
+    <div class="quiz-nav"><button class="btn btn-outline" data-back="2">Back</button><button class="btn btn-primary" data-next="4" disabled>Next</button></div>
+  </div>
+
+  <div class="quiz-step" data-step="4">
+    <p style="font-size:14px;font-weight:600;margin-bottom:14px;">What's the occasion?</p>
+    <div class="quiz-options">
+      <button class="quiz-opt" data-q="occasion" data-v="Everyday wear">Everyday wear</button>
+      <button class="quiz-opt" data-q="occasion" data-v="First-time wig">First-time wig</button>
+      <button class="quiz-opt" data-q="occasion" data-v="Special event">Special event</button>
+      <button class="quiz-opt" data-q="occasion" data-v="Hair loss support">Hair loss support</button>
+    </div>
+    <div class="quiz-nav"><button class="btn btn-outline" data-back="3">Back</button><button class="btn btn-primary" id="quizFinish" disabled>See My Match</button></div>
+  </div>
+
+  <div class="quiz-result" id="quizResult">
+    <p style="font-size:13px;color:var(--text-soft);margin-bottom:6px;">Based on your answers —</p>
+    <div class="quiz-result-card">
+      <div class="thumb" id="resultThumb"></div>
+      <div>
+        <span class="match-badge" id="resultMatch">96% Match</span>
+        <h4 id="resultName">Anaya Glueless Bob</h4>
+        <p id="resultDesc">Medium length, beginner-friendly, glueless fit</p>
+        <strong id="resultPrice">₹12,499</strong>
+      </div>
+    </div>
+    <div class="quiz-nav">
+      <button class="btn btn-outline" id="quizRestart">Retake Quiz</button>
+      <button class="btn btn-primary" id="quizAddToBag">Add to Bag</button>
+    </div>
+  </div>
+</div>
+
+<!-- TRY-ON MODAL -->
+<div class="modal-overlay" id="tryonOverlay"></div>
+<div class="modal" id="tryonModal">
+  <button class="modal-close" id="tryonClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="modal-head"><span>Virtual Try-On</span><h3>Preview a style on you</h3></div>
+
+  <label class="tryon-upload" id="tryonUploadLabel">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
+    <p><strong>Tap to upload a selfie</strong><br>Front-facing, good lighting works best</p>
+    <input type="file" accept="image/*" id="tryonFile" style="display:none;">
+  </label>
+
+  <div class="tryon-preview" id="tryonPreview">
+    <img id="tryonImg" alt="Your uploaded photo">
+    <div class="tryon-overlay" id="tryonOverlayShape"></div>
+  </div>
+
+  <div class="tryon-styles" id="tryonStyles">
+    <button class="tryon-style-btn selected" data-style="bob">Glueless Bob</button>
+    <button class="tryon-style-btn" data-style="long">Long Frontal</button>
+    <button class="tryon-style-btn" data-style="wavy">Closure Wave</button>
+    <button class="tryon-style-btn" data-style="curly">HD Lace Curly</button>
+  </div>
+
+  <p class="tryon-note">This is a concept preview using a simple style overlay. Our production build uses computer-vision face mapping for a fully blended, photorealistic try-on.</p>
+</div>
+
+<!-- CHAT WIDGET -->
+<button class="chat-fab" id="chatFab" aria-label="Open AI Assistant">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.4 8.4 0 01-8.9 8.4 8.6 8.6 0 01-3.6-.8L3 20l1-4.9a8.3 8.3 0 01-1-4A8.4 8.4 0 0111.9 3a8.5 8.5 0 019.1 8.5z"/></svg>
+  <span class="chat-dot"></span>
+</button>
+<div class="chat-panel" id="chatPanel">
+  <div class="chat-head">
+    <div class="chat-head-info">
+      <div class="chat-avatar">✨</div>
+      <div><h5>Véra AI Assistant</h5><small>Online · Demo</small></div>
+    </div>
+    <button class="chat-close-btn" id="chatClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  </div>
+  <div class="chat-messages" id="chatMessages">
+    <div class="msg bot">Hi! I'm the Véra AI Assistant (demo). Ask me about sizing, shipping, wig care, or appointments.</div>
+  </div>
+  <div class="chat-quick" id="chatQuick">
+    <button data-q="How do I choose my size?">Sizing</button>
+    <button data-q="How long does shipping take?">Shipping</button>
+    <button data-q="How do I care for my wig?">Wig care</button>
+    <button data-q="Can I book a fitting?">Book a fitting</button>
+  </div>
+  <div class="chat-input-row">
+    <input type="text" id="chatInput" placeholder="Type a message...">
+    <button class="chat-send" id="chatSend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></button>
+  </div>
+</div>
+
+<script>
+  // ===== Modal helpers =====
+  function openModal(modal, overlay){ modal.classList.add('active'); overlay.classList.add('active'); }
+  function closeModal(modal, overlay){ modal.classList.remove('active'); overlay.classList.remove('active'); }
+
+  // ===== AI Wig Finder Quiz =====
+  const quizModal = document.getElementById('quizModal');
+  const quizOverlay = document.getElementById('quizOverlay');
+  const quizAnswers = {};
+
+  const productCatalog = [
+    {name:'Anaya Glueless Bob', desc:'Medium length, beginner-friendly, glueless fit', price:'₹12,499', img:'https://images.unsplash.com/photo-1634449571010-02389ed0f9b0?w=200&q=80&fm=jpg&fit=crop&auto=format', tag:'length:Medium,occasion:First-time wig'},
+    {name:'Malaika HD Lace Frontal', desc:'Full hairline, 360° styling freedom', price:'₹18,999', img:'https://images.unsplash.com/photo-1675034743339-0b0747047727?w=200&q=80&fm=jpg&fit=crop&auto=format', tag:'length:Long,occasion:Special event'},
+    {name:'Ishita Closure Wave', desc:'Everyday wear, versatile parting', price:'₹15,999', img:'https://images.unsplash.com/photo-1503830232159-4b417691001e?w=200&q=80&fm=jpg&fit=crop&auto=format', tag:'length:Wavy,occasion:Everyday wear'},
+    {name:'Kavya Silk Topper', desc:'Blends with your own hair, crown coverage', price:'₹9,499', img:'https://images.unsplash.com/photo-1560869713-bf165a9cfac1?w=200&q=80&fm=jpg&fit=crop&auto=format', tag:'occasion:Hair loss support'}
+  ];
+
+  document.getElementById('openQuiz').addEventListener('click', () => openModal(quizModal, quizOverlay));
+  document.getElementById('quizClose').addEventListener('click', () => closeModal(quizModal, quizOverlay));
+  quizOverlay.addEventListener('click', () => closeModal(quizModal, quizOverlay));
+
+  document.querySelectorAll('.quiz-opt').forEach(opt => {
+    opt.addEventListener('click', () => {
+      const group = opt.dataset.q;
+      document.querySelectorAll(`.quiz-opt[data-q="${group}"]`).forEach(o => o.classList.remove('selected'));
+      opt.classList.add('selected');
+      quizAnswers[group] = opt.dataset.v;
+      const stepEl = opt.closest('.quiz-step');
+      const nextBtn = stepEl.querySelector('[data-next], #quizFinish');
+      if(nextBtn) nextBtn.disabled = false;
+    });
+  });
+
+  function goToStep(n){
+    document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+    document.querySelector(`.quiz-step[data-step="${n}"]`).classList.add('active');
+    for(let i=1;i<=4;i++){
+      document.getElementById('qp'+i).style.width = i <= n ? '100%' : '0%';
+    }
+  }
+  document.querySelectorAll('[data-next]').forEach(btn => {
+    btn.addEventListener('click', () => goToStep(parseInt(btn.dataset.next)));
+  });
+  document.querySelectorAll('[data-back]').forEach(btn => {
+    btn.addEventListener('click', () => goToStep(parseInt(btn.dataset.back)));
+  });
+
+  document.getElementById('quizFinish').addEventListener('click', () => {
+    let best = productCatalog[0];
+    let bestScore = -1;
+    productCatalog.forEach(p => {
+      let score = 0;
+      if(quizAnswers.length && p.tag.includes('length:'+quizAnswers.length)) score += 2;
+      if(quizAnswers.occasion && p.tag.includes('occasion:'+quizAnswers.occasion)) score += 2;
+      if(score > bestScore){ bestScore = score; best = p; }
+    });
+    document.getElementById('resultThumb').style.backgroundImage = `url('${best.img}')`;
+    document.getElementById('resultName').textContent = best.name;
+    document.getElementById('resultDesc').textContent = best.desc;
+    document.getElementById('resultPrice').textContent = best.price;
+    document.getElementById('resultMatch').textContent = (92 + Math.floor(Math.random()*7)) + '% Match';
+    document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+    document.getElementById('quizResult').classList.add('active');
+    quizModal.dataset.matchedProduct = best.name;
+    quizModal.dataset.matchedPrice = best.price.replace(/[₹,]/g,'');
+  });
+
+  document.getElementById('quizRestart').addEventListener('click', () => {
+    document.getElementById('quizResult').classList.remove('active');
+    document.querySelectorAll('.quiz-opt.selected').forEach(o => o.classList.remove('selected'));
+    document.querySelectorAll('[data-next], #quizFinish').forEach(b => b.disabled = true);
+    goToStep(1);
+  });
+
+  document.getElementById('quizAddToBag').addEventListener('click', () => {
+    cart.push({name: quizModal.dataset.matchedProduct, price: parseInt(quizModal.dataset.matchedPrice)});
+    renderCart();
+    closeModal(quizModal, quizOverlay);
+    showToast(quizModal.dataset.matchedProduct + ' added to bag');
+    openCart();
+  });
+
+  // ===== Virtual Try-On =====
+  const tryonModal = document.getElementById('tryonModal');
+  const tryonOverlay = document.getElementById('tryonOverlay');
+  document.getElementById('openTryon').addEventListener('click', () => openModal(tryonModal, tryonOverlay));
+  document.getElementById('tryonClose').addEventListener('click', () => closeModal(tryonModal, tryonOverlay));
+  tryonOverlay.addEventListener('click', () => closeModal(tryonModal, tryonOverlay));
+
+  const tryonFile = document.getElementById('tryonFile');
+  const tryonPreview = document.getElementById('tryonPreview');
+  const tryonImg = document.getElementById('tryonImg');
+  const tryonShape = document.getElementById('tryonOverlayShape');
+  const styleShapes = {
+    bob:   'radial-gradient(120% 60% at 50% 0%, rgba(43,27,20,.55), transparent 62%)',
+    long:  'radial-gradient(90% 95% at 50% 0%, rgba(43,27,20,.55), transparent 72%)',
+    wavy:  'radial-gradient(100% 85% at 50% 0%, rgba(140,90,60,.55), transparent 68%)',
+    curly: 'radial-gradient(115% 75% at 50% 0%, rgba(92,36,49,.5), transparent 65%)'
+  };
+  tryonFile.addEventListener('change', () => {
+    const file = tryonFile.files[0];
+    if(!file) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      tryonImg.src = e.target.result;
+      tryonPreview.classList.add('active');
+      tryonShape.style.background = styleShapes.bob;
+    };
+    reader.readAsDataURL(file);
+  });
+  document.querySelectorAll('.tryon-style-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('.tryon-style-btn').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      tryonShape.style.background = styleShapes[btn.dataset.style];
+    });
+  });
+
+  // ===== AI Assistant Chat (rule-based demo) =====
+  const chatFab = document.getElementById('chatFab');
+  const chatPanel = document.getElementById('chatPanel');
+  const chatMessages = document.getElementById('chatMessages');
+  const chatInput = document.getElementById('chatInput');
+
+  function toggleChat(show){
+    chatPanel.classList.toggle('active', show);
+  }
+  chatFab.addEventListener('click', () => toggleChat(!chatPanel.classList.contains('active')));
+  document.getElementById('chatClose').addEventListener('click', () => toggleChat(false));
+  document.getElementById('openChatFromCard').addEventListener('click', () => toggleChat(true));
+
+  const chatRules = [
+    {k:['size','sizing','cap size','fit'], a:"We offer petite, average, and large cap sizes. I'd recommend our free sizing kit, or you can book a virtual fitting and a stylist will measure with you live."},
+    {k:['ship','shipping','delivery','deliver'], a:"Most orders ship within 24 hours and arrive in 3–5 business days across India, with live tracking sent by email and WhatsApp."},
+    {k:['care','wash','maintain','maintenance'], a:"Wash every 8–10 wears with sulfate-free shampoo, air-dry on a wig stand, and store away from direct heat. Want our full hair-care guide?"},
+    {k:['book','appointment','fitting','consult'], a:"Happy to help — you can book a consultation, wig fitting, or styling appointment. Tap 'Book a Fitting' in the menu to pick a date and time."},
+    {k:['return','exchange','refund'], a:"Unworn units in original packaging can be exchanged within 7 days, and our fit guarantee covers sizing issues on your first order."},
+    {k:['price','cost','budget'], a:"Our units range from about ₹9,499 for toppers up to ₹18,999+ for full frontals. Want me to point you to something in a specific budget?"},
+    {k:['glueless'], a:"Our glueless wigs use adjustable straps and combs — no glue or tape needed, and they're great for first-time wearers."},
+    {k:['lace','hd lace'], a:"HD lace is finer and more transparent than standard lace, so it blends closer to invisibly with your natural skin tone."},
+    {k:['human hair','real hair'], a:"Yes — every unit is 100% human hair, which means it can be heat-styled, parted anywhere, and colored up to two shades darker."},
+    {k:['hi','hello','hey'], a:"Hey there! I'm the Véra AI Assistant. Ask me anything about sizing, shipping, care, or booking a fitting."}
+  ];
+  const fallback = "Good question — I'd love to connect you with a stylist for the details. Want me to open WhatsApp chat, or would you like to try a different question?";
+
+  function addMsg(text, who){
+    const div = document.createElement('div');
+    div.className = 'msg ' + who;
+    div.textContent = text;
+    chatMessages.appendChild(div);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+  }
+  function botReply(userText){
+    const lower = userText.toLowerCase();
+    const match = chatRules.find(r => r.k.some(kw => lower.includes(kw)));
+    const typing = document.createElement('div');
+    typing.className = 'msg bot';
+    typing.innerHTML = '<div class="typing-dots"><span></span><span></span><span></span></div>';
+    chatMessages.appendChild(typing);
+    chatMessages.scrollTop = chatMessages.scrollHeight;
+    setTimeout(() => {
+      typing.remove();
+      addMsg(match ? match.a : fallback, 'bot');
+    }, 650 + Math.random()*400);
+  }
+  function sendMessage(text){
+    if(!text.trim()) return;
+    addMsg(text, 'user');
+    botReply(text);
+    chatInput.value = '';
+  }
+  document.getElementById('chatSend').addEventListener('click', () => sendMessage(chatInput.value));
+  chatInput.addEventListener('keydown', e => { if(e.key === 'Enter') sendMessage(chatInput.value); });
+  document.querySelectorAll('#chatQuick button').forEach(btn => {
+    btn.addEventListener('click', () => sendMessage(btn.dataset.q));
+  });
+</script>
+<!-- CHECKOUT MODAL -->
+<div class="modal-overlay" id="checkoutOverlay"></div>
+<div class="modal" id="checkoutModal">
+  <button class="modal-close" id="checkoutClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="modal-head"><span>Checkout</span><h3>Complete your order</h3></div>
+  <form id="checkoutForm">
+    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
+      <input type="text" id="ckName" placeholder="Full name" required style="padding:13px 16px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:13.5px;">
+      <input type="email" id="ckEmail" placeholder="Email address" required style="padding:13px 16px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:13.5px;">
+      <textarea id="ckAddress" placeholder="Shipping address" required rows="3" style="padding:13px 16px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:13.5px;resize:vertical;"></textarea>
+    </div>
+    <p id="checkoutNote" class="tryon-note" style="margin-bottom:16px;">Connecting to the live backend to place a real order...</p>
+    <button type="submit" class="btn btn-primary" style="width:100%;" id="checkoutSubmit">Place Order</button>
+  </form>
+</div>
+
+<script>
+  // ===== Backend API integration =====
+  // Point this at your running FastAPI backend. Falls back to demo mode if unreachable.
+  const API_BASE = window.location.protocol === 'file:'
+    ? 'http://localhost:8010/api'
+    : (window.__VERA_API_BASE__ || 'http://localhost:8010/api');
+
+  let liveProducts = [];
+  let apiConnected = false;
+
+  async function loadProductsFromAPI(){
+    try{
+      const res = await fetch(API_BASE + '/products');
+      if(!res.ok) throw new Error('bad response');
+      liveProducts = await res.json();
+      apiConnected = true;
+      console.log('Connected to live backend —', liveProducts.length, 'products loaded');
+    }catch(err){
+      apiConnected = false;
+      console.log('Backend not reachable — running in static demo mode. Start the FastAPI backend to enable live data.');
+    }
+  }
+  loadProductsFromAPI();
+
+  // ===== Checkout flow =====
+  const checkoutModal = document.getElementById('checkoutModal');
+  const checkoutOverlay = document.getElementById('checkoutOverlay');
+  const checkoutNote = document.getElementById('checkoutNote');
+
+  document.getElementById('checkoutBtn').addEventListener('click', (e) => {
+    e.preventDefault();
+    if(cart.length === 0){ showToast('Your bag is empty'); return; }
+    checkoutNote.textContent = apiConnected
+      ? 'Order will be placed on the live backend.'
+      : 'Demo mode: backend not connected — this will simulate a successful order.';
+    openModal(checkoutModal, checkoutOverlay);
+  });
+  document.getElementById('checkoutClose').addEventListener('click', () => closeModal(checkoutModal, checkoutOverlay));
+  checkoutOverlay.addEventListener('click', () => closeModal(checkoutModal, checkoutOverlay));
+
+  document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const name = document.getElementById('ckName').value;
+    const email = document.getElementById('ckEmail').value;
+    const address = document.getElementById('ckAddress').value;
+    const submitBtn = document.getElementById('checkoutSubmit');
+    submitBtn.disabled = true;
+    submitBtn.textContent = 'Placing order...';
+
+    if(apiConnected){
+      // Match cart items (by name) to real product IDs from the live backend
+      const items = cart.map(c => {
+        const match = liveProducts.find(p => p.name === c.name);
+        return match ? {product_id: match.id, quantity: 1} : null;
+      }).filter(Boolean);
+
+      if(items.length === 0){
+        showToast('Could not match cart items to live products — try reloading');
+        submitBtn.disabled = false; submitBtn.textContent = 'Place Order';
+        return;
+      }
+
+      try{
+        const res = await fetch(API_BASE + '/orders', {
+          method:'POST',
+          headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({customer_name:name, customer_email:email, shipping_address:address, items})
+        });
+        if(!res.ok) throw new Error('Order failed');
+        const order = await res.json();
+        cart = [];
+        renderCart();
+        closeCart();
+        closeModal(checkoutModal, checkoutOverlay);
+        showToast('Order ' + order.order_number + ' placed successfully!');
+      }catch(err){
+        showToast('Order failed — please try again');
+      }
+    } else {
+      // Demo fallback — no backend connected
+      setTimeout(() => {
+        cart = [];
+        renderCart();
+        closeCart();
+        closeModal(checkoutModal, checkoutOverlay);
+        showToast('Demo order placed (backend not connected)');
+      }, 600);
+    }
+    submitBtn.disabled = false;
+    submitBtn.textContent = 'Place Order';
+  });
+</script>
+</body>
+</html>

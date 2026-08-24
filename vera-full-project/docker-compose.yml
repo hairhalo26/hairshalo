@@ -1,0 +1,35 @@
+version: "3.9"
+
+services:
+  db:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: vera_user
+      POSTGRES_PASSWORD: vera_pass
+      POSTGRES_DB: vera_hair_co
+    ports:
+      - "5432:5432"
+    volumes:
+      - vera_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U vera_user -d vera_hair_co"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://vera_user:vera_pass@db:5432/vera_hair_co
+      SECRET_KEY: change-this-secret-in-production
+      CORS_ORIGINS: "*"
+    ports:
+      - "8000:8000"
+
+volumes:
+  vera_pgdata:
