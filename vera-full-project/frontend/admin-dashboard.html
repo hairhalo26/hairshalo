@@ -1382,7 +1382,23 @@
   }
 
   // ---- Live backend integration ----
-  const API_BASE = window.__VERA_API_BASE__ || 'http://localhost:8010/api';
+  /* Resolve the API origin.
+
+     An explicit window.__VERA_API_BASE__ always wins, so any unusual setup
+     (LAN testing, a split api. subdomain) stays configurable. Otherwise a
+     LOCAL page — file://, localhost, 127.0.0.1, ::1 — talks to the dev API on
+     port 8010, and anything else is treated as a real deployment where the
+     proxy serves the API from the same origin. The relative '/api' is why a
+     deploy needs no build step and raises no CORS: it is whatever host the
+     page was served from. */
+  function resolveApiBase(protocol, hostname){
+    if(protocol === 'file:') return 'http://localhost:8010/api';
+    if(hostname === 'localhost' || hostname === '127.0.0.1'
+       || hostname === '::1' || hostname === '[::1]') return 'http://localhost:8010/api';
+    return '/api';
+  }
+  const API_BASE = window.__VERA_API_BASE__
+    || resolveApiBase(window.location.protocol, window.location.hostname);
   let authToken = null;
 
   function fmtINR(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }

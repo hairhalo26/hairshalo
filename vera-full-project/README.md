@@ -104,10 +104,22 @@ which links to:
 - **admin-dashboard.html** — sign in with the seeded admin login to see real
   data, or click "Continue in demo mode" to preview with mock data
 
-Both frontends point at `http://localhost:8010/api` by default (port 8010
-rather than 8000 to avoid colliding with other local dev servers). If you run
-the backend elsewhere, update the `API_BASE` constant in each HTML file's
-`<script>` section, or set `window.__VERA_API_BASE__` before the script runs.
+Both frontends resolve the API base themselves, so a deployment needs no build
+step and no edit to the HTML:
+
+| Page served from | API base used |
+| --- | --- |
+| `file://`, `localhost`, `127.0.0.1`, `::1` | `http://localhost:8010/api` |
+| any other host | `/api` — same origin as the page |
+
+Port 8010 rather than 8000 avoids colliding with other local dev servers. In
+production the proxy serves the storefront and the API from one origin, so the
+relative `/api` is correct and raises no CORS.
+
+Set `window.__VERA_API_BASE__` before the scripts run to override both rules —
+that is the escape hatch for a split `api.` subdomain, or for reaching a dev
+backend from another device on the LAN (where the page's host is neither
+localhost nor the API's origin).
 
 The **Best Sellers** section is rendered from the database, not hardcoded: it
 requests `/api/products` and, only if there are too few real products to fill

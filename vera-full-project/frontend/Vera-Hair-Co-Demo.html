@@ -1265,10 +1265,24 @@
      declarations in a later block simply do not exist while an earlier block
      runs, so this ordering is load-bearing, not cosmetic. */
   // ===== Backend API integration =====
-  // Point this at your running FastAPI backend. Falls back to demo mode if unreachable.
-  const API_BASE = window.location.protocol === 'file:'
-    ? 'http://localhost:8010/api'
-    : (window.__VERA_API_BASE__ || 'http://localhost:8010/api');
+  // Falls back to demo mode if the API is unreachable.
+  /* Resolve the API origin.
+
+     An explicit window.__VERA_API_BASE__ always wins, so any unusual setup
+     (LAN testing, a split api. subdomain) stays configurable. Otherwise a
+     LOCAL page — file://, localhost, 127.0.0.1, ::1 — talks to the dev API on
+     port 8010, and anything else is treated as a real deployment where the
+     proxy serves the API from the same origin. The relative '/api' is why a
+     deploy needs no build step and raises no CORS: it is whatever host the
+     page was served from. */
+  function resolveApiBase(protocol, hostname){
+    if(protocol === 'file:') return 'http://localhost:8010/api';
+    if(hostname === 'localhost' || hostname === '127.0.0.1'
+       || hostname === '::1' || hostname === '[::1]') return 'http://localhost:8010/api';
+    return '/api';
+  }
+  const API_BASE = window.__VERA_API_BASE__
+    || resolveApiBase(window.location.protocol, window.location.hostname);
 
   /* ================= Currency (display only) =================
      Every price in the API is canonical INR. This module converts for display
