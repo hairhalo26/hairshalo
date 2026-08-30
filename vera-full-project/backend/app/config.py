@@ -117,7 +117,7 @@ class Settings:
     NOTIFY_RETRY_BASE_SECONDS: int = int(os.getenv("NOTIFY_RETRY_BASE_SECONDS", "60"))
     NOTIFY_BATCH_SIZE: int = int(os.getenv("NOTIFY_BATCH_SIZE", "25"))
 
-    MAIL_FROM: str = os.getenv("MAIL_FROM", "orders@verahair.co")
+    MAIL_FROM: str = os.getenv("MAIL_FROM", "orders@hairshalo.com")
     MAIL_FROM_NAME: str = os.getenv("MAIL_FROM_NAME", "Hairshalo")
     MAIL_REPLY_TO: str = os.getenv("MAIL_REPLY_TO", "")
     # Who receives operational alerts (new order, payment failed, low stock).

@@ -20,7 +20,7 @@ import requests
 from app import payments as gateway
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
-ADMIN = {"email": "admin@verahair.co", "password": "ChangeMe123!"}
+ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
 
 
 # ---------------- unit: provider selection ----------------

@@ -32,7 +32,7 @@ DEFAULT_SECRET_KEYS = {
     "replace-with-a-long-random-string",
     "local-dev-secret-not-for-production",
 }
-SEEDED_ADMIN_EMAIL = "admin@verahair.co"
+SEEDED_ADMIN_EMAIL = "admin@hairshalo.com"
 SEEDED_ADMIN_PASSWORD = "ChangeMe123!"
 MIN_SECRET_LENGTH = 32
 

@@ -34,7 +34,7 @@ creates all tables and seeds demo data (products, orders, customers, appointment
 Once it's running:
 - API: **http://localhost:8000**
 - Interactive API docs (Swagger): **http://localhost:8000/docs**
-- Seeded admin login: `admin@verahair.co` / `ChangeMe123!`
+- Seeded admin login: `admin@hairshalo.com` / `ChangeMe123!`
 
 To stop: `Ctrl+C`, then `docker compose down` (add `-v` to also wipe the database).
 

@@ -70,7 +70,7 @@ def run():
         if db.query(models.User).count() == 0:
             print("Seeding admin user...")
             db.add(models.User(
-                email="admin@verahair.co",
+                email="admin@hairshalo.com",
                 hashed_password=hash_password("ChangeMe123!"),
                 full_name="Priya Sharma",
                 role="admin",
@@ -355,7 +355,7 @@ def run():
 
         db.commit()
         print("Seed complete (demo data).")
-        print("Admin login -> email: admin@verahair.co  password: ChangeMe123!")
+        print("Admin login -> email: admin@hairshalo.com  password: ChangeMe123!")
     finally:
         db.close()
 
