@@ -82,6 +82,11 @@ services:
     depends_on:
       db:
         condition: service_healthy
+      # The API owns migrations, so wait for it to report healthy. Starting
+      # alongside it means polling a schema that does not exist yet, which on a
+      # fresh database logs an UndefinedTable traceback until the next retry.
+      api:
+        condition: service_healthy
     environment:
       <<: *app_env
       # The API applies migrations; a second process racing on the same DDL is
@@ -89,6 +94,11 @@ services:
       RUN_MIGRATIONS: "false"
     entrypoint: ["./docker-entrypoint.sh"]
     command: ["python", "-m", "app.notify_worker", "--loop", "--interval", "15"]
+    # This container runs the mail worker, not the web server, so the HTTP probe
+    # it inherits from the image can never pass and would report unhealthy
+    # forever. restart: unless-stopped already replaces the process if it exits.
+    healthcheck:
+      disable: true
     deploy:
       resources:
         limits:

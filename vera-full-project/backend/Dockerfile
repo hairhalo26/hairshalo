@@ -48,8 +48,15 @@ EXPOSE 8000
 
 # Liveness only — it must not depend on the database, or a database blip would
 # restart every healthy API container and turn a small outage into a large one.
+# The probe presents the first entry of ALLOWED_HOSTS as its Host header. A
+# plain request to 127.0.0.1 carries "Host: 127.0.0.1:8000", which is never an
+# allowed host, so TrustedHostMiddleware answers 400: the container then reports
+# unhealthy forever while serving traffic perfectly well. Deriving the header
+# from ALLOWED_HOSTS keeps the probe in step with whatever the deployment sets,
+# without widening the host check itself.
 HEALTHCHECK --interval=30s --timeout=5s --start-period=20s --retries=3 \
-    CMD curl -fsS http://127.0.0.1:8000/api/health || exit 1
+    CMD host="$(printf '%s' "${ALLOWED_HOSTS:-localhost}" | cut -d, -f1 | tr -d ' \t')"; \
+        curl -fsS -H "Host: ${host:-localhost}" http://127.0.0.1:8000/api/health || exit 1
 
 ENTRYPOINT ["./docker-entrypoint.sh"]
 
