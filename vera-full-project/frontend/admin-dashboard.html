@@ -3,7 +3,11 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Véra Hair Co. — Admin Dashboard</title>
+<title>Hairshalo | Admin Dashboard</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#1A2338">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
@@ -25,8 +29,20 @@
 
   /* ---- Sidebar ---- */
   .sidebar{background:var(--sidebar);color:#EFE6DA;padding:24px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
-  .side-logo{font-family:'Fraunces',serif;font-size:19px;font-weight:600;padding:0 10px;margin-bottom:8px;}
-  .side-logo span{color:var(--gold);font-style:italic;}
+  /* Balldoug is the Hairshalo logotype face — brand name lockup only.
+     Every other heading and label stays on Fraunces/Inter. */
+  @font-face{
+    font-family:'Balldoug';
+    src:url('assets/fonts/balldoug-regular.woff2') format('woff2'),
+        url('assets/fonts/balldoug-regular.otf') format('opentype');
+    font-weight:400;font-style:normal;font-display:swap;
+  }
+  .side-logo{
+    display:flex;align-items:center;gap:8px;
+    font-family:'Balldoug','Fraunces',serif;font-size:19px;font-weight:400;
+    letter-spacing:.05em;padding:0 10px;margin-bottom:8px;line-height:1;
+  }
+  .side-logo .logo-mark{height:24px;width:auto;display:block;flex:none;}
   .side-sub{font-size:11px;color:#B8A995;padding:0 10px;margin-bottom:28px;letter-spacing:.04em;text-transform:uppercase;}
   .nav-group{margin-bottom:22px;}
   .nav-label{font-size:10.5px;text-transform:uppercase;letter-spacing:.08em;color:#8A7862;padding:0 10px;margin-bottom:8px;}
@@ -131,6 +147,109 @@
     .main{padding:20px 16px 50px;}
   }
 
+  /* ---- Placeholder editor modal (reuses the existing card idiom) ---- */
+  .ph-modal{
+    position:fixed;inset:0;background:rgba(43,27,20,.5);z-index:600;
+    display:none;align-items:center;justify-content:center;padding:20px;
+  }
+  .ph-modal.open{display:flex;}
+  .ph-modal-card{
+    background:#fff;border-radius:20px;padding:28px 30px;max-width:560px;width:100%;
+    max-height:88vh;overflow-y:auto;
+  }
+  .ph-modal-card h3{font-family:'Fraunces',serif;font-size:18px;font-weight:600;margin-bottom:4px;}
+  .ph-modal-card .ph-sub{font-size:12.5px;color:var(--text-soft);margin-bottom:20px;}
+  .ph-field{margin-bottom:12px;}
+  .ph-field label{display:block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-soft);font-weight:700;margin-bottom:5px;}
+  .ph-field input, .ph-field textarea, .ph-field select{
+    width:100%;padding:11px 14px;border:1px solid var(--line);border-radius:12px;
+    font-family:inherit;font-size:13.5px;background:#fff;color:var(--text);
+  }
+  .ph-field input:focus, .ph-field textarea:focus, .ph-field select:focus{outline:none;border-color:var(--wine);}
+  .ph-field textarea{resize:vertical;min-height:64px;}
+  .ph-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .ph-actions{display:flex;gap:10px;justify-content:flex-end;margin-top:20px;flex-wrap:wrap;}
+  .ph-check{display:flex;align-items:center;gap:8px;font-size:13px;}
+  .ph-check input{width:auto;}
+  .ph-error{font-size:12px;color:var(--danger);margin-top:10px;display:none;}
+  /* Live preview of the customer-site placeholder card */
+  .ph-preview-media{
+    width:150px;aspect-ratio:3/3.7;border-radius:22px;position:relative;overflow:hidden;
+    background:linear-gradient(150deg,#EAD9C6,#C9976F 60%, #7C4C34);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:9px;text-align:center;padding:14px;
+  }
+  .ph-preview-media .ph-mark{font-family:'Balldoug','Fraunces',serif;font-weight:400;font-size:13px;letter-spacing:.16em;text-indent:.16em;color:#FAF5EE;white-space:nowrap;}
+  .ph-preview-media .ph-rule{width:30px;height:1px;background:rgba(250,245,238,.6);}
+  .ph-preview-media .ph-note{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:rgba(250,245,238,.92);line-height:1.6;}
+  .ph-preview-wrap{display:flex;gap:18px;align-items:flex-start;background:#FBF7F0;border-radius:14px;padding:16px;margin-bottom:4px;}
+  .ph-preview-info .cat{font-size:11px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.06em;}
+  .ph-preview-info h4{font-family:'Fraunces',serif;font-size:16.5px;font-weight:500;margin:5px 0 6px;}
+  .ph-preview-info .meta{font-size:12px;color:var(--text-soft);margin-bottom:6px;}
+  .ph-preview-info .price{font-size:14.5px;font-weight:600;color:var(--text-soft);}
+
+  /* ---- Product editor ---- */
+  .pf-card{max-width:860px;}
+  .pf-section{border-top:1px solid var(--line);padding-top:18px;margin-top:18px;}
+  .pf-section:first-of-type{border-top:none;padding-top:0;margin-top:0;}
+  .pf-section h4{
+    font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--wine);
+    font-weight:700;margin-bottom:14px;
+  }
+  .pf-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  .pf-calc{
+    background:#FBF7F0;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:6px;
+  }
+  .pf-calc-row{display:flex;justify-content:space-between;font-size:13px;padding:4px 0;}
+  .pf-calc-row.total{
+    border-top:1px solid var(--line);margin-top:6px;padding-top:9px;
+    font-weight:700;font-size:15px;
+  }
+  .pf-calc-note{font-size:11px;color:var(--text-soft);margin-top:8px;line-height:1.6;}
+  .pf-variant{
+    border:1px solid var(--line);border-radius:12px;padding:14px;margin-bottom:10px;background:#fff;
+  }
+  .pf-variant-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:10px;}
+  .pf-variant-head strong{font-size:12.5px;}
+  .pf-variant-rm{
+    font-size:11.5px;color:var(--danger);cursor:pointer;background:none;font-weight:600;
+  }
+  .pf-media-grid{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px;}
+  .pf-media-item{
+    width:84px;height:100px;border-radius:10px;overflow:hidden;position:relative;
+    border:2px solid transparent;background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34);
+  }
+  .pf-media-item.primary{border-color:var(--wine);}
+  .pf-media-item img{width:100%;height:100%;object-fit:cover;display:block;}
+  .pf-media-item .mi-actions{
+    position:absolute;left:0;right:0;bottom:0;display:flex;
+    background:rgba(43,27,20,.72);
+  }
+  .pf-media-item .mi-actions button{
+    flex:1;color:#fff;font-size:9.5px;padding:3px 0;background:none;cursor:pointer;
+    letter-spacing:.04em;
+  }
+  .pf-media-item .mi-video{
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:20px;background:rgba(43,27,20,.35);
+  }
+  .pf-upload{
+    border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center;
+    font-size:12.5px;color:var(--text-soft);cursor:pointer;transition:border-color .2s;
+  }
+  .pf-upload:hover{border-color:var(--blush);}
+  .pf-hint{font-size:11px;color:var(--text-soft);margin-top:5px;}
+  .pf-busy{opacity:.55;pointer-events:none;}
+  .pf-success{
+    font-size:12.5px;color:var(--ok);background:rgba(76,140,92,.1);
+    padding:9px 12px;border-radius:10px;margin-top:10px;display:none;
+  }
+  .filter-bar{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:14px;}
+  .filter-bar input.search{
+    border:1px solid var(--line);border-radius:100px;padding:8px 16px;font-size:12px;
+    font-family:inherit;min-width:200px;background:#fff;color:var(--text);
+  }
+  .filter-bar input.search:focus, select.filter:focus{outline:none;border-color:var(--wine);}
+
   /* ---- Login screen ---- */
   .login-screen{
     position:fixed;inset:0;background:var(--sidebar);z-index:500;
@@ -163,10 +282,338 @@
 <body>
 
 <!-- LOGIN SCREEN -->
+<!-- Stock adjustment -->
+<div class="ph-modal" id="adjModal">
+  <div class="ph-modal-card">
+    <h3>Adjust Stock</h3>
+    <p class="ph-sub" id="adjSub">Every adjustment is recorded as an auditable movement.</p>
+    <div class="ph-row">
+      <div class="ph-field"><label>Current stock</label><input id="adjCurrent" disabled></div>
+      <div class="ph-field"><label for="adjReason">Reason</label>
+        <select id="adjReason">
+          <option value="restock">Restock — supply received</option>
+          <option value="adjustment">Manual adjustment</option>
+          <option value="damaged">Damaged / written off</option>
+          <option value="correction">Stock count correction</option>
+        </select>
+      </div>
+    </div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="adjDelta">Quantity (+ adds, − removes)</label><input id="adjDelta" type="number" placeholder="e.g. 5 or -2"></div>
+      <div class="ph-field"><label>Resulting stock</label><input id="adjResult" disabled></div>
+    </div>
+    <div class="ph-field"><label for="adjNote">Note</label><input id="adjNote" placeholder="Optional — e.g. supplier invoice #1042"></div>
+    <div class="ph-error" id="adjError"></div>
+    <div class="ph-actions">
+      <button class="btn" id="adjCancel">Cancel</button>
+      <button class="btn btn-primary" id="adjSave">Apply Adjustment</button>
+    </div>
+    <div style="margin-top:18px;">
+      <h4 style="font-size:11px;text-transform:uppercase;letter-spacing:.09em;color:var(--wine);font-weight:700;margin-bottom:8px;">Movement history</h4>
+      <div id="adjHistory" style="font-size:12.5px;color:var(--text-soft);line-height:1.9;max-height:180px;overflow-y:auto;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Order detail -->
+<div class="ph-modal" id="orderModal">
+  <div class="ph-modal-card pf-card">
+    <h3 id="odNumber">Order</h3>
+    <p class="ph-sub" id="odMeta"></p>
+    <div class="pf-section">
+      <h4>Customer</h4>
+      <div id="odCustomer" style="font-size:14px;line-height:1.9;"></div>
+    </div>
+    <div class="pf-section">
+      <h4>Items</h4>
+      <div class="tablewrap" style="overflow-x:auto;">
+        <table><thead><tr><th>Product</th><th>Variant</th><th>SKU</th><th>Qty</th><th>Unit</th><th>Line</th></tr></thead>
+        <tbody id="odItems"></tbody></table>
+      </div>
+    </div>
+    <div class="pf-section">
+      <h4>Totals</h4>
+      <div class="pf-calc" id="odTotals"></div>
+    </div>
+    <div class="pf-section">
+      <h4>Status</h4>
+      <div class="ph-row">
+        <div class="ph-field"><label for="odStatus">Move to</label><select id="odStatus"></select></div>
+        <div class="ph-field" style="display:flex;align-items:flex-end;">
+          <button class="btn btn-primary" id="odStatusSave" style="margin-bottom:0;">Update Status</button>
+        </div>
+      </div>
+      <div class="pf-hint" id="odStatusHint"></div>
+    </div>
+    <div class="ph-error" id="odError"></div>
+    <div class="ph-actions"><button class="btn" id="odClose">Close</button></div>
+  </div>
+</div>
+
+<!-- Add / Edit product -->
+<div class="ph-modal" id="pfModal">
+  <div class="ph-modal-card pf-card">
+    <h3 id="pfTitle">Add Product</h3>
+    <p class="ph-sub" id="pfSub">Complete the sections below, then save as draft or publish.</p>
+
+    <!-- 1. BASIC INFORMATION -->
+    <div class="pf-section">
+      <h4>1 · Basic Information</h4>
+      <div class="ph-field"><label for="pfName">Product name *</label><input id="pfName" placeholder="HD Lace Body Wave Wig"></div>
+      <div class="ph-row">
+        <div class="ph-field"><label for="pfCategory">Category *</label><select id="pfCategory"></select></div>
+        <div class="ph-field"><label for="pfBrand">Brand</label><input id="pfBrand" placeholder="Hairshalo Signature"></div>
+      </div>
+      <div class="ph-field"><label for="pfShort">Short description</label><input id="pfShort" placeholder="Shown on product cards"></div>
+      <div class="ph-field"><label for="pfDesc">Full description</label><textarea id="pfDesc" placeholder="Shown on the product detail page"></textarea></div>
+      <div class="pf-row-3">
+        <div class="ph-field"><label for="pfHairType">Hair type</label>
+          <select id="pfHairType"><option value="">—</option><option>Human Hair</option><option>Synthetic</option><option>Blend</option></select>
+        </div>
+        <div class="ph-field"><label for="pfTexture">Texture</label>
+          <select id="pfTexture"><option value="">—</option><option>Straight</option><option>Body Wave</option><option>Wavy</option><option>Curly</option><option>Kinky Straight</option></select>
+        </div>
+        <div class="ph-field"><label for="pfConstruction">Construction</label>
+          <select id="pfConstruction"><option value="">—</option><option>Lace Frontal</option><option>360 Lace</option><option>Closure</option><option>Glueless Cap</option><option>Silk Base Topper</option><option>Extensions</option></select>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. PRICING -->
+    <div class="pf-section">
+      <h4>2 · Pricing &amp; Discount</h4>
+      <div class="pf-row-3">
+        <div class="ph-field"><label for="pfOriginal">Original price (₹) *</label><input id="pfOriginal" type="number" min="0" step="0.01" placeholder="25000"></div>
+        <div class="ph-field"><label for="pfDiscType">Discount type</label>
+          <select id="pfDiscType"><option value="none">No discount</option><option value="percentage">Percentage</option><option value="fixed_amount">Fixed amount</option></select>
+        </div>
+        <div class="ph-field"><label for="pfDiscValue">Discount value</label><input id="pfDiscValue" type="number" min="0" step="0.01" value="0"></div>
+      </div>
+      <div class="pf-calc">
+        <div class="pf-calc-row"><span>Original price</span><strong id="pfCalcOriginal">₹0</strong></div>
+        <div class="pf-calc-row"><span>Discount</span><strong id="pfCalcDiscount">₹0</strong></div>
+        <div class="pf-calc-row total"><span>Selling price</span><strong id="pfCalcSelling">₹0</strong></div>
+        <div class="pf-calc-note" id="pfCalcNote">Preview only — the server recalculates and validates these values on save.</div>
+      </div>
+    </div>
+
+    <!-- 3. VARIANTS -->
+    <div class="pf-section">
+      <h4>3 · Variants</h4>
+      <div id="pfVariants"></div>
+      <button class="btn" id="pfAddVariant" type="button">+ Add Variant</button>
+      <div class="pf-hint">A product with variants requires the customer to choose one at checkout. Leave a variant's price blank to inherit the product price.</div>
+    </div>
+
+    <!-- 4. MEDIA -->
+    <div class="pf-section">
+      <h4>4 · Images &amp; Video</h4>
+      <div id="pfMediaArea">
+        <div class="pf-upload" id="pfUploadZone">
+          Click to upload images or a video<br>
+          <span class="pf-hint">JPG, PNG, WEBP up to 8 MB · MP4, WEBM up to 64 MB</span>
+        </div>
+        <input type="file" id="pfFileInput" accept="image/jpeg,image/png,image/webp,video/mp4,video/webm" multiple style="display:none">
+        <div class="pf-media-grid" id="pfMediaGrid"></div>
+        <div class="pf-hint" id="pfMediaHint">Save the product first, then upload media.</div>
+      </div>
+    </div>
+
+    <!-- 5. MERCHANDISING -->
+    <div class="pf-section">
+      <h4>5 · Merchandising</h4>
+      <div class="ph-row">
+        <div class="ph-field"><label for="pfBadge">Badge</label>
+          <select id="pfBadge"><option value="">None</option><option>New</option><option>Bestseller</option><option>Featured</option><option>Limited</option><option>Sale</option></select>
+        </div>
+        <div class="ph-field"><label for="pfSort">Sort order</label><input id="pfSort" type="number" value="0"></div>
+      </div>
+      <label class="ph-check"><input type="checkbox" id="pfFeatured"> Featured</label>
+      <label class="ph-check"><input type="checkbox" id="pfBestseller"> Bestseller</label>
+      <label class="ph-check"><input type="checkbox" id="pfNewArrival"> New Arrival</label>
+    </div>
+
+    <!-- 6. PUBLISHING -->
+    <div class="pf-section">
+      <h4>6 · Publishing</h4>
+      <div class="ph-field"><label for="pfStatus">Status</label>
+        <select id="pfStatus"><option>Draft</option><option>Review</option><option>Published</option><option>Archived</option></select>
+      </div>
+      <div class="pf-hint" id="pfReadyHint"></div>
+    </div>
+
+    <div class="ph-error" id="pfError"></div>
+    <div class="pf-success" id="pfSuccess"></div>
+    <div class="ph-actions">
+      <button class="btn" id="pfCancel">Cancel</button>
+      <button class="btn" id="pfSaveDraft">Save Draft</button>
+      <button class="btn btn-primary" id="pfPublish">Publish Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product management modal: workflow + merchandising flags -->
+<div class="ph-modal" id="prodModal">
+  <div class="ph-modal-card">
+    <h3 id="prodModalTitle">Manage Product</h3>
+    <p class="ph-sub" id="prodModalSub">Publishing workflow and merchandising controls.</p>
+
+    <div class="ph-preview-wrap" style="display:block;">
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px;">
+        <span id="prodStatusBadge"></span>
+        <span id="prodReadyBadge"></span>
+      </div>
+      <div id="prodReadyList" style="font-size:12px;color:var(--text-soft);line-height:1.7;"></div>
+    </div>
+
+    <div class="ph-actions" style="justify-content:flex-start;margin-top:14px;margin-bottom:6px;">
+      <button class="btn" data-prod-action="submit_for_review">Submit for Review</button>
+      <button class="btn btn-primary" data-prod-action="publish">Publish</button>
+      <button class="btn" data-prod-action="unpublish">Unpublish</button>
+      <button class="btn" data-prod-action="archive">Archive</button>
+    </div>
+
+    <div class="ph-row">
+      <div class="ph-field"><label for="prodBadge">Badge</label>
+        <select id="prodBadge">
+          <option value="">None</option>
+          <option>New</option><option>Bestseller</option><option>Featured</option>
+          <option>Limited</option><option>Sale</option>
+        </select>
+      </div>
+      <div class="ph-field"><label for="prodSort">Sort order</label><input id="prodSort" type="number" value="0"></div>
+    </div>
+    <label class="ph-check"><input type="checkbox" id="prodFeatured"> Featured</label>
+    <label class="ph-check"><input type="checkbox" id="prodBestseller"> Bestseller</label>
+    <label class="ph-check"><input type="checkbox" id="prodNewArrival"> New Arrival</label>
+    <div class="ph-error" id="prodError"></div>
+    <div class="ph-actions">
+      <button class="btn" id="prodCancel">Close</button>
+      <button class="btn btn-primary" id="prodSave">Save Changes</button>
+    </div>
+  </div>
+</div>
+
+<!-- Product preview modal: how the card will look on the storefront -->
+<div class="ph-modal" id="previewModal">
+  <div class="ph-modal-card">
+    <h3>Storefront Preview</h3>
+    <p class="ph-sub" id="previewSub">Exactly how this product will appear on the customer site.</p>
+    <div class="ph-preview-wrap">
+      <div class="ph-preview-media" id="previewMedia">
+        <span class="ph-mark">HAIRSHALO</span>
+        <span class="ph-rule"></span>
+        <span class="ph-note">Product Image Coming Soon</span>
+      </div>
+      <div class="ph-preview-info">
+        <span class="cat" id="previewCat"></span>
+        <h4 id="previewName"></h4>
+        <div class="meta" id="previewMeta"></div>
+        <div class="price" id="previewPrice" style="color:var(--ink);font-weight:700;"></div>
+      </div>
+    </div>
+    <div id="previewVariants" style="font-size:12px;color:var(--text-soft);line-height:1.8;"></div>
+    <div class="ph-actions"><button class="btn" id="previewClose">Close</button></div>
+  </div>
+</div>
+
+<!-- Placeholder add/edit modal -->
+<div class="ph-modal" id="phModal">
+  <div class="ph-modal-card">
+    <h3 id="phModalTitle">Add Placeholder</h3>
+    <p class="ph-sub">Placeholders are previews only — they cannot be purchased or stocked.</p>
+
+    <div class="ph-preview-wrap">
+      <div class="ph-preview-media">
+        <span class="ph-mark">HAIRSHALO</span>
+        <span class="ph-rule"></span>
+        <span class="ph-note" id="phPrevNote">Coming Soon</span>
+      </div>
+      <div class="ph-preview-info">
+        <span class="cat" id="phPrevCat">Category</span>
+        <h4 id="phPrevName">Placeholder name</h4>
+        <div class="meta" id="phPrevLabel">Coming Soon</div>
+        <div class="price" id="phPrevPrice">Coming soon</div>
+      </div>
+    </div>
+
+    <div class="ph-field"><label for="phName">Name</label><input id="phName" placeholder="Signature Lace Wig"></div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="phCategory">Category</label>
+        <select id="phCategory"><option>Frontal Wigs</option><option>Closure Wigs</option><option>Glueless Wigs</option><option>Toppers</option><option>Extensions</option></select>
+      </div>
+      <div class="ph-field"><label for="phLabel">Placeholder label</label><input id="phLabel" placeholder="Coming Soon"></div>
+    </div>
+    <div class="ph-field"><label for="phDesc">Short description</label><textarea id="phDesc" placeholder="Shown on the placeholder card"></textarea></div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="phPrice">Display price (text only)</label><input id="phPrice" placeholder="From ₹14,000"></div>
+      <div class="ph-field"><label for="phBadge">Badge (optional)</label><input id="phBadge" placeholder="Coming Soon"></div>
+    </div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="phImage">Placeholder image URL (optional)</label><input id="phImage" placeholder="Leave blank for the branded HAIRSHALO panel"></div>
+      <div class="ph-field"><label for="phSort">Sort order</label><input id="phSort" type="number" value="0"></div>
+    </div>
+    <label class="ph-check"><input type="checkbox" id="phVisible" checked> Visible on the customer site</label>
+    <div class="ph-error" id="phError"></div>
+    <div class="ph-actions">
+      <button class="btn" id="phCancel">Cancel</button>
+      <button class="btn btn-primary" id="phSave">Save Placeholder</button>
+    </div>
+  </div>
+</div>
+
+<!-- Convert placeholder -> real product modal -->
+<div class="ph-modal" id="convModal">
+  <div class="ph-modal-card">
+    <h3>Convert to Product</h3>
+    <p class="ph-sub">This creates a <strong>new</strong> real, sellable product. The placeholder is not reclassified.</p>
+    <div class="ph-field"><label>Placeholder</label><input id="convName" disabled></div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="convPrice">Price (₹, required)</label><input id="convPrice" type="number" placeholder="16500"></div>
+      <div class="ph-field"><label for="convCompare">Compare-at price (optional)</label><input id="convCompare" type="number"></div>
+    </div>
+    <div class="ph-field"><label for="convImage">Product image URL (optional)</label><input id="convImage" placeholder="Falls back to the Hairshalo placeholder if blank"></div>
+    <div class="ph-field"><label for="convStatus">Status</label>
+      <select id="convStatus"><option>Draft</option><option>Active</option></select>
+    </div>
+    <label class="ph-check"><input type="checkbox" id="convDelete"> Delete the placeholder after converting</label>
+    <div class="ph-error" id="convError"></div>
+    <div class="ph-actions">
+      <button class="btn" id="convCancel">Cancel</button>
+      <button class="btn btn-primary" id="convSave">Create Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- CAMPAIGN COMPOSER -->
+<div class="ph-modal" id="campaignModal" style="display:none;">
+  <div class="ph-modal-card">
+    <div class="ph-modal-head"><h3>New campaign</h3></div>
+    <div class="ph-field"><label for="campaignName">Internal name</label>
+      <input id="campaignName" placeholder="October new arrivals"></div>
+    <div class="ph-field"><label for="campaignSubject">Subject line</label>
+      <input id="campaignSubject" placeholder="Two new HD lace units just landed"></div>
+    <div class="ph-field"><label for="campaignBody">Body</label>
+      <textarea id="campaignBody" rows="6" placeholder="Write in plain text. Blank lines separate paragraphs."></textarea></div>
+    <div class="ph-field"><label for="campaignCtaLabel">Button label (optional)</label>
+      <input id="campaignCtaLabel" placeholder="Shop new arrivals"></div>
+    <div class="ph-field"><label for="campaignCtaUrl">Button link (optional)</label>
+      <input id="campaignCtaUrl" placeholder="https://verahair.co/new"></div>
+    <p class="ph-error" id="campaignError"></p>
+    <p style="font-size:12.5px;color:var(--text-soft);margin:6px 0 12px;">
+      Saving creates a draft. Sending queues it to confirmed subscribers only —
+      pending sign-ups and customers who never opted in are never included.</p>
+    <div class="ph-actions">
+      <button class="btn" id="campaignCancel">Cancel</button>
+      <button class="btn btn-primary" id="campaignSave">Save draft</button>
+    </div>
+  </div>
+</div>
+
 <div class="login-screen" id="loginScreen">
   <div class="login-card">
-    <div class="side-logo">VÉRA <span style="color:var(--gold);font-style:italic;">Admin</span></div>
-    <div class="side-sub">Sign in to your business console</div>
+    <div class="side-logo"><img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="18" height="24">HAIRSHALO</div>
+    <div class="side-sub">Admin Dashboard</div>
     <p class="login-error" id="loginError">Incorrect email or password.</p>
     <form id="loginForm">
       <input type="email" id="loginEmail" placeholder="Email" value="admin@verahair.co" required>
@@ -182,8 +629,8 @@
 <div class="app">
   <!-- SIDEBAR -->
   <aside class="sidebar">
-    <div class="side-logo">VÉRA <span>Admin</span></div>
-    <div class="side-sub">Business Console</div>
+    <div class="side-logo"><img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="18" height="24">HAIRSHALO</div>
+    <div class="side-sub">Admin Dashboard</div>
 
     <div class="nav-group">
       <div class="nav-label">Overview</div>
@@ -193,7 +640,8 @@
     <div class="nav-group">
       <div class="nav-label">Catalog</div>
       <button class="nav-link" data-view="products"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14L12 11m0 0L4 7m8 4v10M4 7v10l8 4"/></svg>Products</button>
-      <button class="nav-link" data-view="inventory"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>Inventory<span class="nav-badge">3</span></button>
+      <button class="nav-link" data-view="inventory"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>Inventory<span class="nav-badge" id="invBadge" style="display:none;"></span></button>
+      <button class="nav-link" data-view="placeholders"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="2.5" stroke-dasharray="4 3"/><path d="M8 14l2.5-3 2 2.4L15 10l3 4"/></svg>Product Placeholders</button>
     </div>
 
     <div class="nav-group">
@@ -201,6 +649,12 @@
       <button class="nav-link" data-view="orders"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>Orders</button>
       <button class="nav-link" data-view="customers"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/><path d="M16 4.5a3.5 3.5 0 010 7"/><path d="M18 14c2.4.5 3.5 2 3.5 6"/></svg>Customers</button>
       <button class="nav-link" data-view="appointments"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg>Appointments</button>
+    </div>
+
+    <div class="nav-group">
+      <div class="nav-label">Operations</div>
+      <button class="nav-link" data-view="reviews"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M12 3l2.6 5.6 6.1.8-4.5 4.2 1.2 6-5.4-3-5.4 3 1.2-6L3.3 9.4l6.1-.8L12 3z"/></svg>Reviews<span class="nav-badge" id="reviewBadge" style="display:none;"></span></button>
+      <button class="nav-link" data-view="notifications"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 7l9 6 9-6"/><rect x="3" y="5" width="18" height="14" rx="2"/></svg>Notifications<span class="nav-badge" id="notifBadge" style="display:none;"></span></button>
     </div>
 
     <div class="nav-group">
@@ -221,28 +675,28 @@
     <!-- DASHBOARD -->
     <section class="view active" id="view-dashboard">
       <div class="topbar">
-        <div><h1>Good morning, Priya <span class="conn-badge demo" id="connBadge"><span></span>Demo Mode</span></h1><p>Here's how Véra Hair Co. is doing today · 9 Aug 2026</p></div>
+        <div><h1><span id="dashGreeting">Welcome</span> <span class="conn-badge demo" id="connBadge"><span></span>Demo Mode</span></h1><p>Here's how Hairshalo is doing today · <span id="dashDate"></span></p></div>
         <div class="topbar-actions">
           <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input placeholder="Search orders, products, customers..."></div>
-          <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+          <button class="btn btn-primary" id="addProductBtnDash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
         </div>
       </div>
 
       <div class="stat-grid">
         <div class="stat-card">
-          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2v20M17 6H9.5a2.5 2.5 0 000 5h5a2.5 2.5 0 010 5H6"/></svg></div><span class="stat-delta up">+18.2%</span></div>
+          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2v20M17 6H9.5a2.5 2.5 0 000 5h5a2.5 2.5 0 010 5H6"/></svg></div><span class="stat-delta" data-delta></span></div>
           <div class="stat-value">₹8,42,600</div><div class="stat-label">Revenue this month</div>
         </div>
         <div class="stat-card">
-          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></div><span class="stat-delta up">+9.4%</span></div>
+          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></div><span class="stat-delta" data-delta></span></div>
           <div class="stat-value">312</div><div class="stat-label">Orders this month</div>
         </div>
         <div class="stat-card">
-          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg></div><span class="stat-delta up">+24</span></div>
+          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg></div><span class="stat-delta" data-delta></span></div>
           <div class="stat-value">1,284</div><div class="stat-label">Active customers</div>
         </div>
         <div class="stat-card">
-          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6L9 17l-5-5"/></svg></div><span class="stat-delta down">-0.6%</span></div>
+          <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6L9 17l-5-5"/></svg></div><span class="stat-delta" data-delta></span></div>
           <div class="stat-value">3.8%</div><div class="stat-label">Conversion rate</div>
         </div>
       </div>
@@ -286,15 +740,39 @@
       <div class="topbar">
         <div><h1>Products</h1><p>Manage your wig, extension, and topper catalog</p></div>
         <div class="topbar-actions">
-          <select class="filter"><option>All categories</option><option>Frontal Wigs</option><option>Closure Wigs</option><option>Glueless Wigs</option><option>Toppers</option></select>
-          <button class="btn btn-primary"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
+          <button class="btn btn-primary" id="addProductBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
         </div>
       </div>
       <div class="panel">
+        <div class="filter-bar">
+          <input class="search" id="prodSearch" placeholder="Search products…">
+          <select class="filter" id="prodCategoryFilter"><option value="">All categories</option></select>
+          <select class="filter" id="prodStatusFilter">
+            <option value="">All statuses</option><option>Draft</option><option>Review</option>
+            <option>Published</option><option>Out of Stock</option><option>Archived</option>
+          </select>
+          <select class="filter" id="prodStockFilter">
+            <option value="">Any stock</option><option value="in_stock">In stock</option>
+            <option value="low_stock">Low stock</option><option value="out_of_stock">Out of stock</option>
+          </select>
+          <select class="filter" id="prodDiscountFilter">
+            <option value="">Any pricing</option><option value="on_sale">Discounted</option><option value="full_price">Full price</option>
+          </select>
+          <select class="filter" id="prodFlagFilter">
+            <option value="">Any flag</option><option value="featured">Featured</option>
+            <option value="bestseller">Bestseller</option><option value="new_arrival">New arrival</option>
+          </select>
+          <select class="filter" id="prodSortFilter">
+            <option value="curated">Curated</option><option value="newest">Newest</option>
+            <option value="price_asc">Price ↑</option><option value="price_desc">Price ↓</option>
+            <option value="name">Name</option>
+          </select>
+        </div>
         <table>
-          <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Rating</th><th>Status</th><th></th></tr></thead>
+          <thead><tr><th>Product</th><th>Category</th><th>Price</th><th>Stock</th><th>Flags</th><th>Readiness</th><th>Status</th><th></th></tr></thead>
           <tbody id="productsBody"></tbody>
         </table>
+        <p class="empty-note">Publishing workflow: <strong>Draft → Review → Published → Archived</strong>. A product can only be published once its readiness checks pass.</p>
       </div>
     </section>
 
@@ -302,11 +780,38 @@
     <section class="view" id="view-inventory">
       <div class="topbar"><div><h1>Inventory</h1><p>Stock levels across warehouses, colors, and sizes</p></div></div>
       <div class="panel">
+        <div class="filter-bar">
+          <input class="search" id="invSearch" placeholder="Search product or SKU…">
+          <select class="filter" id="invStockFilter">
+            <option value="">All stock levels</option>
+            <option value="in_stock">In stock</option>
+            <option value="low_stock">Low stock</option>
+            <option value="out_of_stock">Out of stock</option>
+          </select>
+        </div>
         <table>
-          <thead><tr><th>SKU</th><th>Product</th><th>Color / Size</th><th>Warehouse</th><th>Units left</th><th>Status</th></tr></thead>
+          <thead><tr><th>SKU</th><th>Product</th><th>Variant</th><th>Warehouse</th><th>Stock</th><th>Status</th><th></th></tr></thead>
           <tbody id="inventoryBody"></tbody>
         </table>
-        <p class="empty-note">3 SKUs are below the low-stock threshold (15 units) — reorder suggestions are queued for tomorrow's supplier email.</p>
+        <p class="empty-note" id="invNote">Stock shown is the authoritative sellable quantity. Every change — sale, cancellation, restock or manual correction — is recorded as an inventory movement.</p>
+      </div>
+    </section>
+
+    <!-- PRODUCT PLACEHOLDERS -->
+    <section class="view" id="view-placeholders">
+      <div class="topbar">
+        <div><h1>Product Placeholders</h1><p>Non-sellable catalog previews — never stocked, ordered, or counted in revenue</p></div>
+        <div class="topbar-actions">
+          <select class="filter" id="phCategoryFilter"><option value="">All categories</option><option>Frontal Wigs</option><option>Closure Wigs</option><option>Glueless Wigs</option><option>Toppers</option><option>Extensions</option></select>
+          <button class="btn btn-primary" id="phAddBtn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Placeholder</button>
+        </div>
+      </div>
+      <div class="panel">
+        <table>
+          <thead><tr><th>Placeholder</th><th>Category</th><th>Display price</th><th>Label</th><th>Sort</th><th>Visibility</th><th></th></tr></thead>
+          <tbody id="placeholdersBody"></tbody>
+        </table>
+        <p class="empty-note" id="phNote">Placeholders live in their own database schema (<code>vera_product_placeholders</code>) and can never be added to a cart, ordered, stocked, or counted in analytics. Use <strong>Convert to Product</strong> to create a real, sellable product from one.</p>
       </div>
     </section>
 
@@ -315,7 +820,7 @@
       <div class="topbar">
         <div><h1>Orders</h1><p>Track, fulfill, and manage every order</p></div>
         <div class="topbar-actions">
-          <div class="panel-head tabs" style="margin:0;"><button class="active">All</button><button>Processing</button><button>Shipped</button><button>Delivered</button></div>
+          <div class="panel-head tabs" style="margin:0;"><button class="active">All</button><button>Processing</button><button>Shipped</button><button>Out for Delivery</button><button>Delivered</button><button>Cancelled</button></div>
         </div>
       </div>
       <div class="panel">
@@ -348,23 +853,114 @@
       </div>
     </section>
 
+    <!-- NOTIFICATIONS -->
+    <section class="view" id="view-notifications">
+      <div class="topbar">
+        <div><h1>Notifications</h1><p>Every message the shop has queued, sent or failed to send</p></div>
+        <div class="topbar-actions">
+          <button class="btn" id="notifTestBtn">Send test email</button>
+          <button class="btn btn-primary" id="notifDispatchBtn">Send queued now</button>
+        </div>
+      </div>
+
+      <div class="panel" id="notifConfigPanel" style="margin-bottom:18px;">
+        <div class="panel-head"><h3>Delivery channel</h3><span id="notifChannelBadge"></span></div>
+        <div id="notifWarnings"></div>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:18px;">
+        <div class="stat-card"><div class="stat-value" id="notifStatQueued">—</div><div class="stat-label">Queued · waiting to be sent</div></div>
+        <div class="stat-card"><div class="stat-value" id="notifStatSent">—</div><div class="stat-label">Sent · accepted by the channel</div></div>
+        <div class="stat-card"><div class="stat-value" id="notifStatFailed">—</div><div class="stat-label">Failed · out of retries</div></div>
+        <div class="stat-card"><div class="stat-value" id="notifStatSuppressed">—</div><div class="stat-label">Suppressed · opt-out or bounce</div></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head">
+          <h3>Outbox</h3>
+          <select id="notifStatusFilter" style="max-width:180px;">
+            <option value="">All statuses</option>
+            <option value="Queued">Queued</option>
+            <option value="Sent">Sent</option>
+            <option value="Failed">Failed</option>
+            <option value="Suppressed">Suppressed</option>
+            <option value="Cancelled">Cancelled</option>
+          </select>
+        </div>
+        <table>
+          <thead><tr><th>When</th><th>Event</th><th>Recipient</th><th>Subject</th><th>Status</th><th>Attempts</th><th></th></tr></thead>
+          <tbody id="notifBody"></tbody>
+        </table>
+      </div>
+
+      <div class="panel" id="notifDetail" style="display:none;margin-top:18px;">
+        <div class="panel-head"><h3 id="notifDetailSubject">Message</h3><button class="btn" id="notifDetailClose">Close</button></div>
+        <div id="notifDetailMeta" class="kpi-mini"></div>
+        <!-- Sandboxed: this is stored, rendered email markup, so it is previewed
+             in an isolated frame rather than injected into the dashboard. -->
+        <iframe id="notifDetailFrame" sandbox="" style="width:100%;height:460px;border:1px solid var(--line);border-radius:8px;background:#fff;margin-top:12px;"></iframe>
+      </div>
+    </section>
+
+    <!-- REVIEWS -->
+    <section class="view" id="view-reviews">
+      <div class="topbar">
+        <div><h1>Reviews</h1><p>Nothing counts towards a product's rating until it is published here</p></div>
+        <div class="topbar-actions">
+          <select id="reviewStatusFilter" style="max-width:190px;">
+            <option value="Pending">Awaiting moderation</option>
+            <option value="Published">Published</option>
+            <option value="Rejected">Rejected</option>
+            <option value="">All</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="stat-grid" style="margin-bottom:18px;">
+        <div class="stat-card"><div class="stat-value" id="reviewStatPending">—</div><div class="stat-label">Awaiting moderation</div></div>
+        <div class="stat-card"><div class="stat-value" id="reviewStatPublished">—</div><div class="stat-label">Published · counting towards ratings</div></div>
+        <div class="stat-card"><div class="stat-value" id="reviewStatVerified">—</div><div class="stat-label">From verified purchases</div></div>
+        <div class="stat-card"><div class="stat-value" id="reviewStatAverage">—</div><div class="stat-label">Average of published reviews</div></div>
+      </div>
+
+      <div class="panel">
+        <table>
+          <thead><tr><th>Product</th><th>Rating</th><th>Review</th><th>Customer</th><th>Status</th><th></th></tr></thead>
+          <tbody id="reviewBody"></tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- MARKETING -->
     <section class="view" id="view-marketing">
       <div class="topbar"><div><h1>Marketing</h1><p>Email flows, coupons, and campaign performance</p></div></div>
       <div class="two-col">
         <div class="panel">
-          <div class="panel-head"><h3>Active email flows (Brevo)</h3></div>
-          <div class="kpi-mini"><span>Welcome series</span><strong class="badge ok">Live · 42% open rate</strong></div>
-          <div class="kpi-mini"><span>Abandoned cart recovery</span><strong class="badge ok">Live · 19% recovered</strong></div>
-          <div class="kpi-mini"><span>Order confirmations</span><strong class="badge ok">Live</strong></div>
-          <div class="kpi-mini"><span>Birthday offers</span><strong class="badge ok">Live</strong></div>
-          <div class="kpi-mini"><span>Post-purchase care tips</span><strong class="badge warn">Draft</strong></div>
+          <div class="panel-head"><h3>Transactional email</h3><button class="btn" data-goto="notifications">Open outbox</button></div>
+          <!-- Counts come from the notification outbox, not from a marketing
+               tool. Flows this shop does not run are shown as not built rather
+               than as live. -->
+          <div id="marketingFlows"><div class="kpi-mini"><span>Loading…</span><strong>—</strong></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Mailing list</h3><span id="audienceBadge"></span></div>
+          <!-- A breakdown, not a flattering total: "900 subscribers" hides
+               700 people who never confirmed and can never be mailed. -->
+          <div id="audienceBreakdown"></div>
+        </div>
+      </div>
+
+      <div class="two-col" style="margin-top:18px;">
+        <div class="panel">
+          <div class="panel-head"><h3>Campaigns</h3><button class="btn btn-primary" id="campaignNewBtn">New campaign</button></div>
+          <table>
+            <thead><tr><th>Campaign</th><th>Subject</th><th>Status</th><th>Sent to</th><th></th></tr></thead>
+            <tbody id="campaignRows"></tbody>
+          </table>
         </div>
         <div class="panel">
           <div class="panel-head"><h3>Active coupons</h3></div>
-          <div class="kpi-mini"><span>WELCOME10 — 10% off first order</span><strong>412 uses</strong></div>
-          <div class="kpi-mini"><span>FREESHIP — Free shipping over ₹8,000</span><strong>288 uses</strong></div>
-          <div class="kpi-mini"><span>FITKIT — Free sizing kit</span><strong>176 uses</strong></div>
+          <div id="couponList"><div class="kpi-mini"><span>Loading…</span><strong>—</strong></div></div>
         </div>
       </div>
     </section>
@@ -413,8 +1009,10 @@
 
   function statusBadge(status){
     const map = {
-      'Delivered':'ok', 'Active':'ok', 'Confirmed':'ok', 'In Stock':'ok',
-      'Out for Delivery':'warn', 'Shipped':'warn', 'Processing':'warn', 'Pending':'warn', 'Draft':'neutral', 'Low Stock':'warn',
+      'Delivered':'ok', 'Active':'ok', 'Published':'ok', 'Confirmed':'ok', 'In Stock':'ok',
+      'Out for Delivery':'warn', 'Shipped':'warn', 'Processing':'warn', 'Pending':'warn',
+      'Review':'warn', 'Low Stock':'warn', 'Out of Stock':'warn',
+      'Draft':'neutral', 'Archived':'neutral',
       'Cancelled':'danger', 'Critical':'danger'
     };
     return `<span class="badge ${map[status]||'neutral'}">${status}</span>`;
@@ -424,37 +1022,265 @@
     return `<span class="stock-bar ${level==='ok'?'':level}"><i style="width:${pct}%"></i></span>${units} left`;
   }
 
+  function readinessCell(p){
+    if(!p.readiness) return '<span class="badge neutral">—</span>';
+    if(p.readiness.is_ready_to_publish) return '<span class="badge ok">Ready</span>';
+    const labels = {
+      missing_description:'description', missing_price:'price', missing_image:'image',
+      missing_category:'category', missing_variants:'variants'
+    };
+    const list = (p.readiness.issues||[]).map(i => labels[i] || i).join(', ');
+    return `<span class="badge warn" title="Missing: ${list}">Missing ${p.readiness.issues.length}</span>`;
+  }
+
+  function flagsCell(p){
+    const f = [];
+    if(p.featured) f.push('<span class="badge neutral">Featured</span>');
+    if(p.bestseller) f.push('<span class="badge neutral">Bestseller</span>');
+    if(p.new_arrival) f.push('<span class="badge neutral">New</span>');
+    if(p.badge) f.push(`<span class="badge ok">${p.badge}</span>`);
+    return f.length ? `<div style="display:flex;gap:4px;flex-wrap:wrap;">${f.join('')}</div>` : '<span style="color:var(--text-soft);">—</span>';
+  }
+
+  function priceCell(p){
+    if(p.price == null) return '<span style="color:var(--text-soft)">—</span>';
+    if(!p.on_sale) return fmtINR(p.price);
+    return `<strong>${fmtINR(p.price)}</strong>
+      <div style="font-size:11px;color:var(--text-soft);">
+        <s>${fmtINR(p.compare_at_price)}</s>
+        <span style="color:var(--wine);font-weight:700;"> ${p.discount_percent}% off</span>
+      </div>`;
+  }
+
+  /* Renders straight from API product objects (used by the filter bar). */
+  function renderProductRows(products){
+    document.getElementById('productsBody').innerHTML = products.length ? products.map(p => {
+      const stock = p.total_stock;
+      const level = stock === 0 ? 'crit' : stock <= 15 ? 'low' : 'ok';
+      return `
+      <tr>
+        <td><div class="cell-prod">
+          <div class="cell-thumb" style="${p.image_url ? `background-image:url('${resolveMediaUrl(p.image_url)}')` : 'background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34)'}"></div>
+          <div><strong>${escAttr(p.name)}</strong><span>${(p.variants||[]).length} variant(s)${p.is_demo ? ' · demo' : ''}</span></div>
+        </div></td>
+        <td>${escAttr(p.category || '—')}</td>
+        <td>${priceCell(p)}</td>
+        <td>${stockBar(level, stock)}</td>
+        <td>${flagsCell(p)}</td>
+        <td>${readinessCell(p)}</td>
+        <td>${statusBadge(p.status)}</td>
+        <td><div class="row-actions">
+          <button class="icon-mini" title="Edit" data-prod-edit="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+          <button class="icon-mini" title="Workflow &amp; flags" data-prod-manage="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
+          <button class="icon-mini" title="Preview" data-prod-preview="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+        </div></td>
+      </tr>`;
+    }).join('')
+      : '<tr><td colspan="8" style="color:var(--text-soft);">No products match these filters.</td></tr>';
+  }
+
+  /* Legacy shape used by demo mode (renderMockDashboard). */
   function renderProducts(products){
     document.getElementById('productsBody').innerHTML = products.map(p => `
       <tr>
-        <td><div class="cell-prod"><div class="cell-thumb" style="background-image:url('${p.img}')"></div><div><strong>${p.name}</strong><span>${p.cat}</span></div></div></td>
-        <td>${p.cat}</td>
+        <td><div class="cell-prod"><div class="cell-thumb" style="${p.img ? `background-image:url('${p.img}')` : 'background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34)'}"></div><div><strong>${p.name}</strong><span>${p.cat}</span></div></div></td>
+        <td>${p.cat || '—'}</td>
         <td>${p.price}</td>
         <td>${stockBar(p.stockLevel, p.stock)}</td>
-        <td>${p.rating}</td>
+        <td>—</td>
+        <td>—</td>
         <td>${statusBadge(p.status)}</td>
-        <td><div class="row-actions">
-          <button class="icon-mini" title="Edit"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
-          <button class="icon-mini" title="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
-        </div></td>
+        <td><div class="row-actions"><span style="font-size:11px;color:var(--text-soft);">demo</span></div></td>
       </tr>`).join('');
   }
 
-  function renderInventory(inventory){
-    document.getElementById('inventoryBody').innerHTML = inventory.map(i => `
-      <tr><td>${i.sku}</td><td>${i.product}</td><td>${i.variant}</td><td>${i.wh}</td>
-      <td>${stockBar(i.level, i.units)}</td>
-      <td>${statusBadge(i.level==='crit'?'Critical':i.level==='low'?'Low Stock':'In Stock')}</td></tr>`).join('');
+  /* ---- Inventory (variant-driven, with audited adjustments) ---- */
+  let inventoryRows = [];
+
+  function renderInventory(rows){
+    inventoryRows = rows;
+    const term = (document.getElementById('invSearch')?.value || '').toLowerCase().trim();
+    const level = document.getElementById('invStockFilter')?.value || '';
+    let view = rows.slice();
+    if(term) view = view.filter(r =>
+      r.product_name.toLowerCase().includes(term) || (r.sku||'').toLowerCase().includes(term));
+    if(level === 'in_stock') view = view.filter(r => r.stock > 0);
+    if(level === 'low_stock') view = view.filter(r => r.stock > 0 && r.stock <= r.low_stock_threshold);
+    if(level === 'out_of_stock') view = view.filter(r => r.stock === 0);
+
+    document.getElementById('inventoryBody').innerHTML = view.length ? view.map(r => `
+      <tr>
+        <td style="font-family:monospace;font-size:12px;">${escAttr(r.sku)}</td>
+        <td><strong>${escAttr(r.product_name)}</strong><br><span style="font-size:11px;color:var(--text-soft);">${escAttr(r.product_status)}</span></td>
+        <td style="font-size:12px;">${escAttr(r.variant_label)}</td>
+        <td>${escAttr(r.warehouse || '—')}</td>
+        <td>${stockBar(r.stock_level, r.stock)}</td>
+        <td>${statusBadge(r.stock===0?'Critical':r.stock<=r.low_stock_threshold?'Low Stock':'In Stock')}</td>
+        <td><div class="row-actions">
+          <button class="icon-mini" title="Adjust stock" data-inv-adjust="${r.variant_id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14M5 12h14"/></svg></button>
+        </div></td>
+      </tr>`).join('')
+      : '<tr><td colspan="7" style="color:var(--text-soft);">No stock records match these filters.</td></tr>';
+
+    const low = rows.filter(r => r.stock <= r.low_stock_threshold).length;
+    const note = document.getElementById('invNote');
+    if(note) note.textContent = low
+      ? `${low} SKU${low===1?'':'s'} at or below the low-stock threshold (${rows[0]?.low_stock_threshold ?? 15} units). Every stock change is recorded as an auditable movement.`
+      : 'All SKUs are above the low-stock threshold. Every stock change is recorded as an auditable movement.';
   }
 
-  function renderOrders(orders){
-    const rows = orders.map(o => `
-      <tr><td><strong>${o.id}</strong></td><td>${o.customer}</td><td>${o.item}</td><td>${o.date||''}</td><td>${o.total}</td><td>${statusBadge(o.status)}</td>
-      <td><div class="row-actions"><button class="icon-mini" title="View"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div></td></tr>`).join('');
-    document.getElementById('ordersBody').innerHTML = rows;
-    document.getElementById('recentOrdersBody').innerHTML = orders.slice(0,5).map(o => `
-      <tr><td><strong>${o.id}</strong></td><td>${o.customer}</td><td>${o.item}</td><td>${o.total}</td><td>${statusBadge(o.status)}</td></tr>`).join('');
+  ['invSearch','invStockFilter'].forEach(id => {
+    const n = document.getElementById(id);
+    if(n) n.addEventListener(n.tagName === 'INPUT' ? 'input' : 'change', () => renderInventory(inventoryRows));
+  });
+
+  let adjVariantId = null;
+  async function openAdjust(variantId){
+    const row = inventoryRows.find(r => r.variant_id === variantId);
+    if(!row) return;
+    adjVariantId = variantId;
+    document.getElementById('adjSub').textContent = `${row.product_name} — ${row.variant_label} (${row.sku})`;
+    document.getElementById('adjCurrent').value = row.stock;
+    document.getElementById('adjDelta').value = '';
+    document.getElementById('adjResult').value = row.stock;
+    document.getElementById('adjNote').value = '';
+    document.getElementById('adjError').style.display = 'none';
+    document.getElementById('adjHistory').innerHTML = 'Loading…';
+    document.getElementById('adjModal').classList.add('open');
+    try{
+      const moves = await apiGet('/inventory/movements/' + variantId);
+      document.getElementById('adjHistory').innerHTML = moves.length ? moves.map(m => `
+        <div>${new Date(m.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}
+        · <strong>${m.delta > 0 ? '+' : ''}${m.delta}</strong> → ${m.stock_after}
+        · ${escAttr(m.reason)}${m.actor ? ' · ' + escAttr(m.actor) : ''}${m.note ? ' · ' + escAttr(m.note) : ''}</div>`).join('')
+        : 'No movements recorded yet.';
+    }catch(err){ document.getElementById('adjHistory').textContent = 'Could not load history.'; }
   }
+
+  document.getElementById('adjDelta').addEventListener('input', () => {
+    const cur = parseInt(document.getElementById('adjCurrent').value || '0', 10);
+    const d = parseInt(document.getElementById('adjDelta').value || '0', 10);
+    document.getElementById('adjResult').value = cur + (isNaN(d) ? 0 : d);
+  });
+  document.getElementById('adjCancel').addEventListener('click',
+    () => document.getElementById('adjModal').classList.remove('open'));
+
+  document.getElementById('adjSave').addEventListener('click', async () => {
+    const err = document.getElementById('adjError');
+    const delta = parseInt(document.getElementById('adjDelta').value || '0', 10);
+    if(!delta){ err.textContent='Enter a non-zero quantity.'; err.style.display='block'; return; }
+    try{
+      await apiSend('POST', '/inventory/adjust', {
+        variant_id: adjVariantId, delta,
+        reason: document.getElementById('adjReason').value,
+        note: document.getElementById('adjNote').value.trim() || null
+      });
+      document.getElementById('adjModal').classList.remove('open');
+      await loadLiveDashboard();
+    }catch(e){ err.textContent = e.message; err.style.display = 'block'; }
+  });
+
+  document.addEventListener('click', e => {
+    const a = e.target.closest('[data-inv-adjust]');
+    if(a) openAdjust(a.dataset.invAdjust);
+  });
+
+  /* ---- Orders: real filtering + detail ---- */
+  let liveOrders = [];
+  let orderStatusFilter = 'All';
+
+  function renderOrders(orders){
+    const view = orderStatusFilter === 'All'
+      ? orders
+      : orders.filter(o => (o.statusRaw || o.status) === orderStatusFilter);
+    document.getElementById('ordersBody').innerHTML = view.length ? view.map(o => `
+      <tr><td><strong>${o.id}</strong></td><td>${escAttr(o.customer)}</td><td>${escAttr(o.item)}</td><td>${o.date||''}</td><td>${o.total}</td><td>${statusBadge(o.status)}</td>
+      <td><div class="row-actions"><button class="icon-mini" title="View order" data-order-view="${o.rawId||''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div></td></tr>`).join('')
+      : `<tr><td colspan="7" style="color:var(--text-soft);">No ${orderStatusFilter.toLowerCase()} orders.</td></tr>`;
+    document.getElementById('recentOrdersBody').innerHTML = orders.slice(0,5).map(o => `
+      <tr><td><strong>${o.id}</strong></td><td>${escAttr(o.customer)}</td><td>${escAttr(o.item)}</td><td>${o.total}</td><td>${statusBadge(o.status)}</td></tr>`).join('');
+  }
+
+  // Status tabs now actually filter. Labels map to real OrderStatus values.
+  document.querySelectorAll('#view-orders .tabs button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      document.querySelectorAll('#view-orders .tabs button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      orderStatusFilter = btn.textContent.trim();
+      renderOrders(ordersForTable);
+    });
+  });
+
+  let ordersForTable = [];
+
+  const ORDER_TRANSITIONS = {
+    'Processing': ['Shipped','Cancelled'],
+    'Shipped': ['Out for Delivery','Delivered','Cancelled'],
+    'Out for Delivery': ['Delivered','Cancelled'],
+    'Delivered': [],
+    'Cancelled': []
+  };
+
+  async function openOrderDetail(orderId){
+    const o = liveOrders.find(x => x.id === orderId);
+    if(!o) return;
+    document.getElementById('odNumber').textContent = 'Order #' + o.order_number;
+    document.getElementById('odMeta').textContent =
+      new Date(o.created_at).toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'});
+    document.getElementById('odCustomer').innerHTML = `
+      <div><strong>${escAttr(o.customer_name)}</strong></div>
+      <div>${escAttr(o.customer_email)}</div>
+      ${o.shipping_address ? `<div style="color:var(--text-soft);white-space:pre-wrap;">${escAttr(o.shipping_address)}</div>` : ''}`;
+    document.getElementById('odItems').innerHTML = (o.items||[]).map(i => `
+      <tr>
+        <td>${escAttr(i.product_name)}</td>
+        <td style="font-size:12px;">${escAttr(i.variant_label || '—')}</td>
+        <td style="font-family:monospace;font-size:12px;">${escAttr(i.variant_sku || '—')}</td>
+        <td>${i.quantity}</td>
+        <td>${fmtINR(i.price)}${i.compare_at_price ? `<br><s style="color:var(--text-soft);font-size:11px;">${fmtINR(i.compare_at_price)}</s>` : ''}</td>
+        <td><strong>${fmtINR(Number(i.price) * i.quantity)}</strong></td>
+      </tr>`).join('');
+    const sub = Number(o.subtotal ?? o.total), disc = Number(o.discount_total || 0), ship = Number(o.shipping_fee || 0);
+    document.getElementById('odTotals').innerHTML = `
+      <div class="pf-calc-row"><span>Subtotal</span><strong>${fmtINR(sub)}</strong></div>
+      ${disc > 0 ? `<div class="pf-calc-row"><span>Discount${o.coupon_code ? ' ('+escAttr(o.coupon_code)+')' : ''}</span><strong>− ${fmtINR(disc)}</strong></div>` : ''}
+      <div class="pf-calc-row"><span>Delivery</span><strong>${ship > 0 ? fmtINR(ship) : 'Free'}</strong></div>
+      <div class="pf-calc-row total"><span>Total charged</span><strong>${fmtINR(o.total)}</strong></div>
+      <div class="pf-calc-note">Payment gateway not yet integrated — this order has no captured payment.</div>`;
+
+    const allowed = ORDER_TRANSITIONS[o.status] || [];
+    const sel = document.getElementById('odStatus');
+    sel.innerHTML = allowed.length
+      ? allowed.map(s => `<option>${s}</option>`).join('')
+      : '<option value="">— no further transitions —</option>';
+    sel.disabled = allowed.length === 0;
+    document.getElementById('odStatusSave').disabled = allowed.length === 0;
+    document.getElementById('odStatusHint').textContent = allowed.length
+      ? `Currently ${o.status}. Cancelling returns stock to inventory.`
+      : `${o.status} is a final state.`;
+    document.getElementById('odError').style.display = 'none';
+    document.getElementById('odStatusSave').dataset.orderId = o.id;
+    document.getElementById('orderModal').classList.add('open');
+  }
+
+  document.getElementById('odClose').addEventListener('click',
+    () => document.getElementById('orderModal').classList.remove('open'));
+
+  document.getElementById('odStatusSave').addEventListener('click', async (e) => {
+    const err = document.getElementById('odError');
+    const status = document.getElementById('odStatus').value;
+    if(!status) return;
+    try{
+      await apiSend('PUT', `/orders/${e.target.dataset.orderId}/status`, {status});
+      document.getElementById('orderModal').classList.remove('open');
+      await loadLiveDashboard();
+    }catch(ex){ err.textContent = ex.message; err.style.display = 'block'; }
+  });
+
+  document.addEventListener('click', e => {
+    const v = e.target.closest('[data-order-view]');
+    if(v && v.dataset.orderView) openOrderDetail(v.dataset.orderView);
+  });
 
   function renderCustomers(customers){
     document.getElementById('customersBody').innerHTML = customers.map(c => `
@@ -495,6 +1321,15 @@
 
   // ---- Demo (mock) dataset ----
   function renderMockDashboard(){
+    // Demo-mode placeholders, so the Product Placeholders view is not blank
+    // without a backend. Editing requires a live backend.
+    placeholders = [
+      {id:'demo-ph-1', name:'Signature Lace Wig', category:'Frontal Wigs', short_description:'Our signature hand-tied lace unit.', placeholder_label:'Coming Soon', display_price:'Price on request', badge:'Coming Soon', placeholder_image:null, sort_order:10, is_visible:true},
+      {id:'demo-ph-2', name:'Luxury Glueless Wig', category:'Glueless Wigs', short_description:'Adjustable, install-free luxury unit.', placeholder_label:'Coming Soon', display_price:'From ₹14,000', badge:'Coming Soon', placeholder_image:null, sort_order:20, is_visible:true},
+      {id:'demo-ph-3', name:'HD Lace Collection', category:'Frontal Wigs', short_description:'An HD lace range in production.', placeholder_label:'Product Image Coming Soon', display_price:'From ₹18,000', badge:'New Collection', placeholder_image:null, sort_order:40, is_visible:false},
+    ];
+    renderPlaceholders();
+
     const products = [
       {name:'Malaika HD Lace Frontal', cat:'Frontal Wigs', price:'₹18,999', stock:64, stockLevel:'ok', rating:'4.9 (312)', status:'Active', img:IMG.frontal},
       {name:'Anaya Glueless Bob', cat:'Glueless Wigs', price:'₹12,499', stock:11, stockLevel:'low', rating:'4.8 (204)', status:'Active', img:IMG.bob},
@@ -532,7 +1367,11 @@
     ];
 
     renderProducts(products);
-    renderInventory(inventory);
+    renderInventory(inventory.map(i => ({
+      variant_id: null, product_id: null, product_name: i.product, product_status: 'Demo',
+      sku: i.sku, variant_label: i.variant, warehouse: i.wh, stock: i.units,
+      is_available: true, stock_level: i.level, low_stock_threshold: 15
+    })));
     renderOrders(orders);
     renderCustomers(customers);
     renderAppointments(appts);
@@ -556,7 +1395,7 @@
 
   async function loadLiveDashboard(){
     const [products, orders, customers, inventory, appts, summary, topProducts, revenueTrend] = await Promise.all([
-      apiGet('/products?status=Active').catch(()=>apiGet('/products')),
+      apiGet('/products?status=all&limit=200').catch(()=>apiGet('/products')),
       apiGet('/orders'),
       apiGet('/customers'),
       apiGet('/inventory'),
@@ -566,24 +1405,20 @@
       apiGet('/analytics/revenue-trend?days=30'),
     ]);
 
-    renderProducts(products.map(p => ({
-      name:p.name, cat:p.category, price:fmtINR(p.price),
-      stock: inventory.filter(i=>i.product_id===p.id).reduce((s,i)=>s+i.units,0),
-      stockLevel: (inventory.find(i=>i.product_id===p.id)||{}).stock_level || 'ok',
-      rating: `${p.rating} (${p.review_count})`, status:p.status,
-      img: p.image_url || IMG.frontal
-    })));
+    liveProducts = products;
+    if(categoriesCache.length === 0) await loadCategories();
+    applyProductFilters();   // renders the table honouring the current filters
 
-    renderInventory(inventory.map(i => ({
-      sku:i.sku, product:i.product_name || '—', variant:i.variant, wh:i.warehouse, units:i.units, level:i.stock_level
-    })));
+    renderInventory(inventory);
 
-    renderOrders(orders.map(o => ({
-      id:'#'+o.order_number, customer:o.customer_name,
+    liveOrders = orders;
+    ordersForTable = orders.map(o => ({
+      id:'#'+o.order_number, rawId:o.id, customer:o.customer_name,
       item: o.items && o.items[0] ? o.items[0].product_name + (o.items.length>1?` +${o.items.length-1} more`:'') : '—',
       date: new Date(o.created_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}),
-      total: fmtINR(o.total), status:o.status
-    })));
+      total: fmtINR(o.total), status:o.status, statusRaw:o.status
+    }));
+    renderOrders(ordersForTable);
 
     renderCustomers(customers.map(c => ({
       name:c.name, orders:c.order_count, spent:fmtINR(c.total_spent),
@@ -608,7 +1443,732 @@
     if(statValues[1]) statValues[1].textContent = summary.orders_this_month;
     if(statValues[2]) statValues[2].textContent = summary.active_customers;
     if(statValues[3]) statValues[3].textContent = summary.conversion_rate + '%';
+
+    // Real identity and date, instead of a hardcoded greeting.
+    try{
+      const me = await apiGet('/auth/me');
+      const hour = new Date().getHours();
+      const part = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
+      document.getElementById('dashGreeting').textContent =
+        `${part}, ${(me.full_name || me.email).split(' ')[0]}`;
+    }catch(err){
+      document.getElementById('dashGreeting').textContent = 'Welcome';
+    }
+    document.getElementById('dashDate').textContent =
+      new Date().toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'});
+
+    // Period-over-period deltas are not computed yet, so nothing is shown
+    // rather than inventing a number beside the real figures.
+    document.querySelectorAll('[data-delta]').forEach(el => { el.style.display = 'none'; });
+
+    // Low-stock badge from real inventory.
+    const lowCount = inventory.filter(r => r.stock <= r.low_stock_threshold).length;
+    const badge = document.getElementById('invBadge');
+    if(badge){
+      badge.textContent = lowCount;
+      badge.style.display = lowCount ? '' : 'none';
+    }
+
+    // Placeholders are loaded from their own endpoint and never merged into
+    // the product/inventory/analytics data above.
+    await loadPlaceholders();
   }
+
+  // ================= Add / Edit product =================
+  let categoriesCache = [];
+  let pfEditingId = null;        // null = creating
+  let pfVariantRows = [];        // client-side rows before first save
+  let pfMedia = [];              // media already persisted for this product
+
+  const el = id => document.getElementById(id);
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  async function loadCategories(){
+    try{
+      categoriesCache = await apiGet('/categories?include_inactive=true');
+    }catch(err){ categoriesCache = []; }
+    const sel = el('pfCategory');
+    sel.innerHTML = '<option value="">— Select a category —</option>' +
+      categoriesCache.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+    const filt = el('prodCategoryFilter');
+    if(filt) filt.innerHTML = '<option value="">All categories</option>' +
+      categoriesCache.map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+  }
+
+  /* ---- Live pricing preview. PREVIEW ONLY — the server recalculates. ---- */
+  function pfUpdateCalc(){
+    const original = parseFloat(el('pfOriginal').value || '0') || 0;
+    const type = el('pfDiscType').value;
+    const value = parseFloat(el('pfDiscValue').value || '0') || 0;
+    let discount = 0, note = '';
+    if(type === 'percentage'){
+      if(value > 100){ note = 'Discount percentage must be between 0 and 100.'; }
+      else discount = original * value / 100;
+    } else if(type === 'fixed_amount'){
+      if(value > original){ note = 'Fixed discount cannot exceed the original price.'; }
+      else discount = value;
+    }
+    const selling = Math.max(0, original - discount);
+    el('pfCalcOriginal').textContent = fmtINR(original);
+    el('pfCalcDiscount').textContent = discount ? '− ' + fmtINR(discount) : '₹0';
+    el('pfCalcSelling').textContent = fmtINR(selling);
+    el('pfCalcNote').textContent = note
+      ? note + ' The server will reject this.'
+      : 'Preview only — the server recalculates and validates these values on save.';
+    el('pfCalcNote').style.color = note ? 'var(--danger)' : 'var(--text-soft)';
+  }
+  ['pfOriginal','pfDiscType','pfDiscValue'].forEach(id => {
+    document.addEventListener('input', e => { if(e.target.id === id) pfUpdateCalc(); });
+    document.addEventListener('change', e => { if(e.target.id === id) pfUpdateCalc(); });
+  });
+
+  /* ---- Variant rows ---- */
+  function pfRenderVariants(){
+    el('pfVariants').innerHTML = pfVariantRows.map((v, i) => `
+      <div class="pf-variant" data-vrow="${i}">
+        <div class="pf-variant-head">
+          <strong>Variant ${i + 1}${v.id ? '' : ' (new)'}</strong>
+          <button type="button" class="pf-variant-rm" data-vremove="${i}">Remove</button>
+        </div>
+        <div class="pf-row-3">
+          <div class="ph-field"><label>SKU *</label><input data-vfield="sku" data-vi="${i}" value="${esc(v.sku||'')}" placeholder="VR-HD-16-NB"></div>
+          <div class="ph-field"><label>Length</label><input data-vfield="length" data-vi="${i}" value="${esc(v.length||'')}" placeholder='16"'></div>
+          <div class="ph-field"><label>Density</label><input data-vfield="density" data-vi="${i}" value="${esc(v.density||'')}" placeholder="180%"></div>
+        </div>
+        <div class="pf-row-3">
+          <div class="ph-field"><label>Color</label><input data-vfield="color" data-vi="${i}" value="${esc(v.color||'')}" placeholder="Natural Black"></div>
+          <div class="ph-field"><label>Lace type</label><input data-vfield="lace_type" data-vi="${i}" value="${esc(v.lace_type||'')}" placeholder="HD Lace"></div>
+          <div class="ph-field"><label>Cap size</label><input data-vfield="cap_size" data-vi="${i}" value="${esc(v.cap_size||'')}" placeholder="Medium"></div>
+        </div>
+        <div class="pf-row-3">
+          <div class="ph-field"><label>Stock *</label><input type="number" min="0" data-vfield="stock" data-vi="${i}" value="${v.stock != null ? v.stock : 0}"></div>
+          <div class="ph-field"><label>Price override (₹)</label><input type="number" min="0" step="0.01" data-vfield="original_price" data-vi="${i}" value="${v.original_price != null ? v.original_price : ''}" placeholder="inherit"></div>
+          <div class="ph-field"><label>Variant discount</label>
+            <select data-vfield="discount_type" data-vi="${i}">
+              <option value="none"${v.discount_type==='none'||!v.discount_type?' selected':''}>None</option>
+              <option value="percentage"${v.discount_type==='percentage'?' selected':''}>Percentage</option>
+              <option value="fixed_amount"${v.discount_type==='fixed_amount'?' selected':''}>Fixed</option>
+            </select>
+          </div>
+        </div>
+        <div class="ph-row">
+          <div class="ph-field"><label>Discount value</label><input type="number" min="0" step="0.01" data-vfield="discount_value" data-vi="${i}" value="${v.discount_value != null ? v.discount_value : 0}"></div>
+          <div class="ph-field" style="display:flex;align-items:flex-end;">
+            <label class="ph-check" style="margin-bottom:10px;"><input type="checkbox" data-vfield="is_available" data-vi="${i}" ${v.is_available !== false ? 'checked' : ''}> Available</label>
+          </div>
+        </div>
+      </div>`).join('') || '<div class="pf-hint">No variants yet. A product needs at least one variant before it can be published.</div>';
+  }
+
+  document.addEventListener('input', e => {
+    const f = e.target.dataset && e.target.dataset.vfield;
+    if(!f) return;
+    const i = parseInt(e.target.dataset.vi, 10);
+    pfVariantRows[i][f] = e.target.type === 'checkbox' ? e.target.checked
+      : (e.target.type === 'number' ? (e.target.value === '' ? null : parseFloat(e.target.value)) : e.target.value);
+  });
+  document.addEventListener('change', e => {
+    const f = e.target.dataset && e.target.dataset.vfield;
+    if(!f) return;
+    const i = parseInt(e.target.dataset.vi, 10);
+    pfVariantRows[i][f] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+  });
+  document.addEventListener('click', e => {
+    const rm = e.target.closest('[data-vremove]');
+    if(rm){ pfVariantRows.splice(parseInt(rm.dataset.vremove,10), 1); pfRenderVariants(); }
+  });
+  el('pfAddVariant').addEventListener('click', () => {
+    pfVariantRows.push({sku:'', length:'', density:'', color:'', lace_type:'', cap_size:'',
+      stock:0, original_price:null, discount_type:'none', discount_value:0, is_available:true});
+    pfRenderVariants();
+  });
+
+  /* ---- Media ---- */
+  function pfRenderMedia(){
+    el('pfMediaGrid').innerHTML = pfMedia.map(m => `
+      <div class="pf-media-item ${m.is_primary ? 'primary' : ''}">
+        ${m.media_type === 'image'
+          ? `<img src="${resolveMediaUrl(m.url)}" alt="">`
+          : `<div class="mi-video">▶</div>`}
+        <div class="mi-actions">
+          ${m.media_type === 'image' && !m.is_primary ? `<button type="button" data-mprimary="${m.id}">SET MAIN</button>` : ''}
+          <button type="button" data-mdelete="${m.id}">DELETE</button>
+        </div>
+      </div>`).join('');
+    el('pfMediaHint').textContent = pfEditingId
+      ? (pfMedia.length ? `${pfMedia.length} file(s). The bordered image is the primary.` : 'No media yet — upload at least one image before publishing.')
+      : 'Save the product first, then upload media.';
+    el('pfUploadZone').style.display = pfEditingId ? 'block' : 'none';
+  }
+
+  // Media URLs are returned relative (e.g. /media/x.jpg); resolve against the API host.
+  function resolveMediaUrl(url){
+    if(!url) return '';
+    if(/^https?:\/\//i.test(url)) return url;
+    return API_BASE.replace(/\/api$/, '') + url;
+  }
+
+  el('pfUploadZone').addEventListener('click', () => el('pfFileInput').click());
+  el('pfFileInput').addEventListener('change', async (e) => {
+    const files = [...e.target.files];
+    e.target.value = '';
+    if(!pfEditingId || files.length === 0) return;
+    el('pfMediaArea').classList.add('pf-busy');
+    el('pfMediaHint').textContent = 'Uploading…';
+    for(const f of files){
+      const fd = new FormData();
+      fd.append('file', f);
+      fd.append('alt_text', el('pfName').value || '');
+      try{
+        const res = await fetch(`${API_BASE}/products/${pfEditingId}/media/upload`, {
+          method:'POST', headers:{'Authorization':'Bearer ' + authToken}, body: fd
+        });
+        if(!res.ok){
+          let d = 'Upload failed';
+          try{ d = (await res.json()).detail || d; }catch(_){}
+          throw new Error(d);
+        }
+        pfMedia.push(await res.json());
+      }catch(err){
+        el('pfError').textContent = `${f.name}: ${err.message}`;
+        el('pfError').style.display = 'block';
+      }
+    }
+    el('pfMediaArea').classList.remove('pf-busy');
+    pfRenderMedia();
+  });
+
+  document.addEventListener('click', async (e) => {
+    const del = e.target.closest('[data-mdelete]');
+    const prim = e.target.closest('[data-mprimary]');
+    if(del){
+      try{
+        await apiSend('DELETE', '/products/media/' + del.dataset.mdelete);
+        pfMedia = pfMedia.filter(m => m.id !== del.dataset.mdelete);
+        if(pfMedia.length && !pfMedia.some(m => m.is_primary)){
+          const first = pfMedia.find(m => m.media_type === 'image');
+          if(first) first.is_primary = true;
+        }
+        pfRenderMedia();
+      }catch(err){ alert(err.message); }
+    } else if(prim){
+      try{
+        const updated = await apiSend('POST', `/products/${pfEditingId}/media/reorder`,
+          {order: [], primary_id: prim.dataset.mprimary});
+        pfMedia = updated;
+        pfRenderMedia();
+      }catch(err){ alert(err.message); }
+    }
+  });
+
+  /* ---- Open / populate ---- */
+  async function openProductForm(product){
+    pfEditingId = product ? product.id : null;
+    el('pfTitle').textContent = product ? 'Edit Product' : 'Add Product';
+    el('pfSub').textContent = product
+      ? 'Changes apply immediately. Historical orders keep their original prices.'
+      : 'Complete the sections below, then save as draft or publish.';
+    if(categoriesCache.length === 0) await loadCategories();
+
+    el('pfName').value = product ? product.name : '';
+    el('pfCategory').value = product ? (product.category_id || '') : '';
+    el('pfBrand').value = product ? (product.brand || '') : '';
+    el('pfShort').value = product ? (product.short_description || '') : '';
+    el('pfDesc').value = product ? (product.description || '') : '';
+    el('pfHairType').value = product ? (product.hair_type || '') : '';
+    el('pfTexture').value = product ? (product.texture || '') : '';
+    el('pfConstruction').value = product ? (product.construction || '') : '';
+    el('pfOriginal').value = product ? (product.original_price != null ? product.original_price : '') : '';
+    el('pfDiscType').value = product ? (product.discount_type || 'none') : 'none';
+    el('pfDiscValue').value = product ? (product.discount_value || 0) : 0;
+    el('pfBadge').value = product ? (product.badge || '') : '';
+    el('pfSort').value = product ? (product.sort_order || 0) : 0;
+    el('pfFeatured').checked = product ? !!product.featured : false;
+    el('pfBestseller').checked = product ? !!product.bestseller : false;
+    el('pfNewArrival').checked = product ? !!product.new_arrival : false;
+    el('pfStatus').value = product ? product.status : 'Draft';
+
+    pfVariantRows = product ? (product.variants || []).map(v => ({
+      id: v.id, sku: v.sku, length: v.length, density: v.density, color: v.color,
+      lace_type: v.lace_type, cap_size: v.cap_size, stock: v.stock,
+      original_price: v.compare_at_price != null ? v.compare_at_price : v.price,
+      discount_type: v.discount_type || 'none', discount_value: v.discount_value || 0,
+      is_available: v.is_available
+    })) : [];
+    pfMedia = product ? (product.media || []) : [];
+
+    el('pfError').style.display = 'none';
+    el('pfSuccess').style.display = 'none';
+    el('pfReadyHint').textContent = product && product.readiness && !product.readiness.is_ready_to_publish
+      ? 'Not yet publishable — missing: ' + product.readiness.issues.join(', ')
+      : '';
+    pfUpdateCalc();
+    pfRenderVariants();
+    pfRenderMedia();
+    el('pfModal').classList.add('open');
+  }
+
+  el('pfCancel').addEventListener('click', () => el('pfModal').classList.remove('open'));
+
+  function pfCollectPayload(){
+    return {
+      name: el('pfName').value.trim(),
+      category_id: el('pfCategory').value || null,
+      brand: el('pfBrand').value.trim() || null,
+      short_description: el('pfShort').value.trim(),
+      description: el('pfDesc').value.trim(),
+      hair_type: el('pfHairType').value || null,
+      texture: el('pfTexture').value || null,
+      construction: el('pfConstruction').value || null,
+      // Only original + discount are sent. The selling price is never client-supplied.
+      original_price: el('pfOriginal').value === '' ? null : parseFloat(el('pfOriginal').value),
+      discount_type: el('pfDiscType').value,
+      discount_value: parseFloat(el('pfDiscValue').value || '0'),
+      badge: el('pfBadge').value || null,
+      sort_order: parseInt(el('pfSort').value || '0', 10),
+      featured: el('pfFeatured').checked,
+      bestseller: el('pfBestseller').checked,
+      new_arrival: el('pfNewArrival').checked
+    };
+  }
+
+  function pfVariantPayload(v){
+    const p = {
+      sku: (v.sku || '').trim(), length: v.length || null, density: v.density || null,
+      color: v.color || null, lace_type: v.lace_type || null, cap_size: v.cap_size || null,
+      stock: parseInt(v.stock || 0, 10),
+      is_available: v.is_available !== false,
+      discount_type: v.discount_type || 'none',
+      discount_value: parseFloat(v.discount_value || 0)
+    };
+    if(v.original_price !== null && v.original_price !== '' && v.original_price !== undefined){
+      p.original_price = parseFloat(v.original_price);
+    }
+    return p;
+  }
+
+  async function pfSave(publish){
+    const errEl = el('pfError'); errEl.style.display = 'none';
+    const okEl = el('pfSuccess'); okEl.style.display = 'none';
+    const payload = pfCollectPayload();
+
+    if(!payload.name){ errEl.textContent = 'Product name is required.'; errEl.style.display='block'; return; }
+    if(!payload.category_id){ errEl.textContent = 'Please choose a category.'; errEl.style.display='block'; return; }
+    const skus = pfVariantRows.map(v => (v.sku||'').trim()).filter(Boolean);
+    if(new Set(skus).size !== skus.length){
+      errEl.textContent = 'Variant SKUs must be unique.'; errEl.style.display='block'; return;
+    }
+    if(pfVariantRows.some(v => !(v.sku||'').trim())){
+      errEl.textContent = 'Every variant needs a SKU.'; errEl.style.display='block'; return;
+    }
+
+    const btns = [el('pfSaveDraft'), el('pfPublish')];
+    btns.forEach(b => { b.disabled = true; });
+    const publishBtn = el('pfPublish');
+    const original = publishBtn.textContent;
+    publishBtn.textContent = publish ? 'Publishing…' : publishBtn.textContent;
+
+    try{
+      let product;
+      if(pfEditingId){
+        product = await apiSend('PUT', '/products/' + pfEditingId, payload);
+        // Sync variants: update existing, create new
+        for(const v of pfVariantRows){
+          const body = pfVariantPayload(v);
+          if(v.id) await apiSend('PUT', '/products/variants/' + v.id, body);
+          else await apiSend('POST', `/products/${pfEditingId}/variants`, body);
+        }
+      } else {
+        product = await apiSend('POST', '/products', {
+          ...payload,
+          status: 'Draft',
+          variants: pfVariantRows.map(pfVariantPayload)
+        });
+        pfEditingId = product.id;
+      }
+
+      if(publish){
+        product = await apiSend('POST', `/products/${pfEditingId}/status`, {action:'publish'});
+      } else {
+        const wanted = el('pfStatus').value;
+        if(wanted !== 'Published' && wanted !== product.status){
+          const map = {Draft:'unpublish', Review:'submit_for_review', Archived:'archive'};
+          if(map[wanted]) product = await apiSend('POST', `/products/${pfEditingId}/status`, {action:map[wanted]});
+        }
+      }
+
+      // Refresh so media upload becomes available immediately after creation.
+      const fresh = await apiGet('/products/' + pfEditingId + '/preview');
+      pfMedia = fresh.media || [];
+      pfVariantRows = (fresh.variants || []).map(v => ({
+        id: v.id, sku: v.sku, length: v.length, density: v.density, color: v.color,
+        lace_type: v.lace_type, cap_size: v.cap_size, stock: v.stock,
+        original_price: v.compare_at_price != null ? v.compare_at_price : v.price,
+        discount_type: v.discount_type || 'none', discount_value: v.discount_value || 0,
+        is_available: v.is_available
+      }));
+      el('pfTitle').textContent = 'Edit Product';
+      pfRenderMedia();
+      pfRenderVariants();
+
+      okEl.textContent = publish
+        ? `Published. "${fresh.name}" is now live on the storefront.`
+        : `Saved as ${fresh.status}. You can now upload images and video.`;
+      okEl.style.display = 'block';
+      await loadLiveDashboard();
+    }catch(err){
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+    }finally{
+      btns.forEach(b => { b.disabled = false; });
+      publishBtn.textContent = original;
+    }
+  }
+
+  el('pfSaveDraft').addEventListener('click', () => pfSave(false));
+  el('pfPublish').addEventListener('click', () => pfSave(true));
+
+  ['addProductBtn','addProductBtnDash'].forEach(id => {
+    const b = el(id);
+    if(b) b.addEventListener('click', () => { showView('products'); openProductForm(null); });
+  });
+
+  /* ---- Product list filtering (client-side over the loaded catalog) ---- */
+  function applyProductFilters(){
+    const term = (el('prodSearch').value || '').toLowerCase().trim();
+    const cat = el('prodCategoryFilter').value;
+    const status = el('prodStatusFilter').value;
+    const stock = el('prodStockFilter').value;
+    const disc = el('prodDiscountFilter').value;
+    const flag = el('prodFlagFilter').value;
+    const sort = el('prodSortFilter').value;
+
+    let rows = liveProducts.slice();
+    if(term) rows = rows.filter(p =>
+      p.name.toLowerCase().includes(term) ||
+      (p.description||'').toLowerCase().includes(term) ||
+      (p.variants||[]).some(v => (v.sku||'').toLowerCase().includes(term)));
+    if(cat) rows = rows.filter(p => p.category === cat);
+    if(status) rows = rows.filter(p => p.status === status);
+    if(stock === 'in_stock') rows = rows.filter(p => p.total_stock > 0);
+    if(stock === 'low_stock') rows = rows.filter(p => p.total_stock > 0 && p.total_stock <= 15);
+    if(stock === 'out_of_stock') rows = rows.filter(p => p.total_stock === 0);
+    if(disc === 'on_sale') rows = rows.filter(p => p.on_sale);
+    if(disc === 'full_price') rows = rows.filter(p => !p.on_sale);
+    if(flag) rows = rows.filter(p => !!p[flag]);
+
+    const sorters = {
+      curated: (a,b) => (a.sort_order||0)-(b.sort_order||0),
+      newest: (a,b) => new Date(b.created_at)-new Date(a.created_at),
+      price_asc: (a,b) => (a.price||0)-(b.price||0),
+      price_desc: (a,b) => (b.price||0)-(a.price||0),
+      name: (a,b) => a.name.localeCompare(b.name)
+    };
+    rows.sort(sorters[sort] || sorters.curated);
+    renderProductRows(rows);
+  }
+
+  ['prodSearch','prodCategoryFilter','prodStatusFilter','prodStockFilter',
+   'prodDiscountFilter','prodFlagFilter','prodSortFilter'].forEach(id => {
+    const node = el(id);
+    if(node) node.addEventListener(node.tagName === 'INPUT' ? 'input' : 'change', applyProductFilters);
+  });
+
+  // ---- Real product management (workflow, flags, preview) ----
+  let liveProducts = [];
+  let managingProductId = null;
+
+  function openProdModal(product){
+    managingProductId = product.id;
+    document.getElementById('prodModalTitle').textContent = product.name;
+    document.getElementById('prodModalSub').textContent =
+      `${product.category || 'Uncategorised'} · ${(product.variants||[]).length} variant(s) · ${product.total_stock} in stock`;
+    document.getElementById('prodStatusBadge').innerHTML = statusBadge(product.status);
+    const r = product.readiness || {is_ready_to_publish:false, issues:[]};
+    document.getElementById('prodReadyBadge').innerHTML = r.is_ready_to_publish
+      ? '<span class="badge ok">Ready to publish</span>'
+      : `<span class="badge warn">${r.issues.length} item(s) missing</span>`;
+    const labels = {
+      missing_description:'Description', missing_price:'Price', missing_image:'Product image',
+      missing_category:'Category', missing_variants:'Variant information'
+    };
+    document.getElementById('prodReadyList').innerHTML = r.is_ready_to_publish
+      ? 'All required information is present.'
+      : 'Missing: ' + r.issues.map(i => labels[i] || i).join(', ');
+    document.getElementById('prodBadge').value = product.badge || '';
+    document.getElementById('prodSort').value = product.sort_order || 0;
+    document.getElementById('prodFeatured').checked = !!product.featured;
+    document.getElementById('prodBestseller').checked = !!product.bestseller;
+    document.getElementById('prodNewArrival').checked = !!product.new_arrival;
+    document.getElementById('prodError').style.display = 'none';
+    document.getElementById('prodModal').classList.add('open');
+  }
+
+  function openPreviewModal(product){
+    document.getElementById('previewSub').textContent =
+      `Status: ${product.status}${product.status !== 'Published' ? ' — not visible to customers yet' : ''}`;
+    const media = document.getElementById('previewMedia');
+    // Same fallback rule as the storefront: no image -> branded HAIRSHALO panel.
+    if(product.image_url){
+      const probe = new Image();
+      probe.onload = () => {
+        media.style.backgroundImage = `linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('${product.image_url}')`;
+        media.style.backgroundSize = 'cover';
+        media.style.backgroundPosition = 'center';
+        media.querySelectorAll('span').forEach(s => s.style.display = 'none');
+      };
+      probe.onerror = () => {
+        media.style.backgroundImage = '';
+        media.querySelectorAll('span').forEach(s => s.style.display = '');
+      };
+      probe.src = product.image_url;
+    } else {
+      media.style.backgroundImage = '';
+      media.querySelectorAll('span').forEach(s => s.style.display = '');
+    }
+    document.getElementById('previewCat').textContent = product.category || '—';
+    document.getElementById('previewName').textContent = product.name;
+    document.getElementById('previewMeta').textContent =
+      (product.badge ? product.badge + ' · ' : '') + `${product.rating} (${product.review_count})`;
+    document.getElementById('previewPrice').textContent =
+      product.price != null ? fmtINR(product.price) : 'No price set';
+    document.getElementById('previewVariants').innerHTML = (product.variants || []).length
+      ? '<strong>Variants:</strong><br>' + product.variants.map(v =>
+          `${v.label} — ${v.price != null ? fmtINR(v.price) : 'base price'} · ${v.stock} in stock${v.is_available ? '' : ' · unavailable'}`
+        ).join('<br>')
+      : '<em>No variants yet — this product cannot be published.</em>';
+    document.getElementById('previewModal').classList.add('open');
+  }
+
+  document.getElementById('prodCancel').addEventListener('click',
+    () => document.getElementById('prodModal').classList.remove('open'));
+  document.getElementById('previewClose').addEventListener('click',
+    () => document.getElementById('previewModal').classList.remove('open'));
+
+  document.addEventListener('click', async (e) => {
+    const manage = e.target.closest('[data-prod-manage]');
+    const preview = e.target.closest('[data-prod-preview]');
+    const edit = e.target.closest('[data-prod-edit]');
+    if(edit){
+      try{
+        // Use the admin preview endpoint so drafts load too.
+        const p = await apiGet('/products/' + edit.dataset.prodEdit + '/preview');
+        await openProductForm(p);
+      }catch(err){ alert(err.message); }
+      return;
+    }
+    if(manage){
+      const p = liveProducts.find(x => x.id === manage.dataset.prodManage);
+      if(p) openProdModal(p);
+    } else if(preview){
+      try{
+        // Preview endpoint works for any status, including drafts.
+        const p = await apiGet('/products/' + preview.dataset.prodPreview + '/preview');
+        openPreviewModal(p);
+      }catch(err){ alert(err.message); }
+    }
+  });
+
+  // Workflow transitions
+  document.addEventListener('click', async (e) => {
+    const btn = e.target.closest('[data-prod-action]');
+    if(!btn || !managingProductId) return;
+    const errEl = document.getElementById('prodError');
+    try{
+      await apiSend('POST', `/products/${managingProductId}/status`, {action: btn.dataset.prodAction});
+      document.getElementById('prodModal').classList.remove('open');
+      await loadLiveDashboard();
+    }catch(err){
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+    }
+  });
+
+  document.getElementById('prodSave').addEventListener('click', async () => {
+    const errEl = document.getElementById('prodError');
+    try{
+      await apiSend('PUT', '/products/' + managingProductId, {
+        badge: document.getElementById('prodBadge').value || null,
+        sort_order: parseInt(document.getElementById('prodSort').value || '0', 10),
+        featured: document.getElementById('prodFeatured').checked,
+        bestseller: document.getElementById('prodBestseller').checked,
+        new_arrival: document.getElementById('prodNewArrival').checked
+      });
+      document.getElementById('prodModal').classList.remove('open');
+      await loadLiveDashboard();
+    }catch(err){
+      errEl.textContent = err.message;
+      errEl.style.display = 'block';
+    }
+  });
+
+  // ---- Product placeholders (separate domain from real products) ----
+  let placeholders = [];
+  let phEditingId = null;
+  let convertingId = null;
+
+  const phEl = id => document.getElementById(id);
+  const escAttr = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+
+  async function apiSend(method, path, body){
+    const res = await fetch(API_BASE + path, {
+      method,
+      headers: {'Content-Type':'application/json', 'Authorization':'Bearer ' + authToken},
+      body: body === undefined ? undefined : JSON.stringify(body)
+    });
+    if(!res.ok){
+      let detail = 'Request failed';
+      try{ detail = (await res.json()).detail || detail; }catch(e){}
+      throw new Error(detail);
+    }
+    return res.status === 204 ? null : res.json();
+  }
+
+  function renderPlaceholders(){
+    const filter = phEl('phCategoryFilter').value;
+    const rows = placeholders.filter(p => !filter || p.category === filter);
+    phEl('placeholdersBody').innerHTML = rows.length ? rows.map(p => `
+      <tr>
+        <td><div class="cell-prod">
+          <div class="cell-thumb" style="background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34);"></div>
+          <div><strong>${escAttr(p.name)}</strong><span>${escAttr(p.short_description || '—')}</span></div>
+        </div></td>
+        <td>${escAttr(p.category)}</td>
+        <td>${escAttr(p.display_price || '—')}</td>
+        <td>${escAttr(p.placeholder_label || '—')}</td>
+        <td>${p.sort_order}</td>
+        <td>${p.is_visible ? '<span class="badge ok">Visible</span>' : '<span class="badge neutral">Hidden</span>'}</td>
+        <td><div class="row-actions">
+          <button class="icon-mini" title="${p.is_visible ? 'Hide' : 'Show'}" data-ph-toggle="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="icon-mini" title="Convert to Product" data-ph-convert="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 12h13M13 6l6 6-6 6"/></svg></button>
+          <button class="icon-mini" title="Edit" data-ph-edit="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
+          <button class="icon-mini" title="Delete" data-ph-delete="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 6h18M8 6V4h8v2M6 6l1 14h10l1-14"/></svg></button>
+        </div></td>
+      </tr>`).join('')
+      : `<tr><td colspan="7" style="color:var(--text-soft);">No placeholders yet — use “Add Placeholder” to create one.</td></tr>`;
+  }
+
+  async function loadPlaceholders(){
+    // include_hidden so admins manage the full set, not just what customers see
+    placeholders = await apiGet('/product-placeholders?include_hidden=true');
+    renderPlaceholders();
+  }
+
+  function phSyncPreview(){
+    phEl('phPrevName').textContent  = phEl('phName').value || 'Placeholder name';
+    phEl('phPrevCat').textContent   = phEl('phCategory').value;
+    phEl('phPrevLabel').textContent = phEl('phLabel').value || 'Coming Soon';
+    phEl('phPrevNote').textContent  = phEl('phLabel').value || 'Coming Soon';
+    phEl('phPrevPrice').textContent = phEl('phPrice').value || 'Coming soon';
+  }
+  ['phName','phCategory','phLabel','phPrice'].forEach(id =>
+    document.addEventListener('input', e => { if(e.target.id === id) phSyncPreview(); }));
+  document.addEventListener('change', e => { if(e.target.id === 'phCategory') phSyncPreview(); });
+
+  function openPhModal(ph){
+    phEditingId = ph ? ph.id : null;
+    phEl('phModalTitle').textContent = ph ? 'Edit Placeholder' : 'Add Placeholder';
+    phEl('phName').value     = ph ? ph.name : '';
+    phEl('phCategory').value = ph ? ph.category : 'Frontal Wigs';
+    phEl('phLabel').value    = ph ? (ph.placeholder_label || '') : 'Coming Soon';
+    phEl('phDesc').value     = ph ? (ph.short_description || '') : '';
+    phEl('phPrice').value    = ph ? (ph.display_price || '') : '';
+    phEl('phBadge').value    = ph ? (ph.badge || '') : '';
+    phEl('phImage').value    = ph ? (ph.placeholder_image || '') : '';
+    phEl('phSort').value     = ph ? ph.sort_order : 0;
+    phEl('phVisible').checked = ph ? ph.is_visible : true;
+    phEl('phError').style.display = 'none';
+    phSyncPreview();
+    phEl('phModal').classList.add('open');
+  }
+  const closePhModal = () => phEl('phModal').classList.remove('open');
+
+  phEl('phAddBtn').addEventListener('click', () => openPhModal(null));
+  phEl('phCancel').addEventListener('click', closePhModal);
+  phEl('phCategoryFilter').addEventListener('change', renderPlaceholders);
+
+  phEl('phSave').addEventListener('click', async () => {
+    const payload = {
+      name: phEl('phName').value.trim(),
+      category: phEl('phCategory').value,
+      short_description: phEl('phDesc').value.trim(),
+      placeholder_label: phEl('phLabel').value.trim() || 'Coming Soon',
+      display_price: phEl('phPrice').value.trim() || null,
+      badge: phEl('phBadge').value.trim() || null,
+      placeholder_image: phEl('phImage').value.trim() || null,
+      sort_order: parseInt(phEl('phSort').value || '0', 10),
+      is_visible: phEl('phVisible').checked
+    };
+    if(!payload.name){ phEl('phError').textContent = 'Name is required.'; phEl('phError').style.display = 'block'; return; }
+    try{
+      if(phEditingId) await apiSend('PUT', '/product-placeholders/' + phEditingId, payload);
+      else await apiSend('POST', '/product-placeholders', payload);
+      closePhModal();
+      await loadPlaceholders();
+    }catch(err){
+      phEl('phError').textContent = err.message;
+      phEl('phError').style.display = 'block';
+    }
+  });
+
+  // Row actions (delegated — rows are re-rendered on every change)
+  document.addEventListener('click', async (e) => {
+    const toggle  = e.target.closest('[data-ph-toggle]');
+    const edit    = e.target.closest('[data-ph-edit]');
+    const del     = e.target.closest('[data-ph-delete]');
+    const convert = e.target.closest('[data-ph-convert]');
+    try{
+      if(toggle){
+        const p = placeholders.find(x => x.id === toggle.dataset.phToggle);
+        await apiSend('PUT', '/product-placeholders/' + p.id, {is_visible: !p.is_visible});
+        await loadPlaceholders();
+      } else if(edit){
+        openPhModal(placeholders.find(x => x.id === edit.dataset.phEdit));
+      } else if(del){
+        const p = placeholders.find(x => x.id === del.dataset.phDelete);
+        if(confirm(`Delete placeholder “${p.name}”? This cannot be undone.`)){
+          await apiSend('DELETE', '/product-placeholders/' + p.id);
+          await loadPlaceholders();
+        }
+      } else if(convert){
+        const p = placeholders.find(x => x.id === convert.dataset.phConvert);
+        convertingId = p.id;
+        phEl('convName').value = p.name;
+        phEl('convPrice').value = '';
+        phEl('convCompare').value = '';
+        phEl('convImage').value = p.placeholder_image || '';
+        phEl('convStatus').value = 'Draft';
+        phEl('convDelete').checked = false;
+        phEl('convError').style.display = 'none';
+        phEl('convModal').classList.add('open');
+      }
+    }catch(err){ alert(err.message); }
+  });
+
+  phEl('convCancel').addEventListener('click', () => phEl('convModal').classList.remove('open'));
+  phEl('convSave').addEventListener('click', async () => {
+    const price = parseFloat(phEl('convPrice').value);
+    if(!price || price <= 0){
+      phEl('convError').textContent = 'A real price is required to create a sellable product.';
+      phEl('convError').style.display = 'block';
+      return;
+    }
+    try{
+      await apiSend('POST', '/product-placeholders/' + convertingId + '/convert-to-product', {
+        price,
+        compare_at_price: parseFloat(phEl('convCompare').value) || null,
+        image_url: phEl('convImage').value.trim() || null,
+        status: phEl('convStatus').value,
+        delete_placeholder: phEl('convDelete').checked
+      });
+      phEl('convModal').classList.remove('open');
+      await loadLiveDashboard();   // refreshes Products *and* placeholders
+    }catch(err){
+      phEl('convError').textContent = err.message;
+      phEl('convError').style.display = 'block';
+    }
+  });
 
   function setConnBadge(live){
     const badge = document.getElementById('connBadge');
@@ -659,6 +2219,380 @@
     renderMockDashboard();
     setConnBadge(false);
   });
+
+  // ---- Notifications (the outbox) -------------------------------------
+  // Everything here is read from /api/notifications. Nothing on this screen is
+  // simulated: if the shop has not sent a message, the screen says so.
+  let notifRows = [];
+
+  const NOTIF_EVENT_LABELS = {
+    'order.placed':'Order received', 'order.paid':'Payment received',
+    'order.shipped':'Order shipped', 'order.out_for_delivery':'Out for delivery',
+    'order.delivered':'Delivered', 'order.cancelled':'Order cancelled',
+    'order.refunded':'Refund issued', 'appointment.booked':'Appointment requested',
+    'appointment.confirmed':'Appointment confirmed',
+    'appointment.cancelled':'Appointment cancelled',
+    'admin.order_placed':'Staff · new order', 'admin.payment_failed':'Staff · payment failed',
+    'admin.low_stock':'Staff · low stock', 'notification.test':'Test message'
+  };
+
+  function notifStatusBadge(status){
+    const map = {Sent:'ok', Queued:'warn', Failed:'danger', Suppressed:'neutral', Cancelled:'neutral'};
+    return `<span class="badge ${map[status]||'neutral'}">${escAttr(status)}</span>`;
+  }
+
+  function renderNotifications(){
+    const body = document.getElementById('notifBody');
+    if(!notifRows.length){
+      body.innerHTML = '<tr><td colspan="7" style="text-align:center;color:var(--text-soft);padding:26px;">Nothing here yet — messages appear as soon as an order is placed or an appointment is booked.</td></tr>';
+      return;
+    }
+    body.innerHTML = notifRows.map(n => `
+      <tr>
+        <td>${n.created_at ? new Date(n.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}) : '—'}</td>
+        <td>${escAttr(NOTIF_EVENT_LABELS[n.event_type] || n.event_type)}</td>
+        <td>${escAttr(n.recipient)}</td>
+        <td>${escAttr(n.subject)}</td>
+        <td>${notifStatusBadge(n.status)}${n.last_error ? `<span class="badge neutral" title="${escAttr(n.last_error)}">why?</span>` : ''}</td>
+        <td>${n.attempts}/${n.max_attempts}</td>
+        <td><div class="row-actions">
+          <button class="btn" data-notif-view="${n.id}">View</button>
+          ${n.status === 'Failed' || n.status === 'Queued' ? `<button class="btn" data-notif-retry="${n.id}">Retry</button>` : ''}
+          ${n.status === 'Queued' ? `<button class="btn" data-notif-cancel="${n.id}">Cancel</button>` : ''}
+        </div></td>
+      </tr>`).join('');
+  }
+
+  function renderNotifStats(config){
+    const count = st => notifRows.filter(n => n.status === st).length;
+    // Queued and failed are whole-table counts from the API; the others are of
+    // what is currently loaded, so no number claims more than it knows.
+    document.getElementById('notifStatQueued').textContent = config ? config.queued : count('Queued');
+    document.getElementById('notifStatSent').textContent = count('Sent');
+    document.getElementById('notifStatFailed').textContent = config ? config.failed : count('Failed');
+    document.getElementById('notifStatSuppressed').textContent = config ? config.suppressed_addresses : count('Suppressed');
+    const badge = document.getElementById('notifBadge');
+    const outstanding = config ? config.queued + config.failed : count('Queued') + count('Failed');
+    badge.style.display = outstanding ? 'inline-flex' : 'none';
+    badge.textContent = outstanding;
+  }
+
+  function renderNotifConfig(config){
+    document.getElementById('notifChannelBadge').innerHTML = config.sends_real_mail
+      ? `<span class="badge ok">${escAttr(config.channel)} · sending as ${escAttr(config.mail_from)}</span>`
+      : `<span class="badge warn">${escAttr(config.channel)} · nothing is delivered</span>`;
+    const warn = document.getElementById('notifWarnings');
+    warn.innerHTML = (config.warnings || []).length
+      ? config.warnings.map(w => `<div class="kpi-mini"><span>${escAttr(w)}</span><strong class="badge warn">Gap</strong></div>`).join('')
+      : '<div class="kpi-mini"><span>Channel configured, alerts routed, dispatch mode set.</span><strong class="badge ok">OK</strong></div>';
+  }
+
+  function renderMarketingFlows(){
+    // Which transactional emails this shop actually sends, counted from the
+    // outbox. Flows that do not exist are labelled "not built", not "draft".
+    const el = document.getElementById('marketingFlows');
+    if(!el) return;
+    const counts = {};
+    notifRows.forEach(n => { counts[n.event_type] = (counts[n.event_type] || 0) + 1; });
+    const live = [
+      ['order.placed','Order confirmation'], ['order.paid','Payment receipt'],
+      ['order.shipped','Shipping notification'], ['order.delivered','Delivery confirmation'],
+      ['appointment.confirmed','Appointment confirmation']
+    ].map(([type,label]) => `<div class="kpi-mini"><span>${label}</span><strong class="badge ok">Live · ${counts[type]||0} in the outbox</strong></div>`).join('');
+    const missing = ['Welcome series','Abandoned cart recovery','Birthday offers']
+      .map(label => `<div class="kpi-mini"><span>${label}</span><strong class="badge neutral">Not built</strong></div>`).join('');
+    el.innerHTML = live + missing;
+  }
+
+  async function loadNotifications(){
+    const status = document.getElementById('notifStatusFilter').value;
+    try{
+      const [config, rows] = await Promise.all([
+        apiGet('/notifications/config'),
+        apiGet('/notifications?limit=200' + (status ? '&status=' + encodeURIComponent(status) : ''))
+      ]);
+      notifRows = rows;
+      renderNotifConfig(config);
+      renderNotifStats(config);
+      renderNotifications();
+      renderMarketingFlows();
+    }catch(err){
+      document.getElementById('notifBody').innerHTML =
+        '<tr><td colspan="7" style="text-align:center;color:var(--text-soft);padding:26px;">Sign in to the backend to see the outbox.</td></tr>';
+    }
+  }
+
+  async function showNotificationDetail(id){
+    const n = await apiGet('/notifications/' + id);
+    document.getElementById('notifDetailSubject').textContent = n.subject;
+    document.getElementById('notifDetailMeta').innerHTML =
+      `<span>${escAttr(n.recipient)} · ${escAttr(n.event_type)} · ${escAttr(n.status)}` +
+      `${n.sent_at ? ' · sent ' + new Date(n.sent_at).toLocaleString('en-IN') : ''}</span>` +
+      `<strong>${n.provider ? escAttr(n.provider) : '—'}</strong>`;
+    // srcdoc into an empty sandbox: the stored email is previewed exactly as it
+    // was sent, but cannot run scripts or reach the dashboard's session.
+    document.getElementById('notifDetailFrame').srcdoc =
+      n.body_html || ('<pre>' + escAttr(n.body_text) + '</pre>');
+    document.getElementById('notifDetail').style.display = '';
+    document.getElementById('notifDetail').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+
+  document.getElementById('notifStatusFilter').addEventListener('change', loadNotifications);
+  document.getElementById('notifDetailClose').addEventListener('click', () => {
+    document.getElementById('notifDetail').style.display = 'none';
+  });
+
+  document.getElementById('notifBody').addEventListener('click', async (e) => {
+    const view = e.target.closest('[data-notif-view]');
+    const retry = e.target.closest('[data-notif-retry]');
+    const cancel = e.target.closest('[data-notif-cancel]');
+    try{
+      if(view) await showNotificationDetail(view.dataset.notifView);
+      if(retry){ await apiSend('POST', '/notifications/' + retry.dataset.notifRetry + '/retry'); await loadNotifications(); }
+      if(cancel){ await apiSend('POST', '/notifications/' + cancel.dataset.notifCancel + '/cancel'); await loadNotifications(); }
+    }catch(err){ alert(err.message); }
+  });
+
+  document.getElementById('notifDispatchBtn').addEventListener('click', async (e) => {
+    e.target.disabled = true;
+    try{
+      const stats = await apiSend('POST', '/notifications/dispatch');
+      await loadNotifications();
+      alert(`Channel ${stats.channel}: ${stats.sent} sent, ${stats.retrying} to retry, ${stats.failed} failed.`);
+    }catch(err){ alert(err.message); }
+    e.target.disabled = false;
+  });
+
+  document.getElementById('notifTestBtn').addEventListener('click', async () => {
+    const to = prompt('Send a test message to which address?');
+    if(!to) return;
+    try{
+      const row = await apiSend('POST', '/notifications/test', {to});
+      await loadNotifications();
+      alert(row.status === 'Sent'
+        ? `Handed to the ${row.provider} channel. With NOTIFY_CHANNEL=console that means written to the backend log, not delivered.`
+        : `Test message is ${row.status}. ${row.last_error || ''}`);
+    }catch(err){ alert(err.message); }
+  });
+
+  // Loaded lazily, so opening the dashboard does not pull the whole outbox.
+  document.querySelectorAll('[data-view="notifications"], [data-goto="notifications"]').forEach(btn =>
+    btn.addEventListener('click', loadNotifications));
+
+  // ---- Reviews (Phase 8) ----------------------------------------------
+  // A product's rating is recomputed from published reviews every time one is
+  // moderated, so this screen is the only place a star rating can change.
+  let reviewRows = [];
+
+  function starsOf(n){
+    const full = Math.max(0, Math.min(5, Number(n) || 0));
+    return '★★★★★'.slice(0, full) + '☆☆☆☆☆'.slice(0, 5 - full);
+  }
+
+  function renderReviews(){
+    const body = document.getElementById('reviewBody');
+    if(!reviewRows.length){
+      // Say which filter is empty: "no reviews at all" and "none awaiting
+      // moderation" are very different pieces of news.
+      const filter = document.getElementById('reviewStatusFilter').value;
+      const message = filter === 'Pending'
+        ? 'Nothing awaiting moderation.'
+        : filter
+          ? `No ${filter.toLowerCase()} reviews.`
+          : 'No reviews yet — they appear once a delivered customer writes one.';
+      body.innerHTML = `<tr><td colspan="6" style="text-align:center;color:var(--text-soft);padding:26px;">${message}</td></tr>`;
+      return;
+    }
+    body.innerHTML = reviewRows.map(r => `
+      <tr>
+        <td><strong>${escAttr(r.product_name || '—')}</strong></td>
+        <td><span style="color:var(--gold);letter-spacing:1px;">${starsOf(r.rating)}</span></td>
+        <td style="max-width:340px;">
+          ${r.title ? `<strong>${escAttr(r.title)}</strong><br>` : ''}
+          <span style="color:var(--text-soft);font-size:13px;">${escAttr((r.body || '').slice(0, 160))}${(r.body||'').length > 160 ? '…' : ''}</span>
+        </td>
+        <td>${escAttr(r.author)}<br>
+          ${r.is_verified_purchase
+            ? '<span class="badge ok">Verified purchase</span>'
+            : '<span class="badge neutral">Unverified</span>'}</td>
+        <td>${r.status === 'Published' ? '<span class="badge ok">Published</span>'
+             : r.status === 'Rejected' ? '<span class="badge danger">Rejected</span>'
+             : '<span class="badge warn">Pending</span>'}</td>
+        <td><div class="row-actions">
+          ${r.status !== 'Published' ? `<button class="btn" data-review-publish="${r.id}">Publish</button>` : ''}
+          ${r.status !== 'Rejected' ? `<button class="btn" data-review-reject="${r.id}">Reject</button>` : ''}
+          <button class="btn" data-review-reply="${r.id}">Reply</button>
+        </div></td>
+      </tr>`).join('');
+  }
+
+  async function loadReviews(){
+    const status = document.getElementById('reviewStatusFilter').value;
+    try{
+      const [rows, pending, published] = await Promise.all([
+        apiGet('/reviews?limit=200' + (status ? '&status=' + encodeURIComponent(status) : '')),
+        apiGet('/reviews?status=Pending&limit=500'),
+        apiGet('/reviews?status=Published&limit=500')
+      ]);
+      reviewRows = rows;
+      const verified = published.filter(r => r.is_verified_purchase).length;
+      const avg = published.length
+        ? (published.reduce((a, r) => a + r.rating, 0) / published.length).toFixed(1)
+        : '—';
+      document.getElementById('reviewStatPending').textContent = pending.length;
+      document.getElementById('reviewStatPublished').textContent = published.length;
+      document.getElementById('reviewStatVerified').textContent = verified;
+      document.getElementById('reviewStatAverage').textContent = avg;
+      const badge = document.getElementById('reviewBadge');
+      badge.style.display = pending.length ? 'inline-flex' : 'none';
+      badge.textContent = pending.length;
+      renderReviews();
+    }catch(err){
+      document.getElementById('reviewBody').innerHTML =
+        '<tr><td colspan="6" style="text-align:center;color:var(--text-soft);padding:26px;">Sign in to the backend to moderate reviews.</td></tr>';
+    }
+  }
+
+  document.getElementById('reviewStatusFilter').addEventListener('change', loadReviews);
+
+  document.getElementById('reviewBody').addEventListener('click', async (e) => {
+    const publish = e.target.closest('[data-review-publish]');
+    const reject = e.target.closest('[data-review-reject]');
+    const reply = e.target.closest('[data-review-reply]');
+    try{
+      if(publish){
+        await apiSend('POST', `/reviews/${publish.dataset.reviewPublish}/moderate`, {status:'Published'});
+        await loadReviews();
+        showRatingNote();
+      }
+      if(reject){
+        const note = prompt('Why is this being rejected? (kept internally)') || '';
+        await apiSend('POST', `/reviews/${reject.dataset.reviewReject}/moderate`, {status:'Rejected', note});
+        await loadReviews();
+        showRatingNote();
+      }
+      if(reply){
+        const body = prompt('Your public reply to this review:');
+        if(body){
+          await apiSend('POST', `/reviews/${reply.dataset.reviewReply}/reply`, {body});
+          await loadReviews();
+        }
+      }
+    }catch(err){ alert(err.message); }
+  });
+
+  function showRatingNote(){
+    // Reloading products keeps the catalog table's rating column honest after
+    // a moderation decision changes it.
+    apiGet('/products?status=all&limit=200').then(products => {
+      liveProducts = products;
+      applyProductFilters();
+    }).catch(()=>{});
+  }
+
+  // ---- Marketing (Phase 8) --------------------------------------------
+  async function loadMarketing(){
+    try{
+      const [audience, campaigns, coupons] = await Promise.all([
+        apiGet('/marketing/audience'),
+        apiGet('/marketing/campaigns'),
+        apiGet('/coupons').catch(() => [])
+      ]);
+
+      document.getElementById('audienceBadge').innerHTML =
+        `<span class="badge ok">${audience.mailable} mailable</span>`;
+      document.getElementById('audienceBreakdown').innerHTML = `
+        <div class="kpi-mini"><span>Confirmed — can be mailed</span><strong>${audience.mailable}</strong></div>
+        <div class="kpi-mini"><span>Awaiting confirmation — cannot be mailed</span><strong>${audience.awaiting_confirmation}</strong></div>
+        <div class="kpi-mini"><span>Unsubscribed</span><strong>${audience.unsubscribed}</strong></div>
+        <div class="kpi-mini"><span>Suppressed addresses (bounces, opt-outs)</span><strong>${audience.suppressed_addresses}</strong></div>
+        <p style="font-size:12.5px;color:var(--text-soft);margin:10px 2px 0;">${escAttr(audience.note)}</p>`;
+
+      const body = document.getElementById('campaignRows');
+      body.innerHTML = campaigns.length ? campaigns.map(c => `
+        <tr>
+          <td><strong>${escAttr(c.name)}</strong><br><span style="font-size:12px;color:var(--text-soft);">${c.created_at ? new Date(c.created_at).toLocaleDateString('en-IN') : ''}</span></td>
+          <td>${escAttr(c.subject)}</td>
+          <td>${c.status === 'Sent' ? '<span class="badge ok">Sent</span>'
+               : c.status === 'Cancelled' ? '<span class="badge neutral">Cancelled</span>'
+               : '<span class="badge warn">Draft</span>'}</td>
+          <td>${c.status === 'Sent' ? `${c.recipient_count} queued${c.skipped_count ? ` · ${c.skipped_count} skipped` : ''}` : '—'}</td>
+          <td><div class="row-actions">
+            ${c.status === 'Draft' ? `<button class="btn btn-primary" data-campaign-send="${c.id}">Send</button>
+                                     <button class="btn" data-campaign-cancel="${c.id}">Cancel</button>` : ''}
+          </div></td>
+        </tr>`).join('')
+        : '<tr><td colspan="5" style="text-align:center;color:var(--text-soft);padding:22px;">No campaigns yet.</td></tr>';
+
+      // The transactional-flows panel counts rows from the outbox, which the
+      // Notifications view loads. Populate it here too, so opening Marketing
+      // first does not leave it saying "Loading…" forever.
+      if(!notifRows.length){
+        try{ notifRows = await apiGet('/notifications?limit=200'); }catch(e){}
+      }
+      renderMarketingFlows();
+
+      const couponList = document.getElementById('couponList');
+      if(couponList){
+        couponList.innerHTML = coupons.length ? coupons.map(c => `
+          <div class="kpi-mini"><span>${escAttr(c.code)} — ${escAttr(c.description || '')}</span>
+            <strong>${c.usage_count || 0} uses</strong></div>`).join('')
+          : '<div class="kpi-mini"><span>No coupons configured.</span><strong>—</strong></div>';
+      }
+    }catch(err){ /* not signed in — the panels keep their placeholder text */ }
+  }
+
+  document.getElementById('campaignRows').addEventListener('click', async (e) => {
+    const send = e.target.closest('[data-campaign-send]');
+    const cancel = e.target.closest('[data-campaign-cancel]');
+    try{
+      if(send){
+        const audience = await apiGet('/marketing/audience');
+        if(!confirm(`Queue this campaign to ${audience.mailable} confirmed subscriber(s)?`)) return;
+        const result = await apiSend('POST', `/marketing/campaigns/${send.dataset.campaignSend}/send`);
+        await loadMarketing();
+        alert(`Queued to ${result.queued} subscriber(s); ${result.skipped} skipped (suppressed or already queued).`);
+      }
+      if(cancel){
+        await apiSend('POST', `/marketing/campaigns/${cancel.dataset.campaignCancel}/cancel`);
+        await loadMarketing();
+      }
+    }catch(err){ alert(err.message); }
+  });
+
+  const campaignModal = document.getElementById('campaignModal');
+  document.getElementById('campaignNewBtn').addEventListener('click', () => {
+    ['campaignName','campaignSubject','campaignBody','campaignCtaLabel','campaignCtaUrl']
+      .forEach(id => document.getElementById(id).value = '');
+    document.getElementById('campaignError').style.display = 'none';
+    campaignModal.style.display = 'flex';
+  });
+  document.getElementById('campaignCancel').addEventListener('click', () => {
+    campaignModal.style.display = 'none';
+  });
+  document.getElementById('campaignSave').addEventListener('click', async () => {
+    const error = document.getElementById('campaignError');
+    try{
+      await apiSend('POST', '/marketing/campaigns', {
+        name: document.getElementById('campaignName').value,
+        subject: document.getElementById('campaignSubject').value,
+        body: document.getElementById('campaignBody').value,
+        cta_label: document.getElementById('campaignCtaLabel').value || null,
+        cta_url: document.getElementById('campaignCtaUrl').value || null
+      });
+      campaignModal.style.display = 'none';
+      await loadMarketing();
+    }catch(err){
+      error.textContent = err.message;
+      error.style.display = 'block';
+    }
+  });
+
+  document.querySelectorAll('[data-view="reviews"]').forEach(b =>
+    b.addEventListener('click', loadReviews));
+  document.querySelectorAll('[data-view="marketing"]').forEach(b =>
+    b.addEventListener('click', loadMarketing));
 </script>
+
 </body>
 </html>

@@ -3,7 +3,34 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Véra Hair Co. — Human Hair Wigs & Extensions</title>
+<title>Hairshalo | Premium Human Hair Wigs &amp; Extensions</title>
+<meta name="description" content="Hairshalo — premium hand-tied human hair wigs, extensions and toppers with natural hairlines and breathable lace, sized and finished for everyday wear.">
+<!-- Social / Open Graph. og:image and the favicon are wired up once the
+     Hairshalo logo asset is dropped into frontend/assets/. -->
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#1A2338">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Hairshalo">
+<meta property="og:title" content="Hairshalo | Premium Human Hair Wigs &amp; Extensions">
+<meta property="og:description" content="Hand-tied human hair wigs, extensions and toppers with natural hairlines and breathable lace.">
+<meta property="og:image" content="assets/og-image.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:image" content="assets/og-image.png">
+<meta name="twitter:title" content="Hairshalo | Premium Human Hair Wigs &amp; Extensions">
+<meta name="twitter:description" content="Hand-tied human hair wigs, extensions and toppers with natural hairlines and breathable lace.">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Organization",
+  "name": "Hairshalo",
+  "logo": "assets/hairshalo-mark-256.png",
+  "description": "Premium human hair wigs, extensions and toppers.",
+  "brand": { "@type": "Brand", "name": "Hairshalo" }
+}
+</script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -95,8 +122,21 @@
     padding:22px 0;transition:padding .3s;
   }
   header.scrolled .header-inner{padding:14px 0;}
-  .logo{font-family:'Fraunces',serif;font-size:23px;font-weight:600;letter-spacing:.01em;}
-  .logo span{color:var(--gold);font-style:italic;}
+  /* Balldoug is the Hairshalo logotype face. It is used ONLY for the brand
+     name lockup (header, footer, mobile nav, branded image panels) — body
+     copy and headings stay on Fraunces/Inter. */
+  @font-face{
+    font-family:'Balldoug';
+    src:url('assets/fonts/balldoug-regular.woff2') format('woff2'),
+        url('assets/fonts/balldoug-regular.otf') format('opentype');
+    font-weight:400;font-style:normal;font-display:swap;
+  }
+  .logo{
+    display:inline-flex;align-items:center;gap:9px;
+    font-family:'Balldoug','Fraunces',serif;font-size:23px;font-weight:400;
+    letter-spacing:.05em;line-height:1;white-space:nowrap;
+  }
+  .logo-mark{height:30px;width:auto;display:block;flex:none;}
   nav.main-nav{display:flex;gap:34px;}
   nav.main-nav a{
     font-size:13.5px;font-weight:500;color:var(--text);position:relative;padding:4px 0;
@@ -235,8 +275,289 @@
   .swatch{width:14px;height:14px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px var(--line);}
   .prod-rating{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);margin-bottom:6px;}
   .prod-rating .stars{color:var(--gold);letter-spacing:1px;}
+  .prod-rating.no-reviews{display:block;font-size:12px;color:var(--text-soft);opacity:.75;margin-bottom:6px;}
+  .pdp-reviews{margin-top:26px;border-top:1px solid var(--line);padding-top:22px;}
+  .pdp-reviews h3{font-size:18px;font-weight:500;margin-bottom:14px;}
+  .review-item{padding:14px 0;border-bottom:1px solid var(--line);}
+  .review-item:last-child{border-bottom:none;}
+  .review-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
+  .review-head .stars{color:var(--gold);letter-spacing:1px;font-size:13px;}
+  .review-head strong{font-size:14px;font-weight:500;}
+  .review-verified{font-size:11px;text-transform:uppercase;letter-spacing:.06em;
+    color:var(--wine);background:rgba(140,90,60,.10);padding:2px 8px;border-radius:20px;}
+  .review-item p{font-size:14px;line-height:1.6;color:var(--text);opacity:.9;margin:0;}
+  .review-reply{margin-top:8px;padding-left:12px;border-left:2px solid var(--line);
+    font-size:13px;color:var(--text-soft);}
+  .review-empty{font-size:14px;color:var(--text-soft);}
   .prod-price{font-size:14.5px;font-weight:700;}
   .prod-price .old{font-weight:500;color:var(--text-soft);text-decoration:line-through;margin-left:8px;font-size:13px;}
+
+  /* ---------- Product placeholders & image fallback ----------
+     Deliberately NOT a grey skeleton loader. These reuse .prod-card /
+     .prod-media / .prod-info so dimensions, aspect ratio, radius, spacing,
+     typography, hover and the responsive grid are identical to a real card.
+     .prod-placeholder-content doubles as the fallback panel for a REAL
+     product whose image is missing or fails to load. */
+  .prod-placeholder-content{
+    position:absolute;inset:0;display:none;
+    flex-direction:column;align-items:center;justify-content:center;gap:11px;
+    text-align:center;padding:20px;
+  }
+  .prod-media.no-image .prod-placeholder-content,
+  .prod-placeholder-media .prod-placeholder-content{display:flex;}
+  .prod-placeholder-content .ph-mark{
+    font-family:'Balldoug','Fraunces',serif;font-weight:400;font-size:15px;
+    letter-spacing:.16em;text-indent:.16em;color:var(--cream);white-space:nowrap;
+    text-shadow:0 1px 12px rgba(43,27,20,.28);
+  }
+  .prod-placeholder-content .ph-rule{width:36px;height:1px;background:rgba(250,245,238,.6);}
+  .prod-placeholder-content .ph-note{
+    font-size:10px;letter-spacing:.15em;text-transform:uppercase;
+    color:rgba(250,245,238,.92);line-height:1.6;max-width:80%;
+  }
+  /* ---------- Currency selector ---------- */
+  .cur-wrap{position:relative;}
+  .cur-btn{
+    display:flex;align-items:center;gap:5px;padding:6px 11px;border-radius:100px;
+    border:1px solid var(--line);background:transparent;cursor:pointer;
+    font-size:12px;font-weight:700;color:var(--ink);letter-spacing:.03em;
+    transition:border-color .2s var(--ease), background .2s;
+  }
+  .cur-btn:hover{border-color:var(--blush);background:var(--cream);}
+  .cur-btn .chev{font-size:9px;opacity:.6;}
+  .cur-menu{
+    position:absolute;right:0;top:calc(100% + 8px);z-index:120;width:250px;
+    max-height:340px;overflow-y:auto;background:var(--cream);border:1px solid var(--line);
+    border-radius:14px;padding:6px;box-shadow:0 18px 44px rgba(43,27,20,.16);
+    display:none;
+  }
+  .cur-menu.open{display:block;}
+  .cur-menu button{
+    display:flex;width:100%;align-items:center;gap:9px;padding:9px 11px;border-radius:9px;
+    background:none;cursor:pointer;font-size:13px;color:var(--ink);text-align:left;
+  }
+  .cur-menu button:hover{background:#fff;}
+  .cur-menu button.active{background:var(--ink);color:var(--cream);}
+  .cur-menu .code{font-weight:700;min-width:38px;font-size:12px;letter-spacing:.03em;}
+  .cur-menu .nm{color:var(--text-soft);font-size:12px;}
+  .cur-menu button.active .nm{color:rgba(250,245,238,.7);}
+  .cur-note{
+    font-size:10.5px;color:var(--text-soft);padding:8px 11px 4px;line-height:1.5;
+    border-top:1px solid var(--line);margin-top:4px;
+  }
+  .fx-banner{
+    font-size:11px;color:var(--text-soft);text-align:center;padding:6px 12px;
+    background:#F4EEE3;border-bottom:1px solid var(--line);display:none;
+  }
+  .fx-banner.show{display:block;}
+  @media (max-width:760px){ .cur-btn{padding:5px 8px;font-size:11px;} .cur-menu{width:216px;} }
+
+  /* ---------- Cart quantity + remove ---------- */
+  .qty-ctl{display:flex;align-items:center;gap:0;border:1px solid var(--line);border-radius:100px;overflow:hidden;}
+  .qty-ctl button{
+    width:26px;height:26px;display:flex;align-items:center;justify-content:center;
+    font-size:14px;line-height:1;color:var(--ink);background:transparent;cursor:pointer;
+    transition:background .2s var(--ease);
+  }
+  .qty-ctl button:hover:not(:disabled){background:var(--cream);}
+  .qty-ctl button:disabled{opacity:.35;cursor:not-allowed;}
+  .qty-ctl .qv{
+    min-width:26px;text-align:center;font-size:12.5px;font-weight:700;
+    font-variant-numeric:tabular-nums;
+  }
+  .cart-item-rm{
+    font-size:11px;color:var(--text-soft);text-decoration:underline;cursor:pointer;
+    background:none;margin-left:10px;
+  }
+  .cart-item-rm:hover{color:var(--wine);}
+  .cart-line-note{font-size:11px;color:var(--gold);margin-top:4px;}
+
+  /* ---------- Coupon + totals in the checkout ---------- */
+  .coupon-row{display:flex;gap:8px;margin-bottom:10px;}
+  .coupon-row input{
+    flex:1;padding:11px 14px;border:1px solid var(--line);border-radius:100px;
+    font-family:inherit;font-size:13px;background:#fff;color:var(--ink);
+    text-transform:uppercase;letter-spacing:.05em;
+  }
+  .coupon-row input:focus{outline:none;border-color:var(--wine);}
+  .coupon-row button{
+    padding:11px 20px;border-radius:100px;background:var(--ink);color:var(--cream);
+    font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;
+  }
+  .coupon-row button:disabled{opacity:.5;cursor:not-allowed;}
+  .coupon-msg{font-size:12px;margin-bottom:10px;line-height:1.6;display:none;}
+  .coupon-msg.ok{color:#3F7D58;display:block;}
+  .coupon-msg.err{color:var(--wine);display:block;}
+  .totals{border-top:1px solid var(--line);padding-top:12px;margin-bottom:16px;}
+  .totals-row{display:flex;justify-content:space-between;font-size:13.5px;padding:3px 0;color:var(--text-soft);}
+  .totals-row.grand{
+    font-size:16px;font-weight:700;color:var(--ink);
+    border-top:1px solid var(--line);margin-top:8px;padding-top:10px;
+  }
+  .totals-row.save{color:#3F7D58;}
+
+  /* ---------- Search ---------- */
+  .search-overlay{
+    position:fixed;inset:0;background:rgba(43,27,20,.55);z-index:940;
+    opacity:0;pointer-events:none;transition:opacity .3s var(--ease);
+  }
+  .search-overlay.active{opacity:1;pointer-events:auto;}
+  .search-panel{
+    position:fixed;z-index:941;left:50%;top:12vh;transform:translate(-50%,-12px);
+    width:min(680px,94vw);max-height:76vh;overflow-y:auto;background:var(--cream);
+    border-radius:var(--radius);padding:22px;opacity:0;pointer-events:none;
+    transition:opacity .3s var(--ease), transform .3s var(--ease);
+  }
+  .search-panel.active{opacity:1;pointer-events:auto;transform:translate(-50%,0);}
+  .search-field{display:flex;gap:9px;margin-bottom:6px;}
+  .search-field input{
+    flex:1;padding:13px 18px;border:1px solid var(--line);border-radius:100px;
+    font-family:inherit;font-size:15px;background:#fff;color:var(--ink);
+  }
+  .search-field input:focus{outline:none;border-color:var(--wine);}
+  .search-field button{
+    padding:13px 24px;border-radius:100px;background:var(--ink);color:var(--cream);
+    font-size:12.5px;font-weight:700;cursor:pointer;
+  }
+  .search-status{font-size:12.5px;color:var(--text-soft);margin:10px 2px;}
+  .search-results{display:flex;flex-direction:column;gap:8px;margin-top:6px;}
+  .search-hit{
+    display:flex;gap:12px;align-items:center;padding:9px;border-radius:12px;
+    cursor:pointer;transition:background .2s var(--ease);
+  }
+  .search-hit:hover{background:#fff;}
+  .search-hit .thumb{
+    width:48px;height:58px;border-radius:9px;flex-shrink:0;background-size:cover;
+    background-position:center;background-image:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34);
+  }
+  .search-hit h5{font-family:'Fraunces',serif;font-size:14.5px;font-weight:500;margin:0 0 2px;}
+  .search-hit small{font-size:11.5px;color:var(--text-soft);}
+  .search-hit .p{margin-left:auto;font-size:13.5px;font-weight:700;white-space:nowrap;}
+
+  /* ---------- Discount / sale presentation ---------- */
+  .prod-badge.sale-badge{background:var(--wine);}
+  .prod-price .save{
+    display:inline-block;margin-left:8px;font-size:11.5px;font-weight:700;
+    color:var(--wine);letter-spacing:.02em;
+  }
+  .prod-variant-summary{
+    font-size:11.5px;color:var(--text-soft);margin-top:5px;letter-spacing:.02em;
+  }
+  .prod-stock{font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;}
+  .prod-stock.low{color:var(--gold);}
+  .prod-stock.out{color:var(--text-soft);}
+  .prod-media.is-sold-out::before{
+    content:'Out of Stock';position:absolute;z-index:3;left:50%;top:50%;
+    transform:translate(-50%,-50%);background:rgba(250,245,238,.94);color:var(--ink);
+    font-size:11px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    padding:9px 18px;border-radius:100px;
+  }
+  .view-product{
+    display:block;width:100%;margin-top:10px;text-align:center;
+    border:1px solid var(--line);border-radius:100px;padding:9px;
+    font-size:12px;font-weight:700;letter-spacing:.04em;color:var(--ink);
+    background:transparent;cursor:pointer;transition:background .25s var(--ease), border-color .25s;
+  }
+  .view-product:hover{background:var(--cream);border-color:var(--blush);}
+
+  /* ---------- Product detail modal ---------- */
+  .pdp-overlay{
+    position:fixed;inset:0;background:rgba(43,27,20,.55);z-index:900;
+    opacity:0;pointer-events:none;transition:opacity .3s var(--ease);
+  }
+  .pdp-overlay.active{opacity:1;pointer-events:auto;}
+  .pdp{
+    position:fixed;z-index:901;left:50%;top:50%;transform:translate(-50%,-48%) scale(.98);
+    width:min(1000px,94vw);max-height:90vh;overflow-y:auto;background:var(--cream);
+    border-radius:var(--radius);opacity:0;pointer-events:none;
+    transition:opacity .3s var(--ease), transform .3s var(--ease);
+  }
+  .pdp.active{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
+  .pdp-inner{display:grid;grid-template-columns:1fr 1fr;gap:34px;padding:28px;}
+  .pdp-close{
+    position:absolute;top:14px;right:16px;z-index:5;width:34px;height:34px;border-radius:50%;
+    background:rgba(250,245,238,.94);display:flex;align-items:center;justify-content:center;
+    font-size:18px;line-height:1;cursor:pointer;color:var(--ink);
+  }
+  .pdp-gallery-main{
+    position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:3/3.4;
+    background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34);
+  }
+  .pdp-gallery-main img, .pdp-gallery-main video{
+    width:100%;height:100%;object-fit:cover;display:block;
+  }
+  .pdp-thumbs{display:flex;gap:9px;margin-top:11px;flex-wrap:wrap;}
+  .pdp-thumb{
+    width:58px;height:70px;border-radius:11px;overflow:hidden;cursor:pointer;
+    border:2px solid transparent;background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34);
+    flex-shrink:0;position:relative;
+  }
+  .pdp-thumb.active{border-color:var(--wine);}
+  .pdp-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .pdp-thumb.video-thumb::after{
+    content:'▶';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    color:#fff;font-size:15px;background:rgba(43,27,20,.35);
+  }
+  .pdp-info .cat{font-size:11px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.06em;}
+  .pdp-info h2{font-family:'Fraunces',serif;font-size:27px;font-weight:500;margin:7px 0 10px;line-height:1.2;}
+  .pdp-price{display:flex;align-items:baseline;gap:11px;flex-wrap:wrap;margin:14px 0 6px;}
+  .pdp-price .now{font-size:24px;font-weight:700;}
+  .pdp-price .was{font-size:15px;color:var(--text-soft);text-decoration:line-through;}
+  .pdp-price .off{
+    font-size:11.5px;font-weight:700;color:#fff;background:var(--wine);
+    padding:4px 10px;border-radius:100px;
+  }
+  .pdp-desc{font-size:14px;color:var(--text-soft);line-height:1.8;margin:14px 0 6px;}
+  .pdp-opt{margin-top:16px;}
+  .pdp-opt label{
+    display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--text-soft);font-weight:700;margin-bottom:8px;
+  }
+  .pdp-opt-values{display:flex;gap:8px;flex-wrap:wrap;}
+  .pdp-chip{
+    border:1px solid var(--line);background:#fff;border-radius:100px;padding:8px 15px;
+    font-size:12.5px;cursor:pointer;transition:all .2s var(--ease);color:var(--ink);
+  }
+  .pdp-chip:hover{border-color:var(--blush);}
+  .pdp-chip.active{background:var(--ink);color:var(--cream);border-color:var(--ink);}
+  .pdp-chip.disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through;}
+  .pdp-meta{font-size:12px;color:var(--text-soft);margin-top:14px;line-height:1.9;}
+  .pdp-stock{font-size:12px;font-weight:700;margin-top:12px;letter-spacing:.03em;}
+  .pdp-stock.ok{color:#4C8C5C;} .pdp-stock.low{color:var(--gold);} .pdp-stock.out{color:var(--wine);}
+  .pdp-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
+  .pdp-actions .btn{flex:1;min-width:150px;justify-content:center;}
+  @media (max-width:860px){
+    .pdp-inner{grid-template-columns:1fr;gap:22px;padding:22px;}
+    .pdp{width:96vw;}
+  }
+
+  /* Catalog-unavailable state — shown when the API cannot be reached.
+     Deliberately distinct from a product card: we never fabricate products. */
+  .catalog-unavailable{
+    grid-column:1 / -1;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    text-align:center;gap:14px;padding:64px 28px;border-radius:var(--radius);
+    background:linear-gradient(160deg,#F6EFE5,#EFE3D5);border:1px solid var(--line);
+  }
+  .catalog-unavailable .cu-mark{
+    font-family:'Balldoug','Fraunces',serif;font-weight:400;font-size:20px;
+    letter-spacing:.16em;text-indent:.16em;color:var(--ink);
+  }
+  .catalog-unavailable .cu-rule{width:40px;height:1px;background:var(--blush);}
+  .catalog-unavailable h3{font-family:'Fraunces',serif;font-weight:500;font-size:19px;color:var(--ink);}
+  .catalog-unavailable p{font-size:13.5px;color:var(--text-soft);max-width:420px;line-height:1.7;}
+  .catalog-unavailable .cu-retry{
+    margin-top:4px;background:var(--ink);color:var(--cream);border-radius:100px;
+    padding:11px 26px;font-size:12.5px;font-weight:700;cursor:pointer;
+  }
+  .catalog-unavailable .cu-retry:hover{background:var(--wine);}
+
+  /* Placeholder cards are not purchasable, so the cursor must not imply it. */
+  .prod-placeholder .prod-media{cursor:default;}
+  .prod-placeholder .prod-price{font-weight:600;color:var(--text-soft);}
+  .prod-placeholder .prod-meta{
+    font-size:12px;color:var(--text-soft);margin-bottom:6px;letter-spacing:.02em;
+  }
+  .prod-badge.ph-badge{background:var(--gold);}
 
   /* ---------- Editorial split ---------- */
   .editorial{display:grid;grid-template-columns:0.9fr 1fr;gap:70px;align-items:center;}
@@ -308,6 +629,50 @@
   .faq-a p{padding:0 4px 22px;font-size:14.5px;color:var(--text-soft);line-height:1.75;max-width:600px;}
 
   /* ---------- Newsletter ---------- */
+  .pay-panel{padding:4px 0 2px;}
+  .pay-panel h3{font-size:19px;font-weight:500;margin-bottom:10px;}
+  .pay-panel p{font-size:14px;line-height:1.6;margin-bottom:10px;}
+  .pay-panel .pay-muted{font-size:13px;color:var(--text-soft);}
+  .pay-panel .pay-amount{font-size:22px;font-family:'Fraunces',serif;margin:6px 0 12px;}
+  .pay-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
+  .pay-panel[data-state="paid"] h3{color:#4C8C5C;}
+  .pay-panel[data-state="failed"] h3, .pay-panel[data-state="cancelled"] h3{color:#B5443A;}
+  .nav-account{font-size:13px;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--text);text-decoration:none;margin-right:18px;}
+  .nav-account:hover{color:var(--wine);}
+  .account-modal{max-width:640px;}
+  .account-modal h3{font-size:20px;font-weight:500;margin-bottom:14px;}
+  .account-modal input{width:100%;padding:11px 13px;border:1px solid var(--line);
+    border-radius:8px;margin-bottom:10px;font-family:inherit;font-size:14px;background:#fff;}
+  .acct-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+  .acct-tab-btn{background:none;border:none;border-bottom:2px solid transparent;
+    padding:6px 4px;font-size:13px;letter-spacing:.04em;text-transform:uppercase;
+    color:var(--text-soft);cursor:pointer;font-family:inherit;}
+  .acct-tab-btn.active{color:var(--wine);border-bottom-color:var(--wine);}
+  .acct-head{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:14px;}
+  .acct-muted{font-size:12.5px;color:var(--text-soft);line-height:1.55;}
+  .acct-msg{font-size:13px;margin-top:8px;line-height:1.5;}
+  .acct-banner{background:var(--blush);border-radius:10px;padding:12px 14px;font-size:13px;
+    display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px;}
+  .acct-order{border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px;}
+  .acct-order-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;}
+  .acct-status{font-size:11.5px;text-transform:uppercase;letter-spacing:.05em;
+    background:var(--blush);padding:3px 9px;border-radius:20px;}
+  .acct-items{list-style:none;margin:10px 0;padding:0;font-size:13.5px;}
+  .acct-items li{display:flex;gap:8px;align-items:baseline;padding:3px 0;flex-wrap:wrap;}
+  .acct-sku{font-size:11px;color:var(--text-soft);font-family:monospace;}
+  .acct-line-total{margin-left:auto;}
+  .acct-totals{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;
+    border-top:1px solid var(--line);padding-top:8px;}
+  .acct-points{margin-bottom:10px;}
+  .acct-points-value{font-family:'Fraunces',serif;font-size:30px;color:var(--wine);}
+  .acct-points-split{display:flex;gap:16px;font-size:13px;margin-bottom:16px;}
+  .acct-ledger{list-style:none;padding:0;margin:0;font-size:13px;}
+  .acct-ledger li{display:flex;gap:10px;padding:6px 0;border-bottom:1px solid var(--line);flex-wrap:wrap;}
+  .acct-plus{color:#4C8C5C;font-weight:600;min-width:44px;}
+  .acct-minus{color:#B5443A;font-weight:600;min-width:44px;}
+  .acct-wish{display:flex;justify-content:space-between;align-items:center;gap:12px;
+    border-bottom:1px solid var(--line);padding:10px 0;}
   .newsletter{background:var(--blush);border-radius:28px;padding:70px 60px;text-align:center;}
   .newsletter h2{font-size:clamp(26px,3.4vw,38px);font-weight:500;margin-bottom:12px;}
   .newsletter p{color:var(--text);opacity:.75;margin-bottom:30px;}
@@ -345,7 +710,7 @@
   .cart-close svg{width:18px;height:18px;}
   .cart-progress{padding:18px 26px;border-bottom:1px solid var(--line);}
   .cart-progress-bar{height:5px;background:var(--line);border-radius:100px;margin-top:10px;overflow:hidden;}
-  .cart-progress-fill{height:100%;background:var(--wine);width:38%;border-radius:100px;transition:width .5s var(--ease);}
+  .cart-progress-fill{height:100%;background:var(--wine);width:0;border-radius:100px;transition:width .5s var(--ease);}
   .cart-progress p{font-size:12px;color:var(--text-soft);}
   .cart-items{flex:1;overflow-y:auto;padding:20px 26px;}
   .cart-item{display:flex;gap:14px;margin-bottom:20px;}
@@ -515,16 +880,32 @@
     .cat-grid,.prod-grid,.why-grid{grid-template-columns:1fr 1fr;}
     .foot-grid{grid-template-columns:1fr;gap:30px;}
     .nl-form{flex-direction:column;}
+    /* The logo lockup is a mark plus one unbreakable word, where the previous
+       two-word wordmark could wrap. Step both down and tighten the icon row so
+       the header still fits a 375px viewport without forcing a scrollbar. */
+    .logo{font-size:15px;gap:7px;}
+    .logo-mark{height:22px;}
+    .header-icons{gap:8px;}
+    .nav-account{margin-right:0;white-space:nowrap;}
+  }
+  /* Below the common 375px phone width, shed a little more so the lockup
+     never pushes the header wider than the viewport. */
+  @media (max-width:374px){
+    .logo{font-size:13.5px;gap:6px;}
+    .logo-mark{height:19px;}
+    .header-icons{gap:6px;}
+    .nav-account{font-size:12px;}
   }
 </style>
 </head>
 <body>
+<div class="fx-banner" id="fxBanner"></div>
 
 <div class="announce">Complimentary virtual consultation with every order &nbsp;·&nbsp; Ships pan-India in 3–5 days</div>
 
 <header id="siteHeader">
   <div class="wrap header-inner">
-    <a href="#" class="logo">VÉRA <span>Hair Co.</span></a>
+    <a href="#" class="logo" aria-label="Hairshalo — home"><img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="30">HAIRSHALO</a>
     <nav class="main-nav">
       <a href="#collections">Wigs</a>
       <a href="#collections">Extensions</a>
@@ -533,9 +914,18 @@
       <a href="#faq">Book a Fitting</a>
     </nav>
     <div class="header-icons">
-      <button class="icon-btn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
-      <button class="icon-btn" aria-label="Account"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 3.6-6 8-6s8 2 8 6"/></svg></button>
-      <button class="icon-btn" aria-label="Wishlist"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
+      <div class="cur-wrap">
+        <button class="cur-btn" id="curBtn" aria-haspopup="true" aria-expanded="false" aria-label="Change display currency">
+          <span id="curBtnLabel">₹ INR</span><span class="chev">▼</span>
+        </button>
+        <div class="cur-menu" id="curMenu" role="menu"></div>
+      </div>
+      <button class="icon-btn" id="searchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
+      <!-- Account and Wishlist are not implemented yet. Rather than render
+           controls that do nothing when clicked, they stay out of the DOM
+           until the features exist. -->
+
+      <a href="#" class="nav-account" id="accountTrigger">Sign in</a>
       <button class="icon-btn" id="cartBtn" aria-label="Cart">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>
         <span class="cart-count" id="cartCount">2</span>
@@ -548,7 +938,7 @@
 <!-- MOBILE NAV -->
 <div class="mobile-nav" id="mobileNav">
   <div class="mobile-nav-top">
-    <a href="#" class="logo">VÉRA <span>Hair Co.</span></a>
+    <a href="#" class="logo" aria-label="Hairshalo — home"><img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="30">HAIRSHALO</a>
     <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
   <a href="#collections">Wigs</a>
@@ -580,9 +970,12 @@
       <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.18), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1496440737103-cd596325d314?w=900&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
         <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="var(--wine)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Glueless &amp; Beginner-Friendly</span>
       </div>
-      <div class="hero-float">
-        <div class="stars">★★★★★</div>
-        <p>"Blends into my natural hairline better than anything I've tried." — Priyanka, verified buyer</p>
+      <!-- Filled with a real review when there is one; otherwise it states a
+           fact about the product rather than quoting a customer who does not
+           exist. -->
+      <div class="hero-float" id="heroFloat">
+        <div class="stars" id="heroFloatStars"></div>
+        <p id="heroFloatText">Human hair, HD lace, and free cap-size guidance before you buy.</p>
       </div>
     </div>
   </div>
@@ -653,62 +1046,10 @@
       <div><h2>Best sellers</h2></div>
       <p>Our most-loved units, chosen by customers who wear them every day.</p>
     </div>
-    <div class="prod-grid">
-      <div class="prod-card">
-        <div class="prod-media" style="background-image:linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1675034743339-0b0747047727?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
-          <span class="prod-badge">Bestseller</span>
-          <button class="prod-wish"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
-          <div class="quick-add" data-add data-name="Malaika HD Lace Frontal" data-price="18999">Quick Add</div>
-        </div>
-        <div class="prod-info">
-          <span class="cat">Frontal Wig</span>
-          <h4>Malaika HD Lace Frontal</h4>
-          <div class="swatches"><span class="swatch" style="background:#2B1B14"></span><span class="swatch" style="background:#5C3A24"></span><span class="swatch" style="background:#8C5A3C"></span></div>
-          <div class="prod-rating"><span class="stars">★★★★★</span>4.9 (312)</div>
-          <div class="prod-price">₹18,999</div>
-        </div>
-      </div>
-      <div class="prod-card">
-        <div class="prod-media" style="background-image:linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1634449571010-02389ed0f9b0?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
-          <button class="prod-wish"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
-          <div class="quick-add" data-add data-name="Anaya Glueless Bob" data-price="12499">Quick Add</div>
-        </div>
-        <div class="prod-info">
-          <span class="cat">Glueless Wig</span>
-          <h4>Anaya Glueless Bob</h4>
-          <div class="swatches"><span class="swatch" style="background:#2B1B14"></span><span class="swatch" style="background:#5C3A24"></span></div>
-          <div class="prod-rating"><span class="stars">★★★★★</span>4.8 (204)</div>
-          <div class="prod-price">₹12,499 <span class="old">₹14,999</span></div>
-        </div>
-      </div>
-      <div class="prod-card">
-        <div class="prod-media" style="background-image:linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1503830232159-4b417691001e?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
-          <span class="prod-badge">New</span>
-          <button class="prod-wish"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
-          <div class="quick-add" data-add data-name="Ishita Closure Wave" data-price="15999">Quick Add</div>
-        </div>
-        <div class="prod-info">
-          <span class="cat">Closure Wig</span>
-          <h4>Ishita Closure Wave</h4>
-          <div class="swatches"><span class="swatch" style="background:#8C5A3C"></span><span class="swatch" style="background:#B08D57"></span></div>
-          <div class="prod-rating"><span class="stars">★★★★★</span>4.7 (98)</div>
-          <div class="prod-price">₹15,999</div>
-        </div>
-      </div>
-      <div class="prod-card">
-        <div class="prod-media" style="background-image:linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1560869713-bf165a9cfac1?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
-          <button class="prod-wish"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg></button>
-          <div class="quick-add" data-add data-name="Kavya Silk Topper" data-price="9499">Quick Add</div>
-        </div>
-        <div class="prod-info">
-          <span class="cat">Hair Topper</span>
-          <h4>Kavya Silk Topper</h4>
-          <div class="swatches"><span class="swatch" style="background:#2B1B14"></span><span class="swatch" style="background:#3A2E27"></span></div>
-          <div class="prod-rating"><span class="stars">★★★★★</span>4.9 (156)</div>
-          <div class="prod-price">₹9,499</div>
-        </div>
-      </div>
-    </div>
+    <!-- Cards are rendered from the live API by renderBestSellers().
+         Real products come from /api/products; if the section cannot be
+         filled with real products, /api/product-placeholders tops it up. -->
+    <div class="prod-grid" id="bestSellersGrid"></div>
   </div>
 </section>
 
@@ -750,7 +1091,7 @@
   <div class="wrap editorial">
     <div class="arch order-2" style="aspect-ratio:4/4.6;background-image:linear-gradient(160deg, rgba(43,27,20,.18), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">Density: Soft &amp; natural</span></div>
     <div class="editorial-copy">
-      <span class="eyebrow">The Véra Difference</span>
+      <span class="eyebrow">The Hairshalo Difference</span>
       <h2>Looks natural. Feels like yours.</h2>
       <p>Every unit starts with ethically sourced human hair, hand-tied strand by strand onto breathable Swiss lace. No stiff parting, no plastic shine — just movement, softness, and a scalp-like finish that holds up to real, everyday life.</p>
       <p>Our stylists size, trim, and customise the hairline for you before it ships, so what arrives is ready to wear from day one.</p>
@@ -780,7 +1121,7 @@
 <!-- WHY CHOOSE -->
 <section class="section">
   <div class="wrap">
-    <div class="section-head"><h2>Why customers choose Véra</h2></div>
+    <div class="section-head"><h2>Why customers choose Hairshalo</h2></div>
     <div class="why-grid">
       <div class="why-item">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
@@ -807,31 +1148,14 @@
 </section>
 
 <!-- TESTIMONIALS -->
-<section class="section">
+<section class="section" id="testimonials" style="display:none;">
   <div class="wrap">
     <div class="section-head"><h2>Loved, daily</h2></div>
-    <div class="testi-track">
-      <div class="testi-card">
-        <div class="stars">★★★★★</div>
-        <p>"The lace genuinely disappears into my hairline. I stopped worrying about it within the first hour of wearing it out."</p>
-        <div class="testi-person"><div class="testi-avatar"></div><div><span>Priyanka R.</span><small>Verified Customer</small></div></div>
-      </div>
-      <div class="testi-card">
-        <div class="stars">★★★★★</div>
-        <p>"I'm a first-time wig wearer and the glueless strap made it so easy. Fit guidance over WhatsApp made all the difference."</p>
-        <div class="testi-person"><div class="testi-avatar"></div><div><span>Meera S.</span><small>Verified Customer</small></div></div>
-      </div>
-      <div class="testi-card">
-        <div class="stars">★★★★★</div>
-        <p>"Softer and more natural-moving than the unit I paid nearly double for elsewhere. It's now the only brand I recommend."</p>
-        <div class="testi-person"><div class="testi-avatar"></div><div><span>Ananya K.</span><small>Verified Customer</small></div></div>
-      </div>
-      <div class="testi-card">
-        <div class="stars">★★★★★</div>
-        <p>"Ordered a topper for thinning at my crown — it blends so well that my hairdresser couldn't tell where it started."</p>
-        <div class="testi-person"><div class="testi-avatar"></div><div><span>Divya T.</span><small>Verified Customer</small></div></div>
-      </div>
-    </div>
+    <!-- Filled from /api/reviews/recent. These were four hardcoded five-star
+         quotes with invented names; the section now shows real published
+         reviews, or hides itself when there are none. -->
+    <div class="testi-track" id="testiTrack"></div>
+  </div>
   </div>
 </section>
 
@@ -871,9 +1195,11 @@
   <div class="newsletter">
     <h2>Your best hair starts here</h2>
     <p>Styling tips, new arrivals, and offers — straight to your inbox.</p>
-    <form class="nl-form" onsubmit="event.preventDefault(); this.reset(); showToast('Thanks — you\'re on the list.');">
-      <input type="email" placeholder="Enter your email" required>
-      <button class="btn btn-primary" type="submit">Join Us</button>
+    <!-- Double opt-in: this only asks for a confirmation email. Nothing is
+         added to the list until the link in that email is clicked. -->
+    <form class="nl-form" id="newsletterForm">
+      <input type="email" id="newsletterEmail" placeholder="Enter your email" required>
+      <button class="btn btn-primary" type="submit" id="newsletterSubmit">Join Us</button>
     </form>
   </div>
 </div>
@@ -883,7 +1209,7 @@
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
-        <a href="#" class="logo">VÉRA <span>Hair Co.</span></a>
+        <a href="#" class="logo" aria-label="Hairshalo — home"><img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="30">HAIRSHALO</a>
         <p>Premium human hair wigs and extensions, fitted and finished for a completely natural, everyday wear.</p>
         <div class="foot-social">
           <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
@@ -905,7 +1231,7 @@
       </div>
     </div>
     <div class="foot-bottom">
-      <span>© 2026 Véra Hair Co. All rights reserved.</span>
+      <span>© 2026 Hairshalo. All rights reserved.</span>
       <div class="foot-legal"><a href="#">Privacy Policy</a><a href="#">Terms</a><a href="#">Refund Policy</a></div>
     </div>
   </div>
@@ -918,9 +1244,9 @@
     <h3>Your Bag</h3>
     <button class="cart-close" id="cartClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
-  <div class="cart-progress">
-    <p><strong>₹6,001</strong> away from free shipping</p>
-    <div class="cart-progress-bar"><div class="cart-progress-fill"></div></div>
+  <div class="cart-progress" id="cartProgress" hidden>
+    <p id="cartProgressText"></p>
+    <div class="cart-progress-bar"><div class="cart-progress-fill" id="cartProgressFill"></div></div>
   </div>
   <div class="cart-items" id="cartItems"></div>
   <div class="cart-foot">
@@ -930,6 +1256,177 @@
 </div>
 
 <div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 6L9 17l-5-5"/></svg><span id="toastMsg">Added to bag</span></div>
+
+<script>
+  /* ===== Foundations: must be evaluated before anything renders =====
+     The cart paints on first load and formats every amount through money(),
+     so the API base and the whole currency module live here, ahead of the
+     cart script rather than after it. Each <script> is a separate evaluation:
+     declarations in a later block simply do not exist while an earlier block
+     runs, so this ordering is load-bearing, not cosmetic. */
+  // ===== Backend API integration =====
+  // Point this at your running FastAPI backend. Falls back to demo mode if unreachable.
+  const API_BASE = window.location.protocol === 'file:'
+    ? 'http://localhost:8010/api'
+    : (window.__VERA_API_BASE__ || 'http://localhost:8010/api');
+
+  /* ================= Currency (display only) =================
+     Every price in the API is canonical INR. This module converts for display
+     using ONE cached rate table fetched from the server — never one call per
+     product, and never a rate the browser invents. Checkout always charges in
+     INR; the selected currency is sent only so the receipt can record what the
+     customer was looking at. */
+  const CURRENCY_KEY = 'vera.currency';
+  const LOCALE_COUNTRY_CURRENCY = {
+    IN:'INR', GB:'GBP', US:'USD', AE:'AED', SG:'SGD', MY:'MYR', LK:'LKR',
+    AU:'AUD', CA:'CAD', NZ:'NZD', JP:'JPY', SA:'SAR', QA:'QAR', KW:'KWD', CH:'CHF',
+    AT:'EUR', BE:'EUR', DE:'EUR', ES:'EUR', FI:'EUR', FR:'EUR', GR:'EUR',
+    IE:'EUR', IT:'EUR', NL:'EUR', PT:'EUR'
+  };
+
+  let currencies = {INR:{code:'INR',symbol:'₹',name:'Indian Rupee',decimals:2}};
+  let fxRates = {INR:1};
+  let fxIndicative = false;
+  let activeCurrency = 'INR';
+
+  function localeCountry(){
+    try{
+      const loc = navigator.language || '';
+      const m = loc.match(/[-_]([A-Za-z]{2})$/);
+      return m ? m[1].toUpperCase() : null;
+    }catch(e){ return null; }
+  }
+
+  /* Detection priority, exactly as specified:
+       1. manual selection (persisted)  2. saved preference (same store)
+       3. browser locale  4. server/edge country header  5. INR */
+  async function resolveInitialCurrency(){
+    try{
+      const saved = localStorage.getItem(CURRENCY_KEY);
+      if(saved && currencies[saved]) return saved;
+    }catch(e){ /* storage unavailable — fall through */ }
+
+    const fromLocale = LOCALE_COUNTRY_CURRENCY[localeCountry()];
+    if(fromLocale && currencies[fromLocale]) return fromLocale;
+
+    try{
+      const r = await fetch(API_BASE + '/currency/detect');
+      if(r.ok){
+        const d = await r.json();
+        if(d.currency && currencies[d.currency]) return d.currency;
+      }
+    }catch(e){ /* detection is best-effort */ }
+
+    return 'INR';
+  }
+
+  async function loadCurrencies(){
+    try{
+      const [cRes, rRes] = await Promise.all([
+        fetch(API_BASE + '/currency/currencies'),
+        fetch(API_BASE + '/currency/rates')
+      ]);
+      if(cRes.ok){
+        const list = await cRes.json();
+        currencies = {};
+        list.forEach(c => currencies[c.code] = c);
+      }
+      if(rRes.ok){
+        const d = await rRes.json();
+        fxRates = d.rates || {INR:1};
+        fxIndicative = !!d.is_indicative;
+      }
+    }catch(e){
+      // Rates unavailable — stay in INR rather than showing a wrong price.
+      currencies = {INR:{code:'INR',symbol:'₹',name:'Indian Rupee',decimals:2}};
+      fxRates = {INR:1};
+    }
+    activeCurrency = await resolveInitialCurrency();
+    renderCurrencyMenu();
+    updateCurrencyChrome();
+  }
+
+  function setCurrency(code, manual){
+    if(!currencies[code]) return;
+    activeCurrency = code;
+    if(manual){ try{ localStorage.setItem(CURRENCY_KEY, code); }catch(e){} }
+    renderCurrencyMenu();
+    updateCurrencyChrome();
+    // Re-render everything that shows a price.
+    renderBestSellers();
+    renderCart();
+    if(pdpProduct) pdpRenderPricing();
+  }
+
+  function updateCurrencyChrome(){
+    const c = currencies[activeCurrency] || currencies.INR;
+    const label = document.getElementById('curBtnLabel');
+    if(label) label.textContent = `${c.symbol} ${c.code}`;
+    const banner = document.getElementById('fxBanner');
+    if(banner){
+      if(activeCurrency === 'INR'){ banner.classList.remove('show'); }
+      else{
+        banner.classList.add('show');
+        banner.textContent = fxIndicative
+          ? `Prices shown in ${c.code} are indicative. You'll be charged in INR (₹).`
+          : `Prices shown in ${c.code} for guidance. You'll be charged in INR (₹).`;
+      }
+    }
+  }
+
+  function renderCurrencyMenu(){
+    const menu = document.getElementById('curMenu');
+    if(!menu) return;
+    menu.innerHTML = Object.values(currencies).map(c => `
+      <button type="button" role="menuitem" data-cur="${c.code}" class="${c.code===activeCurrency?'active':''}">
+        <span class="code">${c.symbol}</span>
+        <span class="code">${c.code}</span>
+        <span class="nm">${esc(c.name)}</span>
+      </button>`).join('') +
+      `<div class="cur-note">Payment is always taken in Indian Rupees. Other currencies are shown for guidance only.</div>`;
+  }
+
+  /* Convert a canonical INR amount and format it for the active currency. */
+  function money(inrAmount){
+    const c = currencies[activeCurrency] || currencies.INR;
+    const rate = Number(fxRates[activeCurrency] ?? 1);
+    const value = (Number(inrAmount) || 0) * (isFinite(rate) && rate > 0 ? rate : 1);
+    // Always honour the currency's own precision, so a KWD amount never shows
+    // 3 decimals on one line and 0 on the next. INR is the one exception:
+    // whole rupees read better than "₹20,000.00".
+    const frac = (activeCurrency === 'INR' && Number.isInteger(value)) ? 0 : c.decimals;
+    const locale = activeCurrency === 'INR' ? 'en-IN' : 'en-US';
+    return c.symbol + value.toLocaleString(locale, {
+      minimumFractionDigits: frac, maximumFractionDigits: frac
+    });
+  }
+
+  // `inr` is retained as the display formatter so existing call sites keep
+  // working; it now honours the selected currency.
+  const inr = money;
+
+  document.addEventListener('click', (e) => {
+    const btn = e.target.closest('#curBtn');
+    const pick = e.target.closest('[data-cur]');
+    const menu = document.getElementById('curMenu');
+    if(btn){
+      const open = menu.classList.toggle('open');
+      btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+    } else if(pick){
+      setCurrency(pick.dataset.cur, true);
+      menu.classList.remove('open');
+      document.getElementById('curBtn').setAttribute('aria-expanded','false');
+    } else if(menu && !e.target.closest('.cur-wrap')){
+      menu.classList.remove('open');
+    }
+  });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){
+      const m = document.getElementById('curMenu');
+      if(m) m.classList.remove('open');
+    }
+  });
+</script>
 
 <script>
   // Mobile nav drawer
@@ -948,6 +1445,102 @@
   const toast = document.getElementById('toast');
   const toastMsg = document.getElementById('toastMsg');
   let toastTimer;
+  // ===== Reviews and the newsletter (Phase 8) =====
+  // Everything in this block reads from the API. Nothing here has a fallback
+  // that invents a review, a rating or a subscriber count.
+  function reviewCardHtml(review){
+    const verified = review.is_verified_purchase
+      ? '<span class="review-verified">Verified purchase</span>' : '';
+    const reply = review.reply
+      ? `<div class="review-reply"><strong>Hairshalo</strong> — ${esc(review.reply.body)}</div>`
+      : '';
+    return `<div class="review-item">
+      <div class="review-head">
+        <span class="stars">${starsFor(review.rating)}</span>
+        <strong>${esc(review.author)}</strong>${verified}
+      </div>
+      ${review.title ? `<p><strong>${esc(review.title)}</strong></p>` : ''}
+      <p>${esc(review.body || '')}</p>
+      ${reply}
+    </div>`;
+  }
+
+  async function loadProductReviews(productId){
+    const wrap = document.getElementById('pdpReviews');
+    const list = document.getElementById('pdpReviewList');
+    if(!wrap || !list) return;
+    wrap.style.display = 'none';
+    try{
+      const [reviews, summary] = await Promise.all([
+        fetch(`${API_BASE}/reviews/product/${productId}`).then(r => r.json()),
+        fetch(`${API_BASE}/reviews/product/${productId}/summary`).then(r => r.json())
+      ]);
+      if(!Array.isArray(reviews) || !reviews.length) return;   // stays hidden
+      document.getElementById('pdpReviewsTitle').textContent =
+        `Reviews — ${summary.average.toFixed(1)} out of 5 (${summary.count})`;
+      list.innerHTML = reviews.map(reviewCardHtml).join('');
+      wrap.style.display = '';
+    }catch(err){ /* leave the section hidden rather than showing a lie */ }
+  }
+
+  async function renderTestimonials(){
+    const section = document.getElementById('testimonials');
+    const track = document.getElementById('testiTrack');
+    if(!section || !track) return;
+    try{
+      const reviews = await fetch(`${API_BASE}/reviews/recent?limit=6&min_rating=4`)
+        .then(r => r.json());
+      if(!Array.isArray(reviews) || !reviews.length) return;   // section stays hidden
+
+      // The hero card quotes the newest of those same real reviews.
+      const featured = reviews[0];
+      const heroStars = document.getElementById('heroFloatStars');
+      const heroText = document.getElementById('heroFloatText');
+      if(heroStars && heroText){
+        heroStars.textContent = starsFor(featured.rating);
+        const quote = (featured.body || featured.title || '').trim();
+        heroText.textContent = quote
+          ? `"${quote.length > 90 ? quote.slice(0, 88) + '…' : quote}" — ${featured.author}`
+          : heroText.textContent;
+      }
+      track.innerHTML = reviews.map(r => `
+        <div class="testi-card">
+          <div class="stars">${starsFor(r.rating)}</div>
+          <p>"${esc(r.body || r.title || '')}"</p>
+          <div class="testi-person"><div class="testi-avatar"></div>
+            <div><span>${esc(r.author)}</span><small>${r.is_verified_purchase ? 'Verified Customer' : 'Customer'}</small></div>
+          </div>
+        </div>`).join('');
+      section.style.display = '';
+    }catch(err){ /* no reviews section rather than invented quotes */ }
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    renderTestimonials();
+    const form = document.getElementById('newsletterForm');
+    if(form) form.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const input = document.getElementById('newsletterEmail');
+      const button = document.getElementById('newsletterSubmit');
+      button.disabled = true;
+      try{
+        const res = await fetch(`${API_BASE}/marketing/subscribe`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({email: input.value, source:'storefront_footer'})
+        });
+        const data = await res.json();
+        if(!res.ok) throw new Error(data.detail || 'Could not subscribe');
+        form.reset();
+        // Deliberately not "you're on the list" — they are not, until they
+        // confirm. Saying otherwise is the small lie this phase is about.
+        showToast(data.message || 'Check your inbox to confirm.');
+      }catch(err){
+        showToast(err.message);
+      }
+      button.disabled = false;
+    });
+  });
+
   function showToast(msg){
     toastMsg.textContent = msg;
     toast.classList.add('show');
@@ -955,37 +1548,125 @@
     toastTimer = setTimeout(()=> toast.classList.remove('show'), 2200);
   }
 
-  // Cart state
-  let cart = [
-    {name:'Malaika HD Lace Frontal', price:18999},
-    {name:'Anaya Glueless Bob', price:12499}
-  ];
+  // Cart state. Starts empty — the bag was previously pre-filled with two
+  // hardcoded products, which are not real line items and cannot be checked out.
+  let cart = [];
+
+  // The subtotal at which shipping is waived, as published by
+  // GET /api/coupons/quote. It is never assumed client-side: until the server
+  // has answered, the progress meter stays hidden rather than guessing.
+  let freeShippingThreshold = null;
   const cartItemsEl = document.getElementById('cartItems');
   const cartCountEl = document.getElementById('cartCount');
   const cartSubtotalEl = document.getElementById('cartSubtotal');
+
+  /* Cart lines are keyed by variant, so adding the same option twice makes
+     quantity 2 rather than two unrelated lines. `max` is the stock the API
+     reported when the line was added; the server re-checks at checkout. */
+  function cartKey(item){ return (item.id || item.name) + '::' + (item.variantId || ''); }
+
+  function cartAdd(entry){
+    const key = cartKey(entry);
+    const existing = cart.find(c => cartKey(c) === key);
+    if(existing){
+      if(existing.max != null && existing.qty + 1 > existing.max){
+        showToast(`Only ${existing.max} of that option are in stock`);
+        return false;
+      }
+      existing.qty += 1;
+    } else {
+      cart.push(Object.assign({qty:1}, entry));
+    }
+    renderCart();
+    return true;
+  }
+
+  function cartSetQty(key, qty){
+    const line = cart.find(c => cartKey(c) === key);
+    if(!line) return;
+    if(qty <= 0){ cart = cart.filter(c => cartKey(c) !== key); renderCart(); return; }
+    if(line.max != null && qty > line.max){
+      showToast(`Only ${line.max} of that option are in stock`);
+      qty = line.max;
+    }
+    line.qty = qty;
+    renderCart();
+  }
+
+  const cartSubtotal = () => cart.reduce((s,i)=>s + i.price * (i.qty||1), 0);
+  const cartUnits = () => cart.reduce((s,i)=>s + (i.qty||1), 0);
 
   function renderCart(){
     if(cart.length === 0){
       cartItemsEl.innerHTML = '<div class="cart-empty">Your bag is empty.</div>';
     } else {
-      cartItemsEl.innerHTML = cart.map((item, i) => `
+      cartItemsEl.innerHTML = cart.map(item => {
+        const key = cartKey(item);
+        const atMax = item.max != null && item.qty >= item.max;
+        return `
         <div class="cart-item">
           <div class="thumb"></div>
           <div class="cart-item-info">
-            <h5>${item.name}</h5>
-            <small>Length: 18" · Natural Black</small>
+            <h5>${esc(item.name)}</h5>
+            <small>${esc(item.variantLabel || 'Standard')}</small>
+            ${atMax ? `<div class="cart-line-note">Maximum available in stock</div>` : ''}
             <div class="cart-item-bottom">
-              <div class="qty">1</div>
-              <strong>₹${item.price.toLocaleString('en-IN')}</strong>
+              <div class="qty-ctl">
+                <button type="button" data-cart-dec="${esc(key)}" aria-label="Decrease quantity">−</button>
+                <span class="qv">${item.qty}</span>
+                <button type="button" data-cart-inc="${esc(key)}" ${atMax?'disabled':''} aria-label="Increase quantity">+</button>
+              </div>
+              <div>
+                <strong>${money(item.price*item.qty)}</strong>
+                <button type="button" class="cart-item-rm" data-cart-rm="${esc(key)}">Remove</button>
+              </div>
             </div>
           </div>
-        </div>
-      `).join('');
+        </div>`;
+      }).join('');
     }
-    cartCountEl.textContent = cart.length;
-    const subtotal = cart.reduce((s,i)=>s+i.price,0);
-    cartSubtotalEl.textContent = '₹' + subtotal.toLocaleString('en-IN');
+    cartCountEl.textContent = cartUnits();
+    cartSubtotalEl.textContent = money(cartSubtotal());
+    updateCartProgress();
+    // Any basket change invalidates a previously previewed coupon.
+    if(typeof refreshTotals === 'function') refreshTotals();
   }
+
+  /* Progress towards free delivery. The threshold is the server's number and
+     the subtotal is the real basket, so this can no longer disagree with what
+     checkout actually charges. Shown in the active currency like every other
+     price; the amount charged is still quoted by the server. */
+  function updateCartProgress(){
+    const wrap = document.getElementById('cartProgress');
+    if(!wrap) return;
+    const threshold = Number(freeShippingThreshold);
+    // Nothing to work towards: no basket, or no threshold from the server yet.
+    if(!cart.length || !isFinite(threshold) || threshold <= 0){
+      wrap.hidden = true;
+      return;
+    }
+    wrap.hidden = false;
+    const subtotal = cartSubtotal();
+    const remaining = threshold - subtotal;
+    const text = document.getElementById('cartProgressText');
+    const fill = document.getElementById('cartProgressFill');
+    if(remaining <= 0){
+      text.innerHTML = '<strong>Free shipping unlocked.</strong>';
+      fill.style.width = '100%';
+    } else {
+      text.innerHTML = `<strong>${money(remaining)}</strong> away from free shipping`;
+      fill.style.width = Math.max(0, Math.min(100, (subtotal / threshold) * 100)) + '%';
+    }
+  }
+
+  document.addEventListener('click', (e) => {
+    const inc = e.target.closest('[data-cart-inc]');
+    const dec = e.target.closest('[data-cart-dec]');
+    const rm  = e.target.closest('[data-cart-rm]');
+    if(inc){ const l=cart.find(c=>cartKey(c)===inc.dataset.cartInc); if(l) cartSetQty(inc.dataset.cartInc, l.qty+1); }
+    else if(dec){ const l=cart.find(c=>cartKey(c)===dec.dataset.cartDec); if(l) cartSetQty(dec.dataset.cartDec, l.qty-1); }
+    else if(rm){ cartSetQty(rm.dataset.cartRm, 0); }
+  });
   renderCart();
 
   const cartDrawer = document.getElementById('cartDrawer');
@@ -996,13 +1677,23 @@
   document.getElementById('cartClose').addEventListener('click', closeCart);
   overlay.addEventListener('click', closeCart);
 
-  document.querySelectorAll('[data-add]').forEach(el => {
-    el.addEventListener('click', () => {
-      cart.push({name: el.dataset.name, price: parseInt(el.dataset.price)});
-      renderCart();
-      showToast(el.dataset.name + ' added to bag');
-      openCart();
+  // Delegated so dynamically rendered product cards work too. Placeholder
+  // cards carry no [data-add] element at all, so they can never reach the bag.
+  document.addEventListener('click', (e) => {
+    const el = e.target.closest('[data-add]');
+    if(!el) return;
+    if(el.closest('.prod-placeholder')) return;  // belt and braces
+    const added = cartAdd({
+      id: el.dataset.id || null,
+      variantId: el.dataset.variantId || null,
+      variantLabel: el.dataset.variantLabel || null,
+      name: el.dataset.name,
+      price: parseFloat(el.dataset.price),
+      max: el.dataset.stock ? parseInt(el.dataset.stock, 10) : null
     });
+    if(!added) return;
+    showToast(el.dataset.name + ' added to bag');
+    openCart();
   });
 
   // FAQ accordion
@@ -1144,12 +1835,12 @@
   <div class="chat-head">
     <div class="chat-head-info">
       <div class="chat-avatar">✨</div>
-      <div><h5>Véra AI Assistant</h5><small>Online · Demo</small></div>
+      <div><h5>Hairshalo AI Assistant</h5><small>Online · Demo</small></div>
     </div>
     <button class="chat-close-btn" id="chatClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
   <div class="chat-messages" id="chatMessages">
-    <div class="msg bot">Hi! I'm the Véra AI Assistant (demo). Ask me about sizing, shipping, wig care, or appointments.</div>
+    <div class="msg bot">Hi! I'm the Hairshalo AI Assistant (demo). Ask me about sizing, shipping, wig care, or appointments.</div>
   </div>
   <div class="chat-quick" id="chatQuick">
     <button data-q="How do I choose my size?">Sizing</button>
@@ -1304,7 +1995,7 @@
     {k:['glueless'], a:"Our glueless wigs use adjustable straps and combs — no glue or tape needed, and they're great for first-time wearers."},
     {k:['lace','hd lace'], a:"HD lace is finer and more transparent than standard lace, so it blends closer to invisibly with your natural skin tone."},
     {k:['human hair','real hair'], a:"Yes — every unit is 100% human hair, which means it can be heat-styled, parted anywhere, and colored up to two shades darker."},
-    {k:['hi','hello','hey'], a:"Hey there! I'm the Véra AI Assistant. Ask me anything about sizing, shipping, care, or booking a fitting."}
+    {k:['hi','hello','hey'], a:"Hey there! I'm the Hairshalo AI Assistant. Ask me anything about sizing, shipping, care, or booking a fitting."}
   ];
   const fallback = "Good question — I'd love to connect you with a stylist for the details. Want me to open WhatsApp chat, or would you like to try a different question?";
 
@@ -1342,6 +2033,63 @@
 </script>
 <!-- CHECKOUT MODAL -->
 <div class="modal-overlay" id="checkoutOverlay"></div>
+
+<!-- ACCOUNT -->
+<div class="overlay" id="accountOverlay"></div>
+<div class="modal account-modal" id="accountModal">
+  <button class="modal-close" id="accountClose" aria-label="Close">&times;</button>
+
+  <div id="accountSignedOut">
+    <div class="acct-tabs">
+      <button class="acct-tab-btn active" data-acct-tab-btn="signin">Sign in</button>
+      <button class="acct-tab-btn" data-acct-tab-btn="register">Create account</button>
+    </div>
+
+    <div data-acct-tab="signin">
+      <h3>Welcome back</h3>
+      <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
+      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
+      <button class="btn btn-primary" id="loginSubmitBtn">Sign in</button>
+      <p class="acct-msg" id="loginMsg" style="display:none;"></p>
+    </div>
+
+    <div data-acct-tab="register" style="display:none;">
+      <h3>Create an account</h3>
+      <input type="text" id="regName" placeholder="Your name" autocomplete="name">
+      <input type="email" id="regEmail" placeholder="Email" autocomplete="email">
+      <input type="tel" id="regPhone" placeholder="Phone (optional)" autocomplete="tel">
+      <input type="password" id="regPassword" placeholder="Password (10+ characters)" autocomplete="new-password">
+      <button class="btn btn-primary" id="registerSubmitBtn">Create account</button>
+      <p class="acct-msg" id="regMsg" style="display:none;"></p>
+      <p class="acct-muted">We send a confirmation link. Your order history stays
+        hidden until you confirm — that is deliberate, so nobody else can claim it.</p>
+    </div>
+  </div>
+
+  <div id="accountSignedIn" style="display:none;">
+    <div class="acct-head">
+      <div>
+        <h3 id="accountWho"></h3>
+        <div class="acct-muted" id="accountEmail"></div>
+      </div>
+      <button class="btn" id="accountLogout">Sign out</button>
+    </div>
+
+    <div class="acct-banner" id="accountVerifyBanner" style="display:none;">
+      Confirm your email to see your orders and points.
+      <button class="btn" id="accountResend">Resend link</button>
+    </div>
+
+    <div class="acct-tabs">
+      <button class="acct-tab-btn" data-acct-tab-btn="orders">My orders</button>
+      <button class="acct-tab-btn" data-acct-tab-btn="loyalty">Points</button>
+      <button class="acct-tab-btn" data-acct-tab-btn="wishlist">Wishlist</button>
+    </div>
+    <div data-acct-tab="orders" id="acctOrders" style="display:none;"></div>
+    <div data-acct-tab="loyalty" id="acctLoyalty" style="display:none;"></div>
+    <div data-acct-tab="wishlist" id="acctWishlist" style="display:none;"></div>
+  </div>
+</div>
 <div class="modal" id="checkoutModal">
   <button class="modal-close" id="checkoutClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="modal-head"><span>Checkout</span><h3>Complete your order</h3></div>
@@ -1351,20 +2099,549 @@
       <input type="email" id="ckEmail" placeholder="Email address" required style="padding:13px 16px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:13.5px;">
       <textarea id="ckAddress" placeholder="Shipping address" required rows="3" style="padding:13px 16px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:13.5px;resize:vertical;"></textarea>
     </div>
+    <label for="ckCoupon" style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-soft);font-weight:700;margin-bottom:7px;">Have a coupon?</label>
+    <div class="coupon-row">
+      <input type="text" id="ckCoupon" placeholder="Enter coupon code" autocomplete="off">
+      <button type="button" id="ckCouponApply">Apply</button>
+    </div>
+    <div class="coupon-msg" id="ckCouponMsg"></div>
+
+    <div class="totals" id="ckTotals">
+      <div class="totals-row"><span>Subtotal</span><span id="ttSubtotal">₹0</span></div>
+      <div class="totals-row save" id="ttDiscountRow" style="display:none;"><span id="ttDiscountLabel">Discount</span><span id="ttDiscount">−₹0</span></div>
+      <div class="totals-row"><span>Delivery</span><span id="ttShipping">₹0</span></div>
+      <div class="totals-row grand"><span>Total</span><span id="ttTotal">₹0</span></div>
+    </div>
+
     <p id="checkoutNote" class="tryon-note" style="margin-bottom:16px;">Connecting to the live backend to place a real order...</p>
     <button type="submit" class="btn btn-primary" style="width:100%;" id="checkoutSubmit">Place Order</button>
   </form>
+
+    <!-- Payment step. Every message shown here is driven by what the BACKEND
+         reported, never by the gateway callback firing. -->
+    <div class="pay-panel" id="paymentPanel" style="display:none;">
+      <h3 data-pay-title></h3>
+      <div data-pay-body></div>
+      <div class="pay-actions" data-pay-actions></div>
+    </div>
+</div>
+
+<!-- SEARCH -->
+<div class="search-overlay" id="searchOverlay"></div>
+<div class="search-panel" id="searchPanel" role="dialog" aria-modal="true" aria-label="Search products">
+  <div class="search-field">
+    <input type="search" id="searchInput" placeholder="Search Hairshalo" autocomplete="off" aria-label="Search products">
+    <button type="button" id="searchGo">Search</button>
+  </div>
+  <div class="search-status" id="searchStatus">Search by name, texture or description.</div>
+  <div class="search-results" id="searchResults"></div>
+</div>
+
+<!-- PRODUCT DETAIL (gallery + variant selection) -->
+<div class="pdp-overlay" id="pdpOverlay"></div>
+<div class="pdp" id="pdp" role="dialog" aria-modal="true" aria-label="Product details">
+  <button class="pdp-close" id="pdpClose" aria-label="Close">&times;</button>
+  <div class="pdp-inner">
+    <div>
+      <div class="pdp-gallery-main" id="pdpGalleryMain"></div>
+      <div class="pdp-thumbs" id="pdpThumbs"></div>
+    </div>
+    <div class="pdp-info">
+      <span class="cat" id="pdpCat"></span>
+      <h2 id="pdpName"></h2>
+      <div class="prod-rating"><span class="stars" id="pdpStars"></span><span id="pdpRating"></span></div>
+      <div class="pdp-price" id="pdpPrice"></div>
+      <p class="pdp-desc" id="pdpDesc"></p>
+      <div id="pdpOptions"></div>
+      <div class="pdp-stock" id="pdpStock"></div>
+      <div class="pdp-meta" id="pdpMeta"></div>
+      <div class="pdp-actions">
+        <button class="btn btn-primary" id="pdpAdd">Add to Bag</button>
+      </div>
+      <!-- Real, moderated reviews of this product. Empty until someone who
+           bought it writes one. -->
+      <div class="pdp-reviews" id="pdpReviews" style="display:none;">
+        <h3 id="pdpReviewsTitle">Reviews</h3>
+        <div id="pdpReviewList"></div>
+      </div>
+    </div>
+  </div>
 </div>
 
 <script>
-  // ===== Backend API integration =====
-  // Point this at your running FastAPI backend. Falls back to demo mode if unreachable.
-  const API_BASE = window.location.protocol === 'file:'
-    ? 'http://localhost:8010/api'
-    : (window.__VERA_API_BASE__ || 'http://localhost:8010/api');
 
   let liveProducts = [];
+  let livePlaceholders = [];
   let apiConnected = false;
+
+  // How the Best Sellers section is composed. Placeholders are only ever used
+  // to top up this section because it is explicitly configured to allow them —
+  // they are never silently substituted for real products anywhere else.
+  const BESTSELLERS_SLOTS = 4;
+  const BESTSELLERS_FILL_WITH_PLACEHOLDERS = true;
+
+  // There is deliberately NO fallback product data. If the catalog API cannot
+  // be reached we show a catalog-unavailable state rather than inventing
+  // products that do not exist and cannot be bought.
+
+
+  // Uploaded media comes back as a path relative to the API host (/media/...),
+  // so it must be resolved against the API origin, not the page's origin.
+  const resolveMediaUrl = url => {
+    if(!url) return '';
+    if(/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) return url;
+    return API_BASE.replace(/\/api\/?$/, '') + url;
+  };
+  const esc = s => String(s == null ? '' : s)
+    .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+    .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+  const WISH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg>';
+
+  // The branded HAIRSHALO panel. Shared by placeholder cards and by real products
+  // whose image is missing or fails to load — never a grey skeleton.
+  function veraPlaceholderPanel(note){
+    return `<div class="prod-placeholder-content">
+        <span class="ph-mark">HAIRSHALO</span>
+        <span class="ph-rule"></span>
+        <span class="ph-note">${esc(note || 'Product Image Coming Soon')}</span>
+      </div>`;
+  }
+
+  function starsFor(rating){
+    const full = Math.round(Number(rating) || 0);
+    return '★★★★★'.slice(0, full) + '☆☆☆☆☆'.slice(0, Math.max(0, 5 - full));
+  }
+
+  // A product with no reviews says so. Rendering "☆☆☆☆☆ 0 (0)" reads as a
+  // terrible rating rather than an absent one — and inventing a number to
+  // avoid that is exactly what this build removed.
+  function ratingHtml(product){
+    const count = Number(product.review_count || 0);
+    if(!count) return '<span class="prod-rating no-reviews">No reviews yet</span>';
+    return `<div class="prod-rating"><span class="stars">${starsFor(product.rating)}</span>`
+         + `${Number(product.rating).toFixed(1)} (${count})</div>`;
+  }
+
+  /* ---- Real, sellable product card ----
+     The badge comes from the database (admin-chosen). It is never derived
+     from compare_at_price. */
+  function renderProductCard(product){
+    // Default to the first available, in-stock variant so Quick Add can send a
+    // real variant_id; the backend rejects orders without one.
+    const variants = product.variants || [];
+    const defaultVariant = variants.find(v => v.is_available && v.stock > 0)
+      || variants.find(v => v.is_available) || null;
+
+    // All pricing comes from the API — the browser never computes what is owed.
+    const unitPrice  = defaultVariant ? defaultVariant.price : product.price;
+    const compareAt  = defaultVariant ? defaultVariant.compare_at_price : product.compare_at_price;
+    const pct        = defaultVariant ? defaultVariant.discount_percent : product.discount_percent;
+    const onSale     = defaultVariant ? defaultVariant.on_sale : product.on_sale;
+    const soldOut    = product.total_stock === 0;
+
+    // A Sale badge is only shown when the stored pricing genuinely supports it.
+    // An admin-set badge always wins; "Sale" is never invented for a full-price item.
+    const badge = product.badge || (onSale ? 'Sale' : '');
+    const badgeClass = (!product.badge && onSale) ? 'prod-badge sale-badge' : 'prod-badge';
+
+    const priceHtml = onSale
+      ? `${inr(unitPrice)} <span class="old">${inr(compareAt)}</span><span class="save">${pct}% OFF</span>`
+      : inr(unitPrice);
+
+    const summary = defaultVariant ? [defaultVariant.length, defaultVariant.density, defaultVariant.color]
+      .filter(Boolean).join(' · ') : '';
+
+    let stockLine = '';
+    if(soldOut) stockLine = '<div class="prod-stock out">Out of Stock</div>';
+    else if(product.total_stock <= 5) stockLine = `<div class="prod-stock low">Only ${product.total_stock} left</div>`;
+
+    return `
+      <div class="prod-card" data-product-id="${esc(product.id)}">
+        <div class="prod-media${soldOut ? ' is-sold-out' : ''}" data-media data-image="${esc(product.image_url || '')}">
+          ${veraPlaceholderPanel('Product Image Coming Soon')}
+          ${badge ? `<span class="${badgeClass}">${esc(badge)}</span>` : ''}
+          ${soldOut ? '' : `<div class="quick-add" data-add
+            data-id="${esc(product.id)}"
+            data-variant-id="${esc(defaultVariant ? defaultVariant.id : '')}"
+            data-variant-label="${esc(defaultVariant ? defaultVariant.label : '')}"
+            data-name="${esc(product.name)}"
+            data-stock="${defaultVariant ? Number(defaultVariant.stock) : Number(product.total_stock)}"
+            data-price="${Number(unitPrice)}">Quick Add</div>`}
+        </div>
+        <div class="prod-info">
+          <span class="cat">${esc(product.category || '')}</span>
+          <h4>${esc(product.name)}</h4>
+          ${ratingHtml(product)}
+          <div class="prod-price">${priceHtml}</div>
+          ${summary ? `<div class="prod-variant-summary">${esc(summary)}</div>` : ''}
+          ${stockLine}
+          <button class="view-product" data-view-product="${esc(product.id)}">View Product</button>
+        </div>
+      </div>`;
+  }
+
+  /* ================= Search =================
+     Queries the real catalog API. Published products only — the endpoint
+     defaults to Published, so drafts, archived items and placeholders can
+     never surface here. */
+  let searchTimer = null;
+
+  function openSearch(){
+    document.getElementById('searchPanel').classList.add('active');
+    document.getElementById('searchOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+    setTimeout(()=>document.getElementById('searchInput').focus(), 120);
+  }
+  function closeSearch(){
+    document.getElementById('searchPanel').classList.remove('active');
+    document.getElementById('searchOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  async function runSearch(){
+    const term = document.getElementById('searchInput').value.trim();
+    const status = document.getElementById('searchStatus');
+    const results = document.getElementById('searchResults');
+    if(term.length < 2){
+      status.textContent = 'Type at least two characters.';
+      results.innerHTML = '';
+      return;
+    }
+    status.textContent = 'Searching…';
+    results.innerHTML = '';
+    try{
+      const res = await fetch(`${API_BASE}/products?q=${encodeURIComponent(term)}&limit=20`);
+      if(!res.ok) throw new Error('search failed');
+      const hits = await res.json();
+      if(hits.length === 0){
+        status.textContent = `No products match “${term}”.`;
+        return;
+      }
+      status.textContent = `${hits.length} ${hits.length===1?'result':'results'} for “${term}”`;
+      results.innerHTML = hits.map(p => {
+        const img = p.image_url ? `style="background-image:url('${esc(resolveMediaUrl(p.image_url))}')"` : '';
+        const price = p.on_sale
+          ? `${inr(p.price)} <span style="color:var(--text-soft);text-decoration:line-through;font-weight:500;font-size:12px;">${inr(p.compare_at_price)}</span>`
+          : inr(p.price);
+        return `<div class="search-hit" data-search-hit="${esc(p.id)}">
+            <div class="thumb" ${img}></div>
+            <div>
+              <h5>${esc(p.name)}</h5>
+              <small>${esc(p.category || '')}${p.total_stock===0?' · Out of stock':''}</small>
+            </div>
+            <div class="p">${price}</div>
+          </div>`;
+      }).join('');
+    }catch(err){
+      status.textContent = 'Search is unavailable right now. Please try again.';
+    }
+  }
+
+  document.getElementById('searchBtn').addEventListener('click', openSearch);
+  document.getElementById('searchGo').addEventListener('click', runSearch);
+  document.getElementById('searchOverlay').addEventListener('click', closeSearch);
+  document.getElementById('searchInput').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); runSearch(); }
+  });
+  document.getElementById('searchInput').addEventListener('input', () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(runSearch, 320);   // debounced live search
+  });
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && document.getElementById('searchPanel').classList.contains('active')) closeSearch();
+  });
+  document.addEventListener('click', async (e) => {
+    const hit = e.target.closest('[data-search-hit]');
+    if(!hit) return;
+    closeSearch();
+    try{
+      const res = await fetch(`${API_BASE}/products/${hit.dataset.searchHit}`);
+      if(res.ok) openProductDetail(await res.json());
+    }catch(err){ showToast('Could not open that product'); }
+  });
+
+  /* ================= Product detail (PDP) ================= */
+  let pdpProduct = null;
+  let pdpVariant = null;
+  let pdpMediaIndex = 0;
+
+  const pdpEl = id => document.getElementById(id);
+
+  function pdpMediaList(){
+    return (pdpProduct.media || []).slice().sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+  }
+
+  function pdpRenderGallery(){
+    const media = pdpMediaList();
+    const main = pdpEl('pdpGalleryMain');
+    if(media.length === 0){
+      main.innerHTML = veraPlaceholderPanel('Product Image Coming Soon')
+        .replace('class="prod-placeholder-content"', 'class="prod-placeholder-content" style="display:flex"');
+      pdpEl('pdpThumbs').innerHTML = '';
+      return;
+    }
+    const m = media[Math.min(pdpMediaIndex, media.length-1)];
+    if(m.media_type === 'video'){
+      // Muted + playsinline so autoplay is permitted and never blocks the page.
+      main.innerHTML = `<video src="${esc(resolveMediaUrl(m.url))}" muted loop playsinline autoplay preload="metadata"></video>`;
+    } else {
+      main.innerHTML = `<img src="${esc(resolveMediaUrl(m.url))}" alt="${esc(m.alt_text || pdpProduct.name)}">`;
+      // Fall back to the branded panel if the image fails to load.
+      const img = main.querySelector('img');
+      img.onerror = () => {
+        main.innerHTML = veraPlaceholderPanel('Product Image Coming Soon')
+          .replace('class="prod-placeholder-content"', 'class="prod-placeholder-content" style="display:flex"');
+      };
+    }
+    pdpEl('pdpThumbs').innerHTML = media.map((x,i) => `
+      <div class="pdp-thumb ${i===pdpMediaIndex?'active':''} ${x.media_type==='video'?'video-thumb':''}" data-pdp-thumb="${i}">
+        ${x.media_type==='image' ? `<img src="${esc(resolveMediaUrl(x.url))}" alt="">` : ''}
+      </div>`).join('');
+  }
+
+  function pdpCurrentPricing(){
+    // Always read pricing from the API payload for the SELECTED variant.
+    if(pdpVariant) return {
+      price: pdpVariant.price, compare: pdpVariant.compare_at_price,
+      pct: pdpVariant.discount_percent, sale: pdpVariant.on_sale,
+      stock: pdpVariant.stock, available: pdpVariant.is_available
+    };
+    return {
+      price: pdpProduct.price, compare: pdpProduct.compare_at_price,
+      pct: pdpProduct.discount_percent, sale: pdpProduct.on_sale,
+      stock: pdpProduct.total_stock, available: true
+    };
+  }
+
+  function pdpRenderPricing(){
+    const p = pdpCurrentPricing();
+    pdpEl('pdpPrice').innerHTML = p.sale
+      ? `<span class="now">${inr(p.price)}</span><span class="was">${inr(p.compare)}</span><span class="off">${p.pct}% OFF</span>`
+      : `<span class="now">${inr(p.price)}</span>`;
+
+    const stockEl = pdpEl('pdpStock');
+    if(!p.available || p.stock <= 0){
+      stockEl.className = 'pdp-stock out'; stockEl.textContent = 'Out of Stock';
+    } else if(p.stock <= 5){
+      stockEl.className = 'pdp-stock low'; stockEl.textContent = `Only ${p.stock} left in stock`;
+    } else {
+      stockEl.className = 'pdp-stock ok'; stockEl.textContent = 'In Stock';
+    }
+
+    const addBtn = pdpEl('pdpAdd');
+    const buyable = p.available && p.stock > 0;
+    addBtn.disabled = !buyable;
+    addBtn.style.opacity = buyable ? '1' : '.5';
+    addBtn.style.cursor = buyable ? 'pointer' : 'not-allowed';
+    addBtn.textContent = buyable ? 'Add to Bag' : 'Out of Stock';
+
+    pdpEl('pdpMeta').innerHTML = [
+      pdpVariant && pdpVariant.sku ? `<div><strong>SKU:</strong> ${esc(pdpVariant.sku)}</div>` : '',
+      pdpProduct.brand ? `<div><strong>Brand:</strong> ${esc(pdpProduct.brand)}</div>` : '',
+      pdpProduct.hair_type ? `<div><strong>Hair type:</strong> ${esc(pdpProduct.hair_type)}</div>` : '',
+      pdpProduct.texture ? `<div><strong>Texture:</strong> ${esc(pdpProduct.texture)}</div>` : '',
+      pdpProduct.construction ? `<div><strong>Construction:</strong> ${esc(pdpProduct.construction)}</div>` : ''
+    ].filter(Boolean).join('');
+  }
+
+  function pdpRenderOptions(){
+    const variants = (pdpProduct.variants || []);
+    const dims = [
+      ['length','Length'], ['density','Density'], ['color','Color'],
+      ['lace_type','Lace type'], ['cap_size','Cap size']
+    ];
+    let html = '';
+    dims.forEach(([key,label]) => {
+      const values = [...new Set(variants.map(v => v[key]).filter(Boolean))];
+      if(values.length === 0) return;
+      html += `<div class="pdp-opt"><label>${label}</label><div class="pdp-opt-values">` +
+        values.map(val => {
+          // A value is selectable if some variant with it is compatible with
+          // the rest of the current selection.
+          const candidate = variants.find(v => v[key] === val && v.is_available && v.stock > 0)
+            || variants.find(v => v[key] === val);
+          const active = pdpVariant && pdpVariant[key] === val;
+          const disabled = !candidate || !candidate.is_available || candidate.stock <= 0;
+          return `<button class="pdp-chip ${active?'active':''} ${disabled&&!active?'disabled':''}"
+            data-pdp-opt="${key}" data-pdp-val="${esc(val)}">${esc(val)}</button>`;
+        }).join('') + '</div></div>';
+    });
+    pdpEl('pdpOptions').innerHTML = html;
+  }
+
+  function pdpSelectVariantBy(key, value){
+    const variants = pdpProduct.variants || [];
+    const match = variants.find(v => v[key] === value && v.is_available && v.stock > 0)
+      || variants.find(v => v[key] === value);
+    if(match){ pdpVariant = match; pdpRenderOptions(); pdpRenderPricing(); }
+  }
+
+  function openProductDetail(product){
+    pdpProduct = product;
+    const variants = product.variants || [];
+    pdpVariant = variants.find(v => v.is_available && v.stock > 0) || variants[0] || null;
+    pdpMediaIndex = 0;
+
+    pdpEl('pdpCat').textContent = product.category || '';
+    pdpEl('pdpName').textContent = product.name;
+    const reviewCount = Number(product.review_count || 0);
+    pdpEl('pdpStars').textContent = reviewCount ? starsFor(product.rating) : '';
+    pdpEl('pdpRating').textContent = reviewCount
+      ? `${Number(product.rating).toFixed(1)} (${reviewCount})`
+      : 'No reviews yet';
+    loadProductReviews(product.id);
+    pdpEl('pdpDesc').textContent = product.description || product.short_description || '';
+    pdpRenderGallery();
+    pdpRenderOptions();
+    pdpRenderPricing();
+
+    pdpEl('pdp').classList.add('active');
+    pdpEl('pdpOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+
+  function closeProductDetail(){
+    pdpEl('pdp').classList.remove('active');
+    pdpEl('pdpOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+    // Stop any playing video so it doesn't keep running in the background.
+    const v = pdpEl('pdpGalleryMain').querySelector('video');
+    if(v) v.pause();
+  }
+
+  pdpEl('pdpClose').addEventListener('click', closeProductDetail);
+  pdpEl('pdpOverlay').addEventListener('click', closeProductDetail);
+  document.addEventListener('keydown', e => {
+    if(e.key === 'Escape' && pdpEl('pdp').classList.contains('active')) closeProductDetail();
+  });
+
+  document.addEventListener('click', async (e) => {
+    const view = e.target.closest('[data-view-product]');
+    const thumb = e.target.closest('[data-pdp-thumb]');
+    const opt = e.target.closest('[data-pdp-opt]');
+    if(view){
+      const id = view.dataset.viewProduct;
+      let product = liveProducts.find(p => p.id === id);
+      try{
+        // Re-fetch so the detail view always shows current stock and pricing.
+        const res = await fetch(API_BASE + '/products/' + id);
+        if(res.ok) product = await res.json();
+      }catch(err){ /* fall back to the list payload */ }
+      if(product) openProductDetail(product);
+    } else if(thumb){
+      pdpMediaIndex = parseInt(thumb.dataset.pdpThumb, 10) || 0;
+      pdpRenderGallery();
+    } else if(opt && !opt.classList.contains('disabled')){
+      pdpSelectVariantBy(opt.dataset.pdpOpt, opt.dataset.pdpVal);
+    }
+  });
+
+  pdpEl('pdpAdd').addEventListener('click', () => {
+    if(!pdpProduct) return;
+    const p = pdpCurrentPricing();
+    if(!p.available || p.stock <= 0){ showToast('That option is out of stock'); return; }
+    const added = cartAdd({
+      id: pdpProduct.id,
+      variantId: pdpVariant ? pdpVariant.id : null,
+      variantLabel: pdpVariant ? pdpVariant.label : null,
+      name: pdpProduct.name,
+      price: Number(p.price),
+      max: Number(p.stock)
+    });
+    if(!added) return;
+    showToast(pdpProduct.name + ' added to bag');
+    closeProductDetail();
+    openCart();
+  });
+
+  /* ---- Catalog unavailable (API failure) — never fake products ---- */
+  function renderCatalogUnavailable(){
+    return `
+      <div class="catalog-unavailable">
+        <span class="cu-mark">HAIRSHALO</span>
+        <span class="cu-rule"></span>
+        <h3>Our catalog is briefly unavailable</h3>
+        <p>We couldn't load our collection just now. Nothing is wrong with your order — please try again in a moment, or contact us and we'll help personally.</p>
+        <button class="cu-retry" id="catalogRetry" type="button">Try again</button>
+      </div>`;
+  }
+
+  /* ---- Non-sellable placeholder card. Same shell, no Quick Add. ---- */
+  function renderProductPlaceholder(ph){
+    return `
+      <div class="prod-card prod-placeholder" data-placeholder-id="${esc(ph.id)}">
+        <div class="prod-media prod-placeholder-media">
+          ${veraPlaceholderPanel(ph.placeholder_label)}
+          ${ph.badge ? `<span class="prod-badge ph-badge">${esc(ph.badge)}</span>` : ''}
+        </div>
+        <div class="prod-info">
+          <span class="cat">${esc(ph.category)}</span>
+          <h4>${esc(ph.name)}</h4>
+          <div class="prod-meta">${esc(ph.placeholder_label || 'Coming Soon')}</div>
+          <div class="prod-price">${esc(ph.display_price || 'Coming soon')}</div>
+        </div>
+      </div>`;
+  }
+
+  /* ---- Image fallback: never show a broken image or a grey box ----
+     The image is preloaded; the background is only applied once it actually
+     loads. Until then (and forever, on failure) the branded panel shows. */
+  function applyProductImages(root){
+    root.querySelectorAll('[data-media]').forEach(el => {
+      const url = resolveMediaUrl(el.dataset.image);
+      if(!url){ el.classList.add('no-image'); return; }
+      const probe = new Image();
+      probe.onload = () => {
+        el.style.backgroundImage = `linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('${url}')`;
+        el.style.backgroundSize = 'cover';
+        el.style.backgroundPosition = 'center';
+        el.classList.remove('no-image');
+      };
+      probe.onerror = () => el.classList.add('no-image');
+      probe.src = url;
+    });
+  }
+
+  async function renderBestSellers(){
+    const grid = document.getElementById('bestSellersGrid');
+    if(!grid) return;
+
+    // API failure is NOT the same as "no products". If we could not reach the
+    // catalog we say so; we never substitute invented products.
+    if(!apiConnected){
+      grid.innerHTML = renderCatalogUnavailable();
+      const retry = document.getElementById('catalogRetry');
+      if(retry) retry.addEventListener('click', async () => {
+        retry.disabled = true; retry.textContent = 'Loading…';
+        await loadProductsFromAPI();
+      });
+      return;
+    }
+
+    const real = liveProducts.slice(0, BESTSELLERS_SLOTS);
+    let html = real.map(renderProductCard).join('');
+
+    // Top up with placeholders only if this section is configured for it.
+    const missing = BESTSELLERS_SLOTS - real.length;
+    if(BESTSELLERS_FILL_WITH_PLACEHOLDERS && missing > 0){
+      if(livePlaceholders.length === 0) await loadPlaceholdersFromAPI();
+      html += livePlaceholders.slice(0, missing).map(renderProductPlaceholder).join('');
+    }
+
+    grid.innerHTML = html;
+    applyProductImages(grid);
+  }
+
+  async function loadPlaceholdersFromAPI(){
+    try{
+      const res = await fetch(API_BASE + '/product-placeholders');
+      if(!res.ok) throw new Error('bad response');
+      livePlaceholders = await res.json();
+    }catch(err){
+      livePlaceholders = [];
+    }
+  }
 
   async function loadProductsFromAPI(){
     try{
@@ -1377,8 +2654,122 @@
       apiConnected = false;
       console.log('Backend not reachable — running in static demo mode. Start the FastAPI backend to enable live data.');
     }
+    await renderBestSellers();
   }
-  loadProductsFromAPI();
+  // Currencies first, so the very first render already shows the right money.
+  /* One quote with an empty basket, purely to learn the free-delivery
+     threshold before the drawer is first drawn. */
+  async function loadShippingRules(){
+    try{
+      const r = await fetch(`${API_BASE}/coupons/quote?subtotal=0`);
+      if(r.ok){
+        const q = await r.json();
+        if(q.free_shipping_threshold != null) freeShippingThreshold = Number(q.free_shipping_threshold);
+      }
+    }catch(e){ /* meter stays hidden rather than showing a made-up figure */ }
+  }
+
+  (async () => {
+    await Promise.all([loadCurrencies(), loadShippingRules()]);
+    // The first paint formatted the (empty) basket in INR, because no rate
+    // table existed yet. Re-render so the subtotal is in the currency the
+    // customer actually resolved to.
+    renderCart();
+    await loadProductsFromAPI();
+  })();
+
+  // ===== Coupon + totals =====
+  // Every figure here is quoted BY THE SERVER. The browser never computes a
+  // discount, shipping fee or total that the customer will be charged —
+  // checkout re-evaluates the coupon and recalculates from scratch.
+  let appliedCoupon = null;   // {code, discount, shippingDiscount}
+
+  async function refreshTotals(){
+    const subEl = document.getElementById('ttSubtotal');
+    if(!subEl) return;
+    const subtotal = cartSubtotal();
+    subEl.textContent = inr(subtotal);
+
+    // A changed basket invalidates any previous coupon quote.
+    if(appliedCoupon && appliedCoupon.subtotal !== subtotal) clearCoupon(true);
+
+    let shipping = 0, discount = 0;
+    try{
+      if(appliedCoupon){
+        shipping = appliedCoupon.shippingFee;
+        discount = appliedCoupon.discount;
+      } else {
+        const r = await fetch(`${API_BASE}/coupons/quote?subtotal=${subtotal}`);
+        if(r.ok){
+          const q = await r.json();
+          shipping = Number(q.shipping_fee);
+          if(q.free_shipping_threshold != null) freeShippingThreshold = Number(q.free_shipping_threshold);
+        }
+      }
+    }catch(err){ shipping = 0; }
+
+    document.getElementById('ttShipping').textContent = shipping ? inr(shipping) : 'Free';
+    const dRow = document.getElementById('ttDiscountRow');
+    if(discount > 0 || (appliedCoupon && appliedCoupon.shippingDiscount > 0)){
+      dRow.style.display = 'flex';
+      document.getElementById('ttDiscountLabel').textContent = `Discount (${appliedCoupon.code})`;
+      const saved = discount + (appliedCoupon.shippingDiscount || 0);
+      document.getElementById('ttDiscount').textContent = '−' + inr(saved);
+    } else {
+      dRow.style.display = 'none';
+    }
+    document.getElementById('ttTotal').textContent = inr(Math.max(0, subtotal - discount + shipping));
+  }
+
+  function clearCoupon(silent){
+    appliedCoupon = null;
+    const msg = document.getElementById('ckCouponMsg');
+    if(msg && !silent){ msg.className = 'coupon-msg'; msg.textContent = ''; }
+  }
+
+  async function applyCoupon(){
+    const input = document.getElementById('ckCoupon');
+    const msg = document.getElementById('ckCouponMsg');
+    const btn = document.getElementById('ckCouponApply');
+    const code = (input.value || '').trim();
+    if(!code){ msg.className='coupon-msg err'; msg.textContent='Enter a coupon code first.'; return; }
+    if(cart.length === 0){ msg.className='coupon-msg err'; msg.textContent='Add something to your bag first.'; return; }
+
+    btn.disabled = true; btn.textContent = 'Checking…';
+    try{
+      const subtotal = cartSubtotal();
+      const res = await fetch(`${API_BASE}/coupons/preview`, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({code, subtotal})
+      });
+      const d = await res.json();
+      if(d.valid){
+        appliedCoupon = {
+          code: d.code, subtotal,
+          discount: Number(d.discount_amount),
+          shippingDiscount: Number(d.shipping_discount),
+          shippingFee: Number(d.shipping_fee)
+        };
+        msg.className = 'coupon-msg ok';
+        msg.textContent = d.message;
+      } else {
+        clearCoupon();
+        msg.className = 'coupon-msg err';
+        msg.textContent = d.message;   // server's reason, e.g. "already ships free"
+      }
+    }catch(err){
+      clearCoupon();
+      msg.className = 'coupon-msg err';
+      msg.textContent = 'Could not check that coupon. Please try again.';
+    }
+    btn.disabled = false; btn.textContent = 'Apply';
+    refreshTotals();
+  }
+
+  document.getElementById('ckCouponApply').addEventListener('click', applyCoupon);
+  document.getElementById('ckCoupon').addEventListener('keydown', e => {
+    if(e.key === 'Enter'){ e.preventDefault(); applyCoupon(); }
+  });
 
   // ===== Checkout flow =====
   const checkoutModal = document.getElementById('checkoutModal');
@@ -1388,9 +2779,10 @@
   document.getElementById('checkoutBtn').addEventListener('click', (e) => {
     e.preventDefault();
     if(cart.length === 0){ showToast('Your bag is empty'); return; }
+    refreshTotals();
     checkoutNote.textContent = apiConnected
       ? 'Order will be placed on the live backend.'
-      : 'Demo mode: backend not connected — this will simulate a successful order.';
+      : 'Our store is temporarily unreachable — orders cannot be placed right now.';
     openModal(checkoutModal, checkoutOverlay);
   });
   document.getElementById('checkoutClose').addEventListener('click', () => closeModal(checkoutModal, checkoutOverlay));
@@ -1406,10 +2798,21 @@
     submitBtn.textContent = 'Placing order...';
 
     if(apiConnected){
-      // Match cart items (by name) to real product IDs from the live backend
+      // Resolve cart items to REAL product IDs (and their variant). Anything
+      // that is not a real product — e.g. a placeholder — resolves to nothing
+      // and is dropped, so it can never reach checkout. No price is ever sent:
+      // the backend charges from the database.
       const items = cart.map(c => {
-        const match = liveProducts.find(p => p.name === c.name);
-        return match ? {product_id: match.id, quantity: 1} : null;
+        const match = (c.id && liveProducts.find(p => p.id === c.id))
+          || liveProducts.find(p => p.name === c.name);
+        if(!match) return null;
+        let variantId = c.variantId;
+        if(!variantId && match.variants && match.variants.length){
+          const v = match.variants.find(x => x.is_available && x.stock > 0)
+            || match.variants.find(x => x.is_available);
+          variantId = v ? v.id : null;
+        }
+        return {product_id: match.id, variant_id: variantId || null, quantity: c.qty || 1};
       }).filter(Boolean);
 
       if(items.length === 0){
@@ -1422,30 +2825,671 @@
         const res = await fetch(API_BASE + '/orders', {
           method:'POST',
           headers:{'Content-Type':'application/json'},
-          body: JSON.stringify({customer_name:name, customer_email:email, shipping_address:address, items})
+          // Only the code is sent — never a discount or total. The server
+          // re-validates the coupon and recalculates everything.
+          body: JSON.stringify({
+            customer_name:name, customer_email:email, shipping_address:address, items,
+            coupon_code: appliedCoupon ? appliedCoupon.code : null,
+            display_currency: activeCurrency
+          })
         });
-        if(!res.ok) throw new Error('Order failed');
+        if(!res.ok){
+          // Surface the backend's reason (out of stock, unpublished, etc.)
+          let detail = 'Order failed — please try again';
+          try{ detail = (await res.json()).detail || detail; }catch(e){}
+          throw new Error(detail);
+        }
         const order = await res.json();
+        // The ORDER exists and stock is reserved, so the bag is emptied here:
+        // leaving it full invites a second, duplicate order while the first is
+        // still awaiting payment. An unpaid order is not lost — it is resumed
+        // from sessionStorage ("Pay now"), not from the cart.
         cart = [];
+        clearCoupon();
+        const couponInput = document.getElementById('ckCoupon');
+        if(couponInput) couponInput.value = '';
         renderCart();
         closeCart();
-        closeModal(checkoutModal, checkoutOverlay);
-        showToast('Order ' + order.order_number + ' placed successfully!');
+        // What happens next depends on the payment provider — and never on
+        // this browser deciding anything.
+        await startPayment(order);
       }catch(err){
-        showToast('Order failed — please try again');
+        showToast(err.message || 'Order failed — please try again');
       }
     } else {
-      // Demo fallback — no backend connected
-      setTimeout(() => {
-        cart = [];
-        renderCart();
-        closeCart();
-        closeModal(checkoutModal, checkoutOverlay);
-        showToast('Demo order placed (backend not connected)');
-      }, 600);
+      // No backend: never pretend an order succeeded. The bag is preserved so
+      // the customer can retry once the catalog is reachable again.
+      showToast('We could not reach our store right now — your bag is saved. Please try again shortly.');
     }
     submitBtn.disabled = false;
     submitBtn.textContent = 'Place Order';
+  });
+
+  /* ================= Payment step =================
+     The rule the whole of this block exists to respect: THE BROWSER NEVER
+     DECIDES THAT A PAYMENT SUCCEEDED. Razorpay's handler firing means "the
+     customer finished the gateway flow", nothing more. Every success message
+     below is printed only after the BACKEND has said the order is paid, via
+     /payments/confirm (signature verified server-side) or /payments/status
+     (which reflects the webhook).
+
+     It also has to survive the things customers actually do: closing the
+     modal, refreshing mid-payment, pressing back, paying twice, or walking
+     away while the webhook arrives later. */
+  const PENDING_KEY = 'vera.pendingPayment';
+  // localStorage, not sessionStorage: a customer who closes the tab mid-payment
+  // (or whose bank app reopens the site in a new one) must still be able to
+  // finish paying an order that already exists and is holding stock. The stored
+  // value is two opaque ids and an order number — no personal data — and it is
+  // discarded after a day so a shared machine does not keep showing it.
+  const PENDING_TTL_MS = 24 * 60 * 60 * 1000;
+  let paymentConfig = null;
+
+  async function loadPaymentConfig(){
+    if(paymentConfig) return paymentConfig;
+    try{
+      paymentConfig = await fetch(API_BASE + '/payments/config').then(r => r.json());
+    }catch(err){
+      paymentConfig = {provider:'none', enabled:false};
+    }
+    return paymentConfig;
+  }
+
+  function rememberPending(state){
+    try{
+      localStorage.setItem(PENDING_KEY, JSON.stringify({...state, saved_at: Date.now()}));
+    }catch(e){}
+  }
+  function forgetPending(){
+    try{ localStorage.removeItem(PENDING_KEY); }catch(e){}
+  }
+  function readPending(){
+    try{
+      const stored = JSON.parse(localStorage.getItem(PENDING_KEY) || 'null');
+      if(!stored) return null;
+      if(stored.saved_at && Date.now() - stored.saved_at > PENDING_TTL_MS){
+        forgetPending();
+        return null;
+      }
+      return stored;
+    }catch(e){ return null; }
+  }
+
+  function paymentPanel(){ return document.getElementById('paymentPanel'); }
+
+  function showPaymentState(state, {title, body, actions = []} = {}){
+    const panel = paymentPanel();
+    if(!panel) return;
+    panel.dataset.state = state;
+    panel.querySelector('[data-pay-title]').textContent = title || '';
+    panel.querySelector('[data-pay-body]').innerHTML = body || '';
+    const actionWrap = panel.querySelector('[data-pay-actions]');
+    actionWrap.innerHTML = actions.map(a =>
+      `<button class="btn ${a.primary ? 'btn-primary' : ''}" data-pay-action="${a.id}">${esc(a.label)}</button>`
+    ).join('');
+    panel.style.display = '';
+    openModal(checkoutModal, checkoutOverlay);
+    document.getElementById('checkoutForm').style.display = 'none';
+  }
+
+  function hidePaymentPanel(){
+    const panel = paymentPanel();
+    if(panel) panel.style.display = 'none';
+    document.getElementById('checkoutForm').style.display = '';
+  }
+
+  // ---- the three provider paths ----------------------------------------
+  async function startPayment(order){
+    const config = await loadPaymentConfig();
+
+    if(!config.enabled){
+      // Payments are switched off on this deployment: the order is already
+      // Processing. Say exactly that, and nothing about a payment.
+      forgetPending();
+      showPaymentState('placed', {
+        title: 'Order ' + order.order_number + ' placed',
+        body: `<p>We have your order and will be in touch about payment.</p>`,
+        actions: [{id:'done', label:'Done', primary:true}]
+      });
+      return;
+    }
+
+    let intent;
+    try{
+      intent = await postJson('/payments/intent', {order_id: order.id});
+    }catch(err){
+      // The order exists and stock is reserved — do not lose it.
+      showPaymentState('intent-failed', {
+        title: 'Order ' + order.order_number + ' is saved',
+        body: `<p>We could not open the payment step: ${esc(err.message)}</p>
+               <p class="pay-muted">Your order is held, nothing has been charged.</p>`,
+        actions: [{id:'retry', label:'Try payment again', primary:true},
+                  {id:'done', label:'Later'}]
+      });
+      return;
+    }
+
+    rememberPending({order_id: order.id, order_number: order.order_number,
+                     payment_id: intent.payment_id, provider: intent.provider});
+
+    if(intent.provider === 'manual'){
+      showPaymentState('awaiting', {
+        title: 'Order ' + order.order_number + ' — payment pending',
+        body: `<p>${esc(intent.instructions || 'Follow the payment instructions on your invoice.')}</p>
+               <p class="pay-amount">${fmtMoney(intent.amount)}</p>
+               <p class="pay-muted">Your order is reserved. We confirm it as soon as the
+                  transfer reaches us — you will get an email.</p>`,
+        actions: [{id:'done', label:'Done', primary:true}]
+      });
+      return;
+    }
+
+    if(intent.provider === 'razorpay'){
+      await openRazorpay(order, intent);
+      return;
+    }
+
+    showPaymentState('awaiting', {
+      title: 'Order ' + order.order_number + ' placed',
+      body: `<p>Awaiting payment confirmation.</p>`,
+      actions: [{id:'done', label:'Done', primary:true}]
+    });
+  }
+
+  function loadRazorpayScript(){
+    if(window.Razorpay) return Promise.resolve(true);
+    return new Promise((resolve) => {
+      const script = document.createElement('script');
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js';
+      script.onload = () => resolve(true);
+      script.onerror = () => resolve(false);   // offline / blocked
+      document.head.appendChild(script);
+    });
+  }
+
+  async function openRazorpay(order, intent){
+    const loaded = await loadRazorpayScript();
+    if(!loaded){
+      showPaymentState('intent-failed', {
+        title: 'Order ' + order.order_number + ' is saved',
+        body: `<p>We could not reach the payment provider from this browser.</p>
+               <p class="pay-muted">Nothing has been charged. Your order is held.</p>`,
+        actions: [{id:'retry', label:'Try again', primary:true}, {id:'done', label:'Later'}]
+      });
+      return;
+    }
+
+    showPaymentState('paying', {
+      title: 'Complete your payment',
+      body: `<p>The payment window is open. Do not close this tab.</p>`,
+      actions: []
+    });
+
+    const rzp = new Razorpay({
+      // The publishable key id, handed to us by OUR backend. The secret never
+      // reaches the browser.
+      key: intent.public_key,
+      order_id: intent.provider_order_id,
+      // Amount and currency are display-only here: Razorpay charges what the
+      // order it was created with says. A tampered value cannot change that.
+      amount: intent.extra && intent.extra.amount_minor,
+      currency: intent.currency,
+      name: 'Hairshalo',
+      description: 'Order ' + order.order_number,
+      prefill: {name: order.customer_name, email: order.customer_email},
+      theme: {color: '#8b5e3c'},
+      handler: (response) => confirmPayment(intent.payment_id, response),
+      modal: {
+        ondismiss: () => {
+          // Cancelled: the order stays exactly as it was — pending, stock held.
+          // Nothing is marked paid, nothing is marked failed.
+          showPaymentState('cancelled', {
+            title: 'Payment cancelled',
+            body: `<p>Order ${esc(order.order_number)} is still saved and nothing was charged.</p>`,
+            actions: [{id:'retry', label:'Pay now', primary:true}, {id:'done', label:'Later'}]
+          });
+        }
+      }
+    });
+
+    rzp.on('payment.failed', (event) => {
+      const reason = (event && event.error && event.error.description) || 'The payment did not go through.';
+      showPaymentState('failed', {
+        title: 'Payment failed',
+        body: `<p>${esc(reason)}</p>
+               <p class="pay-muted">Order ${esc(order.order_number)} is still saved. You have not been charged.</p>`,
+        actions: [{id:'retry', label:'Try again', primary:true}, {id:'done', label:'Later'}]
+      });
+    });
+
+    rzp.open();
+  }
+
+  // ---- confirmation: the backend has the last word ---------------------
+  let confirming = false;
+
+  async function confirmPayment(paymentId, gatewayResponse){
+    if(confirming) return;              // duplicate callback: ignore the second
+    confirming = true;
+    showPaymentState('verifying', {
+      title: 'Verifying your payment',
+      body: `<p>Checking with our server — this takes a second.</p>`,
+      actions: []
+    });
+    try{
+      const payment = await postJson('/payments/confirm', {
+        payment_id: paymentId,
+        // Only what the gateway issued. There is no "status" or "amount" here
+        // for the server to trust, and it would ignore them if there were.
+        gateway_response: {
+          razorpay_order_id: gatewayResponse.razorpay_order_id,
+          razorpay_payment_id: gatewayResponse.razorpay_payment_id,
+          razorpay_signature: gatewayResponse.razorpay_signature
+        }
+      });
+      if(payment.status === 'Paid'){
+        await paymentSucceeded(paymentId);
+      }else{
+        await pollPaymentStatus(paymentId);
+      }
+    }catch(err){
+      // Verification failed server-side. Never show success — ask the server
+      // what actually happened, because a webhook may still settle it.
+      await pollPaymentStatus(paymentId, err.message);
+    }
+    confirming = false;
+  }
+
+  async function pollPaymentStatus(paymentId, failureHint){
+    // The webhook may arrive after the browser does. Poll briefly, then hand
+    // the customer an honest "we are still confirming" rather than a guess.
+    for(let attempt = 0; attempt < 6; attempt++){
+      try{
+        const status = await fetch(`${API_BASE}/payments/status/${paymentId}`)
+          .then(r => r.json());
+        if(status.is_paid || status.payment_status === 'Paid'){
+          await paymentSucceeded(paymentId, status);
+          return;
+        }
+        if(status.payment_status === 'Failed' || status.payment_status === 'Cancelled'){
+          showPaymentState('failed', {
+            title: 'Payment not completed',
+            body: `<p>${esc(status.error_message || failureHint || 'The payment was not completed.')}</p>
+                   <p class="pay-muted">Order ${esc(status.order_number)} is saved and you have not been charged.</p>`,
+            actions: [{id:'retry', label:'Try again', primary:true}, {id:'done', label:'Later'}]
+          });
+          return;
+        }
+      }catch(err){ /* keep trying */ }
+      await new Promise(r => setTimeout(r, 1500));
+    }
+    showPaymentState('pending', {
+      title: 'Still confirming your payment',
+      body: `<p>Your bank has not confirmed yet. This can take a few minutes.</p>
+             <p class="pay-muted">We will email you the moment it settles — you do not
+                need to pay again. ${failureHint ? esc(failureHint) : ''}</p>`,
+      actions: [{id:'check', label:'Check again', primary:true}, {id:'done', label:'Close'}]
+    });
+  }
+
+  async function paymentSucceeded(paymentId, status){
+    status = status || await fetch(`${API_BASE}/payments/status/${paymentId}`).then(r => r.json());
+    forgetPending();
+    showPaymentState('paid', {
+      title: 'Payment received',
+      body: `<p>Order <strong>${esc(status.order_number)}</strong> is confirmed and being
+                prepared. A receipt is on its way to your inbox.</p>`,
+      actions: [{id:'done', label:'Done', primary:true}]
+    });
+  }
+
+  // ---- resume after a refresh or a back button -------------------------
+  async function resumePendingPayment(){
+    const pending = readPending();
+    if(!pending || !pending.payment_id) return;
+    try{
+      const status = await fetch(`${API_BASE}/payments/status/${pending.payment_id}`)
+        .then(r => r.json());
+      if(status.is_paid || status.payment_status === 'Paid'){
+        await paymentSucceeded(pending.payment_id, status);
+        return;
+      }
+      if(status.payment_status === 'Pending'){
+        showPaymentState('resume', {
+          title: 'You have an unpaid order',
+          body: `<p>Order <strong>${esc(status.order_number)}</strong> is saved and waiting
+                    for payment. Nothing has been charged.</p>`,
+          actions: [{id:'retry', label:'Pay now', primary:true}, {id:'done', label:'Later'}]
+        });
+        return;
+      }
+      forgetPending();
+    }catch(err){ /* leave it for next time */ }
+  }
+
+  // ---- panel actions ----------------------------------------------------
+  document.addEventListener('click', async (e) => {
+    const button = e.target.closest('[data-pay-action]');
+    if(!button) return;
+    const action = button.dataset.payAction;
+    const pending = readPending();
+
+    if(action === 'done'){
+      hidePaymentPanel();
+      closeModal(checkoutModal, checkoutOverlay);
+      return;
+    }
+    if(action === 'check' && pending){
+      await pollPaymentStatus(pending.payment_id);
+      return;
+    }
+    if(action === 'retry' && pending){
+      // A retry creates a NEW intent for the same order. The old pending
+      // payment row stays as a record of the attempt; it never becomes paid.
+      button.disabled = true;
+      try{
+        const order = {id: pending.order_id, order_number: pending.order_number,
+                       customer_name: document.getElementById('ckName').value,
+                       customer_email: document.getElementById('ckEmail').value};
+        await startPayment(order);
+      }catch(err){ showToast(err.message); }
+      button.disabled = false;
+    }
+  });
+
+  async function postJson(path, body){
+    const res = await fetch(API_BASE + path, {
+      method:'POST', headers:{'Content-Type':'application/json'},
+      body: JSON.stringify(body)
+    });
+    const data = await res.json().catch(() => ({}));
+    if(!res.ok) throw new Error(data.detail || 'Request failed');
+    return data;
+  }
+
+  function fmtMoney(amount){
+    const n = Number(amount || 0);
+    return '₹' + n.toLocaleString('en-IN', {minimumFractionDigits:2, maximumFractionDigits:2});
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadPaymentConfig();
+    resumePendingPayment();
+  });
+
+  /* ================= Customer account =================
+     The token is the only thing that identifies the customer. This module
+     never sends an email or a customer id to ask "whose orders are these?" —
+     it sends the token and the server decides. */
+  const TOKEN_KEY = 'vera.customerToken';
+  let customer = null;
+
+  function authToken(){
+    try{ return localStorage.getItem(TOKEN_KEY) || null; }catch(e){ return null; }
+  }
+  function setAuthToken(token){
+    try{ token ? localStorage.setItem(TOKEN_KEY, token) : localStorage.removeItem(TOKEN_KEY); }catch(e){}
+  }
+  function authHeaders(extra){
+    const token = authToken();
+    return Object.assign({}, extra || {}, token ? {Authorization: 'Bearer ' + token} : {});
+  }
+
+  async function accountRequest(path, {method = 'GET', body} = {}){
+    const res = await fetch(API_BASE + path, {
+      method,
+      headers: authHeaders(body ? {'Content-Type':'application/json'} : {}),
+      body: body ? JSON.stringify(body) : undefined
+    });
+    const data = res.status === 204 ? {} : await res.json().catch(() => ({}));
+    if(res.status === 401){
+      // The token expired, or a password change invalidated it.
+      setAuthToken(null); customer = null; renderAccountUI();
+    }
+    if(!res.ok) throw new Error(data.detail || 'Something went wrong');
+    return data;
+  }
+
+  async function loadCustomer(){
+    if(!authToken()){ customer = null; return null; }
+    try{ customer = await accountRequest('/account/me'); }
+    catch(err){ customer = null; }
+    renderAccountUI();
+    return customer;
+  }
+
+  function renderAccountUI(){
+    const trigger = document.getElementById('accountTrigger');
+    if(trigger) trigger.textContent = customer ? (customer.name.split(' ')[0] || 'Account') : 'Sign in';
+    const signedOut = document.getElementById('accountSignedOut');
+    const signedIn = document.getElementById('accountSignedIn');
+    if(!signedOut || !signedIn) return;
+    signedOut.style.display = customer ? 'none' : '';
+    signedIn.style.display = customer ? '' : 'none';
+    if(customer){
+      document.getElementById('accountWho').textContent = customer.name;
+      document.getElementById('accountEmail').textContent = customer.email;
+      const banner = document.getElementById('accountVerifyBanner');
+      // An unverified account is told exactly what it cannot do, and why.
+      banner.style.display = customer.email_verified ? 'none' : '';
+    }
+  }
+
+  function accountTab(name){
+    document.querySelectorAll('[data-acct-tab]').forEach(el => {
+      el.style.display = el.dataset.acctTab === name ? '' : 'none';
+    });
+    document.querySelectorAll('[data-acct-tab-btn]').forEach(b => {
+      b.classList.toggle('active', b.dataset.acctTabBtn === name);
+    });
+    if(name === 'orders') loadMyOrders();
+    if(name === 'loyalty') loadMyLoyalty();
+    if(name === 'wishlist') loadMyWishlist();
+  }
+
+  function accountMessage(id, text, isError){
+    const el = document.getElementById(id);
+    if(!el) return;
+    el.textContent = text || '';
+    el.style.display = text ? '' : 'none';
+    el.style.color = isError ? 'var(--danger, #B5443A)' : 'var(--text-soft)';
+  }
+
+  // ---- sign in / register ----------------------------------------------
+  async function doLogin(){
+    const email = document.getElementById('loginEmail').value;
+    const password = document.getElementById('loginPassword').value;
+    accountMessage('loginMsg', 'Signing in…');
+    try{
+      const data = await accountRequest('/account/login', {method:'POST', body:{email, password}});
+      setAuthToken(data.access_token);
+      customer = data.customer;
+      accountMessage('loginMsg', '');
+      renderAccountUI();
+      accountTab('orders');
+      // A saved currency preference follows the customer to this device.
+      if(customer.preferred_currency) setCurrency(customer.preferred_currency);
+    }catch(err){ accountMessage('loginMsg', err.message, true); }
+  }
+
+  async function doRegister(){
+    const body = {
+      name: document.getElementById('regName').value,
+      email: document.getElementById('regEmail').value,
+      password: document.getElementById('regPassword').value,
+      phone: document.getElementById('regPhone').value || null
+    };
+    accountMessage('regMsg', 'Creating your account…');
+    try{
+      const data = await accountRequest('/account/register', {method:'POST', body});
+      // Deliberately NOT "you're signed in" — nothing is confirmed yet.
+      accountMessage('regMsg', data.message);
+    }catch(err){ accountMessage('regMsg', err.message, true); }
+  }
+
+  async function doLogout(){
+    try{ await accountRequest('/account/logout', {method:'POST'}); }catch(e){}
+    setAuthToken(null); customer = null;
+    renderAccountUI();
+    accountTab('signin');
+  }
+
+  // ---- my orders --------------------------------------------------------
+  async function loadMyOrders(){
+    const wrap = document.getElementById('acctOrders');
+    wrap.innerHTML = '<p class="acct-muted">Loading…</p>';
+    try{
+      const orders = await accountRequest('/account/orders');
+      if(!orders.length){ wrap.innerHTML = '<p class="acct-muted">No orders yet.</p>'; return; }
+      wrap.innerHTML = orders.map(o => `
+        <div class="acct-order">
+          <div class="acct-order-head">
+            <strong>${esc(o.order_number)}</strong>
+            <span class="acct-status">${esc(o.status)}</span>
+          </div>
+          <div class="acct-muted">${new Date(o.created_at).toLocaleDateString('en-IN',
+            {day:'numeric', month:'short', year:'numeric'})}
+            ${o.is_paid ? ' · Paid' : (o.payment_status ? ' · ' + esc(o.payment_status) : '')}</div>
+          <ul class="acct-items">
+            ${o.items.map(i => `<li>${i.quantity} × ${esc(i.product_name)}
+              ${i.variant_label ? `<span class="acct-muted">(${esc(i.variant_label)})</span>` : ''}
+              ${i.variant_sku ? `<span class="acct-sku">${esc(i.variant_sku)}</span>` : ''}
+              <span class="acct-line-total">${fmtMoney(i.price * i.quantity)}</span></li>`).join('')}
+          </ul>
+          <div class="acct-totals">
+            <span>Subtotal ${fmtMoney(o.subtotal)}</span>
+            ${Number(o.discount_total) ? `<span>Discount −${fmtMoney(o.discount_total)}</span>` : ''}
+            ${Number(o.loyalty_discount) ? `<span>Points −${fmtMoney(o.loyalty_discount)}</span>` : ''}
+            <span>Shipping ${Number(o.shipping_fee) ? fmtMoney(o.shipping_fee) : 'Free'}</span>
+            <strong>Total ${fmtMoney(o.total)} ${esc(o.currency)}</strong>
+          </div>
+          ${o.display_currency ? `<div class="acct-muted">Shown to you at the time as
+            ${esc(o.display_currency)} ${Number(o.display_total).toFixed(2)} — historical
+            orders keep the rate they were placed at.</div>` : ''}
+        </div>`).join('');
+    }catch(err){
+      wrap.innerHTML = `<p class="acct-muted">${esc(err.message)}</p>`;
+    }
+  }
+
+  // ---- loyalty ----------------------------------------------------------
+  const LOYALTY_REASONS = {
+    earned:'Earned', redeemed:'Redeemed', reversed:'Reversed', returned:'Returned',
+    adjustment:'Adjustment', expired:'Expired'
+  };
+
+  async function loadMyLoyalty(){
+    const wrap = document.getElementById('acctLoyalty');
+    wrap.innerHTML = '<p class="acct-muted">Loading…</p>';
+    try{
+      const data = await accountRequest('/account/loyalty');
+      wrap.innerHTML = `
+        <div class="acct-points">
+          <div><span class="acct-points-value">${data.balance}</span> points</div>
+          <div class="acct-muted">worth ${fmtMoney(data.value)} · earn 1 point per
+            ${fmtMoney(data.earn_per)} spent · points cover up to
+            ${data.max_redeem_pct}% of an order</div>
+        </div>
+        <div class="acct-points-split">
+          <span>Earned ${data.earned_total}</span>
+          <span>Redeemed ${data.redeemed_total}</span>
+        </div>
+        <h4>History</h4>
+        ${data.history.length ? `<ul class="acct-ledger">${data.history.map(h => `
+          <li>
+            <span class="${h.delta > 0 ? 'acct-plus' : 'acct-minus'}">${h.delta > 0 ? '+' : ''}${h.delta}</span>
+            <span>${esc(LOYALTY_REASONS[h.reason] || h.reason)}</span>
+            <span class="acct-muted">${esc(h.note || '')}</span>
+            <span class="acct-muted">${h.created_at ? new Date(h.created_at).toLocaleDateString('en-IN') : ''}</span>
+            <span class="acct-muted">balance ${h.balance_after}</span>
+          </li>`).join('')}</ul>`
+          : '<p class="acct-muted">No movements yet. Points are added when an order is paid for.</p>'}`;
+    }catch(err){
+      wrap.innerHTML = `<p class="acct-muted">${esc(err.message)}</p>`;
+    }
+  }
+
+  // ---- wishlist ---------------------------------------------------------
+  async function loadMyWishlist(){
+    const wrap = document.getElementById('acctWishlist');
+    wrap.innerHTML = '<p class="acct-muted">Loading…</p>';
+    try{
+      const items = await accountRequest('/account/wishlist');
+      if(!items.length){ wrap.innerHTML = '<p class="acct-muted">Nothing saved yet.</p>'; return; }
+      wrap.innerHTML = items.map(i => `
+        <div class="acct-wish">
+          <div>
+            <strong>${esc(i.product_name)}</strong>
+            ${i.variant_label ? `<span class="acct-muted"> — ${esc(i.variant_label)}</span>` : ''}
+            <div class="acct-muted">${i.price ? fmtMoney(i.price) : ''} ·
+              ${i.in_stock ? 'In stock' : 'Out of stock'}</div>
+          </div>
+          <button class="btn" data-wish-remove="${i.id}">Remove</button>
+        </div>`).join('');
+    }catch(err){
+      wrap.innerHTML = `<p class="acct-muted">${esc(err.message)}</p>`;
+    }
+  }
+
+  document.addEventListener('click', async (e) => {
+    const remove = e.target.closest('[data-wish-remove]');
+    if(remove){
+      try{
+        await accountRequest('/account/wishlist/' + remove.dataset.wishRemove, {method:'DELETE'});
+        loadMyWishlist();
+      }catch(err){ showToast(err.message); }
+      return;
+    }
+    const save = e.target.closest('[data-wish-add]');
+    if(save){
+      if(!customer){ openAccount('signin'); showToast('Sign in to save items'); return; }
+      try{
+        await accountRequest('/account/wishlist', {method:'POST', body:{
+          product_id: save.dataset.wishAdd,
+          variant_id: save.dataset.wishVariant || null
+        }});
+        showToast('Saved to your wishlist');
+      }catch(err){ showToast(err.message); }
+    }
+  });
+
+  // ---- wiring -----------------------------------------------------------
+  const accountModal = document.getElementById('accountModal');
+  const accountOverlay = document.getElementById('accountOverlay');
+
+  function openAccount(tab){
+    openModal(accountModal, accountOverlay);
+    accountTab(tab || (customer ? 'orders' : 'signin'));
+  }
+
+  document.getElementById('accountTrigger').addEventListener('click', (e) => {
+    e.preventDefault(); openAccount();
+  });
+  document.getElementById('accountClose').addEventListener('click',
+    () => closeModal(accountModal, accountOverlay));
+  accountOverlay.addEventListener('click', () => closeModal(accountModal, accountOverlay));
+  document.querySelectorAll('[data-acct-tab-btn]').forEach(b =>
+    b.addEventListener('click', () => accountTab(b.dataset.acctTabBtn)));
+  document.getElementById('loginSubmitBtn').addEventListener('click', doLogin);
+  document.getElementById('registerSubmitBtn').addEventListener('click', doRegister);
+  document.getElementById('accountLogout').addEventListener('click', doLogout);
+  document.getElementById('accountResend').addEventListener('click', async () => {
+    try{
+      const data = await accountRequest('/account/resend-verification', {method:'POST'});
+      showToast(data.message);
+    }catch(err){ showToast(err.message); }
+  });
+
+  document.addEventListener('DOMContentLoaded', () => {
+    loadCustomer().then(() => {
+      // Pre-fill checkout for a signed-in customer, and offer their points.
+      if(customer){
+        const nameField = document.getElementById('ckName');
+        const emailField = document.getElementById('ckEmail');
+        if(nameField && !nameField.value) nameField.value = customer.name;
+        if(emailField && !emailField.value) emailField.value = customer.email;
+      }
+    });
   });
 </script>
 </body>

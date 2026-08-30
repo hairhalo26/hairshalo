@@ -8,15 +8,26 @@ __pycache__/
 *.py[cod]
 *$py.class
 
-# Environment files — contain secrets, never commit
+# Environment files — contain secrets, never commit.
+# Deny every .env* variant first, then re-allow the committed examples: an
+# allow-list of names is how .env.prod ends up in a public repository.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
+!.env.prod.example
+
+# Database dumps produced by scripts/backup.sh
+backups/
+*.sql.gz
 
 # Local databases
 *.db
 *.sqlite
 *.sqlite3
+
+# Uploaded product media (local storage backend — see app/storage.py)
+backend/media/
+media/
 
 # Logs
 *.log

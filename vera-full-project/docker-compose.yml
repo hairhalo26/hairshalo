@@ -25,11 +25,42 @@ services:
       db:
         condition: service_healthy
     environment:
+      # The image defaults to APP_ENV=production (safe by default), where the
+      # startup preflight refuses exactly the settings below. This stack is for
+      # development, so it says so explicitly.
+      APP_ENV: development
       DATABASE_URL: postgresql+psycopg2://vera_user:vera_pass@db:5432/vera_hair_co
       SECRET_KEY: change-this-secret-in-production
       CORS_ORIGINS: "*"
+      # Development convenience only — set to "false" (or remove) for anything
+      # resembling production, so demo products are never inserted.
+      SEED_DEMO_DATA: "true"
+      # Notifications are queued either way; "console" only logs them. Switch to
+      # smtp (plus SMTP_* and ADMIN_ALERT_EMAILS) to actually send mail.
+      NOTIFY_CHANNEL: console
+      NOTIFY_DISPATCH: background
+      ADMIN_ALERT_EMAILS: ""
     ports:
       - "8000:8000"
+
+  # Uncomment to run delivery as its own process — and set NOTIFY_DISPATCH=worker
+  # on `backend` so the API stops sending. Required once more than one web
+  # container is running, otherwise retries are scattered across them.
+  # notifier:
+  #   build: ./backend
+  #   restart: unless-stopped
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   environment:
+  #     DATABASE_URL: postgresql+psycopg2://vera_user:vera_pass@db:5432/vera_hair_co
+  #     SECRET_KEY: change-this-secret-in-production
+  #     NOTIFY_CHANNEL: smtp
+  #     SMTP_HOST: smtp.example.com
+  #     SMTP_USERNAME: ""
+  #     SMTP_PASSWORD: ""
+  #     ADMIN_ALERT_EMAILS: ""
+  #   command: python -m app.notify_worker --loop --interval 15
 
 volumes:
   vera_pgdata:

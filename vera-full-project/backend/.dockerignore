@@ -1,0 +1,21 @@
+# Anything here would either bloat the image or leak into it.
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+.mypy_cache/
+
+# Never bake secrets into an image. .env.example is documentation and is kept.
+.env
+.env.*
+!.env.example
+
+# Local artefacts
+*.db
+*.sqlite3
+media/
+tests/
+.git/
+.gitignore

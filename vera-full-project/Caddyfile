@@ -1,0 +1,50 @@
+# Caddy terminates TLS and reverse-proxies to the API.
+#
+# Certificates are obtained and renewed automatically from Let's Encrypt, which
+# is the main reason this is here rather than a hand-written Nginx config: an
+# expired certificate is the most common way a small shop goes offline.
+#
+# DOMAIN comes from the compose env file, e.g. hairshalo.com. This one block
+# serves both the static storefront and /api, so it is the apex domain.
+
+{$DOMAIN} {
+	encode zstd gzip
+
+	# The storefront and dashboard are static files; everything under /api and
+	# /media belongs to the backend.
+	handle /api/* {
+		reverse_proxy api:8000 {
+			# The app reads these only because TRUST_PROXY=true is set on it.
+			# Caddy overwrites them rather than passing a caller's version
+			# through, so a spoofed X-Forwarded-For cannot defeat rate limiting.
+			header_up X-Forwarded-Proto {scheme}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+
+	handle /media/* {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		root * /srv/frontend
+		try_files {path} {path}.html /index.html
+		file_server
+	}
+
+	# Rate limiting at the edge is the real defence; the limiter inside the app
+	# is per-process and cannot see the whole picture. Caddy's rate_limit needs
+	# a plugin build — until then, keep the app-level limiter on.
+
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "strict-origin-when-cross-origin"
+		-Server
+	}
+
+	log {
+		output stdout
+		format json
+	}
+}
