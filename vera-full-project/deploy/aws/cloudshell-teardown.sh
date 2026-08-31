@@ -3,6 +3,14 @@
 #
 #   *** THIS DESTROYS THE INSTANCE AND ITS DATABASE. ***
 #
+# Save this to a file and run it, rather than pasting it:
+#
+#   bash cloudshell-teardown.sh
+#
+# It asks for typed confirmation, and a `read` inside a pasted script consumes
+# the next pasted line instead of your answer -- which would mean confirming a
+# deletion you never typed.
+#
 # It exists so an abandoned trial does not quietly bill you every month, and
 # so a botched first attempt can be cleanly restarted. It is not part of the
 # deployment - do not run it against a live shop.

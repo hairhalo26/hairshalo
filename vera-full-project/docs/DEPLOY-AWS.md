@@ -45,11 +45,52 @@ certificate — every visitor gets a browser warning until you fix it and restar
 
 ---
 
+## 0. The account itself
+
+Hairshalo gets its **own AWS account**, separate from any other business you
+run there. This is not ceremony: billing is per-account, so you can see what
+the shop actually costs; IAM is per-account, so a credential leaked by another
+project cannot reach the shop's database; and a quota or a suspension applies
+to one business rather than both.
+
+Creating it needs your identity and a payment method, so it is yours to do:
+
+1. Sign out of any existing AWS console session first — the sign-up flow
+   otherwise attaches to the account you are already in.
+2. Go to **aws.amazon.com → Create an AWS Account**. Use an email address that
+   is not already tied to an AWS account (a `+` alias such as
+   `you+hairshalo@gmail.com` works and stays deliverable).
+3. Complete identity and payment verification. Activation is usually minutes,
+   occasionally a few hours.
+
+Then, before creating anything:
+
+- **Enable MFA on the root user** (Account menu → Security credentials). Root
+  can close the account and see every invoice; a password alone is not enough.
+- **Create an admin IAM user** for day-to-day work and sign in as that. Root is
+  for billing and account settings, not deployment.
+- **Set a billing alarm** (Billing → Budgets) at something like $60/month. The
+  stack should cost $32–40; an alarm is how you find out early when something
+  is wrong rather than at the end of the month.
+
+> **A brand-new account can refuse to launch instances for the first hour or
+> two** while verification finishes, with an error about instance limits or
+> account status. It is not your configuration — wait and re-run.
+
+---
+
 ## 1. AWS infrastructure
 
 Set your region to **Asia Pacific (Mumbai) ap-south-1** in the console's
 top-right selector before anything else. Resources are regional: a security
 group created in the wrong region will not appear when you launch the instance.
+
+Confirm you are in the new account before creating anything — the account ID is
+in the top-right menu, and CloudShell prints it too:
+
+```bash
+aws sts get-caller-identity
+```
 
 ### 1.1 Key pair
 

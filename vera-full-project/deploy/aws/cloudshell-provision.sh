@@ -27,6 +27,13 @@ set -euo pipefail
 #
 MY_IP=""                       # e.g. MY_IP="203.0.113.45"
 
+# The account this is allowed to build in. Leave empty to skip the check, but
+# filling it in is the difference between a typo and a shop deployed into
+# another business's account: CloudShell inherits whichever console session you
+# happen to be signed into, and nothing on screen makes that obvious.
+# Find it with:  aws sts get-caller-identity --query Account --output text
+EXPECTED_ACCOUNT=""            # e.g. EXPECTED_ACCOUNT="123456789012"
+
 REGION="ap-south-1"
 INSTANCE_TYPE="t3.medium"
 VOLUME_GB="30"
@@ -67,7 +74,31 @@ fi
 ACCOUNT_ID="$(aws sts get-caller-identity --query Account --output text)"
 BUCKET="${NAME}-backups-${ACCOUNT_ID}"
 
+if [ -n "$EXPECTED_ACCOUNT" ] && [ "$ACCOUNT_ID" != "$EXPECTED_ACCOUNT" ]; then
+  cat >&2 <<ERR
+
+  WRONG ACCOUNT - nothing was created.
+
+    expected  $EXPECTED_ACCOUNT
+    signed in $ACCOUNT_ID  ($(aws sts get-caller-identity --query Arn --output text))
+
+  Sign CloudShell into the Hairshalo account and paste again.
+
+ERR
+  exit 1
+fi
+
 say "Account $ACCOUNT_ID in $REGION"
+info "$(aws sts get-caller-identity --query Arn --output text)"
+
+# Existing instances here, so a shared account is visible before anything is
+# built rather than discovered afterwards.
+RUNNING="$(aws ec2 describe-instances \
+  --filters "Name=instance-state-name,Values=running" \
+  --query 'length(Reservations[].Instances[])' --output text 2>/dev/null || echo 0)"
+if [ "$RUNNING" != "0" ] && [ "$RUNNING" != "None" ]; then
+  info "note: $RUNNING instance(s) already running in this region"
+fi
 
 # ---------------------------------------------------------------------------
 # 1. Default VPC
