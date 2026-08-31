@@ -1,0 +1,47 @@
+# Line endings.
+#
+# This project is developed on Windows and deployed to Linux, which is exactly
+# the situation where line endings stop being cosmetic. A shell script stored
+# with CRLF fails on the server as:
+#
+#     ./docker-entrypoint.sh: not found
+#
+# ...because the kernel reads the shebang as "/bin/sh\r" and looks for an
+# interpreter with a carriage return in its name. The error names the script,
+# not the real problem, so it costs an hour the first time you meet it.
+#
+# Today the repository happens to hold LF because this machine has
+# core.autocrlf=true. That is a per-machine setting, not a property of the
+# project: clone it somewhere configured differently and the next commit can
+# introduce CRLF. These rules put the guarantee in the repository instead.
+
+# Normalise everything to LF inside the repository by default.
+* text=auto eol=lf
+
+# Files that MUST be LF in the working copy too, because they are executed by
+# Linux or parsed by a container at runtime.
+*.sh            text eol=lf
+*.cron          text eol=lf
+*.service       text eol=lf
+Caddyfile       text eol=lf
+Dockerfile      text eol=lf
+*.yml           text eol=lf
+*.yaml          text eol=lf
+.env.example    text eol=lf
+.env*.example   text eol=lf
+
+# Binary assets: never touch these. Git's newline conversion corrupts a font or
+# an image silently — the file still "exists", it just no longer renders.
+*.png           binary
+*.ico           binary
+*.jpg           binary
+*.jpeg          binary
+*.gif           binary
+*.webp          binary
+*.woff          binary
+*.woff2         binary
+*.otf           binary
+*.ttf           binary
+*.pdf           binary
+*.gz            binary
+*.zip           binary

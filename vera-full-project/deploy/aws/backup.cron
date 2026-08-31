@@ -1,0 +1,17 @@
+# Nightly database backup for Hairshalo.
+#
+#   sudo cp deploy/aws/backup.cron /etc/cron.d/hairshalo-backup
+#   sudo chmod 644 /etc/cron.d/hairshalo-backup
+#
+# 03:15 UTC is 08:45 IST — after the overnight lull, before the shop is busy.
+# The script reads BACKUP_S3_BUCKET from .env.prod and copies each dump off the
+# instance; it exits non-zero if that upload fails, so cron mails the failure
+# rather than silently keeping a local-only copy.
+#
+# A cron file in /etc/cron.d needs the user field (ubuntu) — that column is the
+# difference between this working and cron logging a syntax error nobody reads.
+
+SHELL=/bin/sh
+PATH=/usr/local/bin:/usr/bin:/bin
+
+15 3 * * * ubuntu cd /srv/hairshalo/vera-full-project && ./scripts/backup.sh >> /var/log/hairshalo-backup.log 2>&1

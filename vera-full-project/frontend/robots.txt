@@ -1,0 +1,15 @@
+# Hairshalo — crawler policy.
+#
+# The storefront is the only thing worth indexing. The admin dashboard and the
+# demo preview also carry <meta name="robots" content="noindex">; this file is
+# the belt to that braces, because a Disallow here stops the fetch while the
+# meta tag only takes effect after one.
+
+User-agent: *
+Allow: /$
+Disallow: /admin-dashboard.html
+Disallow: /demo.html
+Disallow: /api/
+Disallow: /media/
+
+Sitemap: https://hairshalo.com/sitemap.xml

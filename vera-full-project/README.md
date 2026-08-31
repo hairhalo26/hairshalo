@@ -97,12 +97,14 @@ cd frontend
 python3 -m http.server 5500
 ```
 
-Then open **http://localhost:5500** in your browser. This loads `index.html`,
-which links to:
-- **Vera-Hair-Co-Demo.html** — the customer site (products load live from the
-  API; if the API isn't running, it falls back to demo data automatically)
+Then open **http://localhost:5500** in your browser:
+- **index.html** — the customer storefront, and what the root of the deployed
+  domain serves (products load live from the API; if the API isn't running, it
+  falls back to demo data automatically)
 - **admin-dashboard.html** — sign in with the seeded admin login to see real
   data, or click "Continue in demo mode" to preview with mock data
+- **demo.html** — a two-card chooser linking to both, kept for client
+  presentations. It is `noindex` and excluded in `robots.txt`.
 
 Both frontends resolve the API base themselves, so a deployment needs no build
 step and no edit to the HTML:
@@ -124,7 +126,7 @@ localhost nor the API's origin).
 The **Best Sellers** section is rendered from the database, not hardcoded: it
 requests `/api/products` and, only if there are too few real products to fill
 the row, tops it up from `/api/product-placeholders`. That top-up is opt-in via
-`BESTSELLERS_FILL_WITH_PLACEHOLDERS` in `Vera-Hair-Co-Demo.html`.
+`BESTSELLERS_FILL_WITH_PLACEHOLDERS` in `index.html`.
 
 > **Docker note:** if host port 5432 is already in use, `docker-compose.override.yml`
 > publishes Postgres on **5433** instead — set `DATABASE_URL` to match
@@ -692,6 +694,10 @@ PreflightError: Refusing to start: 5 unsafe setting(s) for APP_ENV=production.
 The same findings are readable over HTTP at `GET /api/ready`, so a pipeline can
 ask "would this configuration be accepted?" before promoting a build.
 
+Deploying to AWS with a GoDaddy domain, from an empty account:
+**[docs/DEPLOY-AWS.md](docs/DEPLOY-AWS.md)** — EC2, DNS, SES, S3 backups and
+the go-live checklist, in order.
+
 ### The stack
 
 ```bash
@@ -723,6 +729,25 @@ a forgotten secret is a startup error rather than a silent default.
 | `RATE_LIMIT_PUBLIC` / `_WRITE` / `_LOGIN` | `requests/seconds`, e.g. `12/60`. |
 | `DB_POOL_SIZE`, `DB_MAX_OVERFLOW`, `DB_POOL_RECYCLE` | Connection pool. Recycling matters when a proxy or Postgres closes idle connections. |
 | `WEB_CONCURRENCY` | Gunicorn worker count in the container. |
+
+### The first admin account
+
+Production has no admin user until you make one. `app/seed.py` is the only
+other code that creates a `User`, and it refuses to run outside development —
+so a correctly deployed database has an empty `users` table and the dashboard
+login rejects every credential, because none exists.
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod   run --rm api python -m app.create_admin --email you@hairshalo.com --name "Your Name"
+```
+
+The password is prompted for, or read from `ADMIN_PASSWORD` with `--from-env`;
+it is never taken as a command-line argument, because `argv` is readable by
+every process on the machine and is kept in shell history. Minimum 12
+characters, and the seed password from this repository is refused outright.
+
+`--rotate` changes the password of an account that already exists, which is
+also how you clear the preflight's `seeded_admin_password` finding.
 
 ### Probes
 
@@ -827,8 +852,11 @@ are done (see **Deploying to production**). Run `GET /api/ready` against a
 staging deployment to see exactly what it would object to.
 
 - Change `SECRET_KEY` in `.env` to a long random value *(enforced)*
-- Change the seeded admin password immediately *(enforced — checked against the
-  stored hash, so rotating it clears the finding)*
+- Create the admin account with `python -m app.create_admin` — a fresh
+  production database has none (see **The first admin account**)
+- If this database was ever seeded for development, change the seeded admin
+  password immediately *(enforced — checked against the stored hash, so
+  rotating it clears the finding)*
 - Restrict `CORS_ORIGINS` to your real domain instead of `*` *(enforced)*
 - Set `ALLOWED_HOSTS` to your real hostnames *(enforced)*
 - Put the API behind HTTPS — `docker-compose.prod.yml` ships a Caddy service

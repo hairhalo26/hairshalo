@@ -4,8 +4,18 @@
 # is the main reason this is here rather than a hand-written Nginx config: an
 # expired certificate is the most common way a small shop goes offline.
 #
-# DOMAIN comes from the compose env file, e.g. hairshalo.com. This one block
-# serves both the static storefront and /api, so it is the apex domain.
+# DOMAIN and WWW_DOMAIN come from the compose env file (hairshalo.com and
+# www.hairshalo.com). Both must resolve to this host before the first start, or
+# the ACME challenge fails and Caddy serves a self-signed certificate instead.
+
+# www redirects to the apex rather than serving a second copy of the site.
+# Without this block Caddy has no certificate for www at all: the browser shows
+# a TLS warning before it ever reaches the app, and ALLOWED_HOSTS listing www
+# does nothing to help. 308 preserves the method, so a POSTed checkout that
+# happens to arrive on www is not silently downgraded to GET.
+{$WWW_DOMAIN} {
+	redir https://{$DOMAIN}{uri} 308
+}
 
 {$DOMAIN} {
 	encode zstd gzip
@@ -26,6 +36,15 @@
 		reverse_proxy api:8000
 	}
 
+	# The dashboard is protected by its login, but it should never appear in a
+	# search result. The page carries a noindex meta tag; this header covers the
+	# case of a crawler that reads headers and skips the body.
+	handle /admin-dashboard.html {
+		header X-Robots-Tag "noindex, nofollow"
+		root * /srv/frontend
+		file_server
+	}
+
 	handle {
 		root * /srv/frontend
 		try_files {path} {path}.html /index.html
@@ -40,6 +59,11 @@
 		Strict-Transport-Security "max-age=31536000; includeSubDomains"
 		X-Content-Type-Options "nosniff"
 		Referrer-Policy "strict-origin-when-cross-origin"
+		# Clickjacking: nothing here is meant to be framed by another site.
+		X-Frame-Options "SAMEORIGIN"
+		# The storefront needs a camera for virtual try-on; nothing needs the
+		# rest. Denying them means a compromised script cannot quietly ask.
+		Permissions-Policy "camera=(self), microphone=(), geolocation=(), payment=()"
 		-Server
 	}
 

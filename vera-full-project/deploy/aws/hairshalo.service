@@ -1,0 +1,34 @@
+# Brings the Hairshalo stack up at boot and takes it down cleanly on shutdown.
+#
+#   sudo cp deploy/aws/hairshalo.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now hairshalo
+#
+# `restart: unless-stopped` in the compose file already restarts individual
+# containers, and Docker itself starts at boot — but neither runs
+# `docker compose up` for a stack that was never started on this boot, and
+# neither reads .env.prod. This unit is what makes a reboot a non-event.
+
+[Unit]
+Description=Hairshalo production stack (docker compose)
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/srv/hairshalo/vera-full-project
+
+# Pulling base images at boot would make startup depend on the network being
+# up AND Docker Hub being reachable. Images already on disk are enough.
+ExecStart=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+ExecStop=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod down
+ExecReload=/usr/bin/docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+
+# A slow first start (image build, Postgres initdb) must not be killed as a
+# hung unit.
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

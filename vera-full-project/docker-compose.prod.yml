@@ -13,10 +13,17 @@
 
 name: vera-prod
 
+x-logging: &default_logging
+  driver: json-file
+  options:
+    max-size: "10m"
+    max-file: "5"
+
 services:
   db:
     image: postgres:16-alpine
     restart: unless-stopped
+    logging: *default_logging
     environment:
       POSTGRES_USER: ${POSTGRES_USER:?set POSTGRES_USER in the env file}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set POSTGRES_PASSWORD in the env file}
@@ -39,6 +46,7 @@ services:
   api:
     build: ./backend
     restart: unless-stopped
+    logging: *default_logging
     depends_on:
       db:
         condition: service_healthy
@@ -64,9 +72,28 @@ services:
       SMTP_PORT: ${SMTP_PORT:-587}
       SMTP_USERNAME: ${SMTP_USERNAME:-}
       SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      MAIL_FROM: ${MAIL_FROM:-orders@verahair.co}
+      MAIL_FROM: ${MAIL_FROM:-orders@hairshalo.com}
+      MAIL_FROM_NAME: ${MAIL_FROM_NAME:-Hairshalo}
+      MAIL_REPLY_TO: ${MAIL_REPLY_TO:-}
+      SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
       ADMIN_ALERT_EMAILS: ${ADMIN_ALERT_EMAILS:-}
       STOREFRONT_URL: ${STOREFRONT_URL:-}
+      # Mail cannot load a relative path, so the logo needs an absolute URL.
+      BRAND_LOGO_URL: ${BRAND_LOGO_URL:-}
+      LOW_STOCK_ALERT_THRESHOLD: ${LOW_STOCK_ALERT_THRESHOLD:-5}
+      # Storefront economics. These belong in the env file rather than the
+      # code: the shop owner changes a shipping fee far more often than anyone
+      # rebuilds an image, and a rebuild to change a number invites editing
+      # the default in git instead.
+      SHIPPING_FLAT_FEE: ${SHIPPING_FLAT_FEE:-499}
+      FREE_SHIPPING_THRESHOLD: ${FREE_SHIPPING_THRESHOLD:-8000}
+      LOYALTY_EARN_PER: ${LOYALTY_EARN_PER:-100}
+      LOYALTY_POINT_VALUE: ${LOYALTY_POINT_VALUE:-1}
+      LOYALTY_MAX_REDEEM_PCT: ${LOYALTY_MAX_REDEEM_PCT:-20}
+      # Tunable without a rebuild when a real traffic pattern shows up.
+      RATE_LIMIT_PUBLIC: ${RATE_LIMIT_PUBLIC:-60/60}
+      RATE_LIMIT_WRITE: ${RATE_LIMIT_WRITE:-12/60}
+      RATE_LIMIT_LOGIN: ${RATE_LIMIT_LOGIN:-8/300}
     volumes:
       - vera_media:/app/media
     expose:
@@ -79,6 +106,7 @@ services:
   notifier:
     build: ./backend
     restart: unless-stopped
+    logging: *default_logging
     depends_on:
       db:
         condition: service_healthy
@@ -107,10 +135,15 @@ services:
   caddy:
     image: caddy:2-alpine
     restart: unless-stopped
+    logging: *default_logging
     depends_on:
       - api
     environment:
-      DOMAIN: ${DOMAIN:?set the public hostname, e.g. api.verahair.co}
+      DOMAIN: ${DOMAIN:?set the public hostname, e.g. hairshalo.com}
+      # Caddy needs this to obtain a certificate for www and redirect it to the
+      # apex. Listing www in ALLOWED_HOSTS alone does nothing: without a cert
+      # the browser never gets far enough to send a Host header.
+      WWW_DOMAIN: ${WWW_DOMAIN:-www.hairshalo.com}
     ports:
       - "80:80"
       - "443:443"

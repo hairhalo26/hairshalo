@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hairshalo | Demo Preview</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta name="theme-color" content="#1A2338">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{--ink:#2B1B14;--cream:#FAF5EE;--blush:#E7C7B4;--gold:#AD8752;--wine:#5C2431;--text-soft:#7A6A5F;--line:rgba(43,27,20,.12);}
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{
+    font-family:'Inter',sans-serif;background:var(--cream);color:var(--ink);
+    min-height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;
+    padding:40px 20px;-webkit-font-smoothing:antialiased;
+  }
+  @font-face{
+    font-family:'Balldoug';
+    src:url('assets/fonts/balldoug-regular.woff2') format('woff2'),
+        url('assets/fonts/balldoug-regular.otf') format('opentype');
+    font-weight:400;font-style:normal;font-display:swap;
+  }
+  .brand-lockup{display:flex;align-items:center;justify-content:center;gap:12px;margin-bottom:18px;}
+  .brand-lockup img{height:52px;width:auto;display:block;}
+  .brand-lockup span{font-family:'Balldoug',serif;font-size:34px;letter-spacing:.06em;color:var(--ink);line-height:1;}
+  .eyebrow{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);font-weight:700;margin-bottom:14px;}
+  h1{font-family:'Fraunces',serif;font-size:clamp(30px,5vw,44px);font-weight:600;margin-bottom:12px;text-align:center;}
+  h1 em{font-style:italic;color:var(--wine);}
+  p.sub{color:var(--text-soft);font-size:15px;max-width:440px;text-align:center;margin-bottom:44px;line-height:1.6;}
+  .cards{display:grid;grid-template-columns:1fr 1fr;gap:20px;max-width:720px;width:100%;}
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:20px;padding:30px 26px;
+    text-decoration:none;color:inherit;transition:transform .3s, box-shadow .3s;
+  }
+  .card:hover{transform:translateY(-4px);box-shadow:0 24px 44px -28px rgba(43,27,20,.35);}
+  .card-icon{width:46px;height:46px;border-radius:14px;background:linear-gradient(150deg,var(--blush),var(--gold));display:flex;align-items:center;justify-content:center;margin-bottom:16px;}
+  .card-icon svg{width:22px;height:22px;stroke:var(--ink);}
+  .card h3{font-family:'Fraunces',serif;font-size:19px;font-weight:600;margin-bottom:8px;}
+  .card p{font-size:13px;color:var(--text-soft);line-height:1.6;margin-bottom:16px;}
+  .card .go{font-size:12.5px;font-weight:700;color:var(--wine);display:flex;align-items:center;gap:6px;}
+  .card .go svg{width:13px;height:13px;}
+  footer{margin-top:50px;font-size:11.5px;color:var(--text-soft);text-align:center;}
+  @media (max-width:560px){ .cards{grid-template-columns:1fr;} }
+</style>
+</head>
+<body>
+  <div class="brand-lockup"><img src="assets/hairshalo-mark.png" alt="" width="40" height="52"><span>HAIRSHALO</span></div>
+  <span class="eyebrow">Demo Preview</span>
+  <h1>The <em>Full</em> Platform Demo</h1>
+  <p class="sub">Two views of the same project: the customer-facing website with AI shopping tools, and the admin console used to run the business.</p>
+
+  <div class="cards">
+    <a class="card" href="/">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 9l9-7 9 7v10a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><path d="M9 21V12h6v9"/></svg></div>
+      <h3>Customer Website</h3>
+      <p>Homepage, product catalog, AI Wig Finder quiz, virtual try-on, and AI chat assistant — everything a customer sees.</p>
+      <span class="go">Open site <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+    </a>
+    <a class="card" href="admin-dashboard.html">
+      <div class="card-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="3" y="3" width="7" height="9" rx="1.5"/><rect x="14" y="3" width="7" height="5" rx="1.5"/><rect x="14" y="12" width="7" height="9" rx="1.5"/><rect x="3" y="16" width="7" height="5" rx="1.5"/></svg></div>
+      <h3>Admin Dashboard</h3>
+      <p>Products, orders, inventory, customers, appointments, marketing, and analytics — everything the business runs on.</p>
+      <span class="go">Open dashboard <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+    </a>
+  </div>
+
+  <footer>Demo build for client presentation · Not connected to a live backend or payment system</footer>
+</body>
+</html>
