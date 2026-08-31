@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "storefront",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "-m",
+        "http.server",
+        "5500",
+        "--directory",
+        "vera-full-project/frontend"
+      ],
+      "port": 5500
+    },
+    {
+      "name": "api",
+      "runtimeExecutable": "cmd",
+      "runtimeArgs": [
+        "/c",
+        "cd vera-full-project\\backend && venv\\Scripts\\python.exe -m uvicorn app.main:app --reload --port 8010"
+      ],
+      "port": 8010
+    }
+  ]
+}
