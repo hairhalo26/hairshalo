@@ -14,7 +14,7 @@ set -euo pipefail
 
 APP_USER="${APP_USER:-ubuntu}"
 APP_DIR="${APP_DIR:-/srv/hairshalo}"
-SWAP_SIZE="${SWAP_SIZE:-2G}"
+SWAP_SIZE="${SWAP_SIZE:-4G}"
 
 log() { echo -e "\n[bootstrap] $*"; }
 
@@ -35,10 +35,12 @@ apt-get install -y --no-install-recommends \
   unzip cron
 
 # --- swap -------------------------------------------------------------------
-# t3.medium has 4 GB, which is enough to run the stack but leaves little room
-# for `docker compose build` compiling Python wheels at the same time as
-# Postgres is serving. Swap is insurance against the OOM killer choosing the
-# database. It is not a substitute for memory.
+# On a t3.micro (1 GB) the swapfile is not a safety margin, it is what makes
+# `docker compose build` finish at all: compiling Python wheels while Postgres
+# serves will not fit in 1 GB. On a t3.medium (4 GB) the same file is ordinary
+# insurance against the OOM killer choosing the database. Either way it is not
+# a substitute for memory -- it is slower than RAM by orders of magnitude, so
+# the container limits in docker-compose.prod.yml still have to fit the box.
 if ! swapon --show | grep -q '/swapfile'; then
   log "creating a ${SWAP_SIZE} swapfile"
   fallocate -l "$SWAP_SIZE" /swapfile

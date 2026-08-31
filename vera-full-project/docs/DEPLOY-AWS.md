@@ -77,6 +77,58 @@ Then, before creating anything:
 > two** while verification finishes, with an error about instance limits or
 > account status. It is not your configuration — wait and re-run.
 
+### The free plan restricts which instances you may launch
+
+Accounts opened under AWS's newer sign-up land on a **Free plan**, which only
+permits free-tier-eligible instance types. Launching anything else fails with:
+
+```
+An error occurred (InvalidParameterCombination) when calling the RunInstances
+operation: The specified instance type is not eligible for Free Tier.
+```
+
+That is the account's plan, not a quota — check the quota separately and you
+will see it is fine:
+
+```bash
+aws service-quotas get-service-quota --service-code ec2 --quota-code L-1216C47A --query 'Quota.Value' --output text
+```
+
+Ask the account which types it will accept, rather than assuming — the list is
+wider than the old free tier's single `t2.micro`, and it differs by account and
+by region:
+
+```bash
+aws ec2 describe-instance-types --filters Name=free-tier-eligible,Values=true --query 'InstanceTypes[].InstanceType' --output text
+```
+
+In ap-south-1 in August 2026 that returned `t3.micro`, `t3.small`, `t4g.micro`,
+`t4g.small`, `c7i-flex.large` and `m7i-flex.large` — so a 4 GB box is reachable
+without upgrading the plan at all.
+
+| Type             | RAM  | Fits the stack?                                       |
+| ---------------- | ---- | ----------------------------------------------------- |
+| `t3.micro`       | 1 GB | Only just. Builds lean on swap; no headroom.           |
+| `t3.small`       | 2 GB | Comfortable for a low-traffic storefront. **In use.**  |
+| `c7i-flex.large` | 4 GB | What the stack was sized for, same as a `t3.medium`.   |
+
+Eligible is not the same as free. The plan's credits are drawn down by what you
+actually run, so a 4 GB `c7i-flex.large` empties them several times faster than
+a 1 GB `t3.micro`. Pick the box you need, then watch the billing alarm from §0.
+
+`t4g.micro` and `t4g.small` are Graviton (ARM). They are cheaper for the RAM,
+but the AMI above is x86 — moving to one is a rebuild on an ARM AMI with ARM
+images, not a resize. Stay on x86 unless you have a reason.
+
+`.env.prod.example` carries a sizing block for 1, 2 and 4 GB. See
+[Resize the instance](#resize-the-instance): it keeps the disk, the data and
+the Elastic IP, so choosing again later costs a couple of minutes of downtime,
+not a migration.
+
+Upgrading to a paid plan (Billing and Cost Management → Account) removes the
+restriction entirely, and is what you will want eventually — but it is not
+needed to launch this stack.
+
 ---
 
 ## 1. AWS infrastructure
@@ -127,7 +179,8 @@ database.
 
 - **Name:** `hairshalo-prod`
 - **AMI:** Ubuntu Server 24.04 LTS (64-bit x86)
-- **Instance type:** `t3.medium`
+- **Instance type:** `t3.small` — the scripted path defaults to it, and takes
+  `INSTANCE_TYPE=c7i-flex.large bash provision.sh` for the 4 GB box
 - **Key pair:** `hairshalo`
 - **Network:** default VPC, **Auto-assign public IP: Enable**
 - **Security group:** select the existing `hairshalo-sg`
@@ -178,7 +231,7 @@ sudo git clone https://github.com/hairhalo26/hairshalo.git /srv/hairshalo
 sudo bash /srv/hairshalo/vera-full-project/deploy/aws/bootstrap.sh
 ```
 
-This installs Docker, the AWS CLI, a 2 GB swapfile, `ufw`, `fail2ban` and
+This installs Docker, the AWS CLI, a 4 GB swapfile, `ufw`, `fail2ban` and
 unattended security upgrades. It is idempotent — safe to re-run.
 
 **Log out and back in** afterwards, so your shell picks up the `docker` group:
@@ -540,6 +593,36 @@ Pulling a backup back from S3:
 ```bash
 aws s3 cp s3://hairshalo-backups-CHANGEME/vera-20260831T031500Z.sql.gz ./backups/
 ```
+
+### Resize the instance
+
+Resizing keeps the disk, the data and the Elastic IP — only the RAM and the
+bill change. It needs a stop and a start (a reboot will not do it), so the shop
+is down for a couple of minutes. Production runs `t3.small`; `c7i-flex.large`
+is the 4 GB step up.
+
+If the account is on the free plan, the new type has to be free-tier-eligible
+too, or this fails with the same `not eligible for Free Tier` error as at
+launch — `t3.micro` → `t3.small` → `c7i-flex.large` all stay inside it.
+
+```bash
+aws ec2 stop-instances --instance-ids i-xxxxxxxx
+aws ec2 wait instance-stopped --instance-ids i-xxxxxxxx
+aws ec2 modify-instance-attribute --instance-id i-xxxxxxxx --instance-type Value=c7i-flex.large
+aws ec2 start-instances --instance-ids i-xxxxxxxx
+```
+
+Then swap the active sizing block in `.env.prod` for the one matching the new
+box — `.env.prod.example` has a set for 1, 2 and 4 GB — and bring the stack up
+again:
+
+```bash
+docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
+```
+
+Compose recreates the containers whose limits changed. Leaving the micro-sized
+caps in place after a resize is the quiet failure mode here: the box has 4 GB
+and the stack still behaves as though it has one.
 
 ### Health of the machine
 

@@ -10,6 +10,13 @@
 #   * APP_ENV=production, so the startup preflight refuses unsafe settings.
 #   * Mail delivery is a separate process, so retries have one owner.
 #   * Containers restart on failure and are capped so one cannot starve the host.
+#
+# The four memory caps come from the env file, because the right numbers depend
+# on the box. The fallbacks below are deliberately the smallest set (1 GB), so
+# a missing variable under-uses the host rather than over-committing it;
+# .env.prod.example carries the real sets for 1, 2 and 4 GB. A cap larger than
+# the host is not a cap at all -- the OOM killer picks the victim instead, and
+# it will not pick the container you would have.
 
 name: vera-prod
 
@@ -41,7 +48,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 1g
+          memory: ${DB_MEM_LIMIT:-384m}
 
   api:
     build: ./backend
@@ -57,6 +64,10 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:?set your storefront origin(s)}
       ALLOWED_HOSTS: ${ALLOWED_HOSTS:?set your API hostname(s)}
       TRUST_PROXY: "true"          # Caddy terminates TLS in front of this
+      # Read by the gunicorn command in backend/Dockerfile. It has to be listed
+      # here to reach the container at all: --env-file only substitutes into
+      # this file, it does not put variables inside the containers.
+      WEB_CONCURRENCY: ${WEB_CONCURRENCY:-1}
       LOG_FORMAT: json
       APP_VERSION: ${APP_VERSION:-1.0.0}
       GIT_SHA: ${GIT_SHA:-}
@@ -101,7 +112,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 512m
+          memory: ${API_MEM_LIMIT:-320m}
 
   notifier:
     build: ./backend
@@ -130,7 +141,7 @@ services:
     deploy:
       resources:
         limits:
-          memory: 256m
+          memory: ${NOTIFIER_MEM_LIMIT:-128m}
 
   caddy:
     image: caddy:2-alpine
@@ -152,6 +163,10 @@ services:
       - caddy_data:/data           # certificates — losing this re-issues them
       - caddy_config:/config
       - ./frontend:/srv/frontend:ro
+    deploy:
+      resources:
+        limits:
+          memory: ${CADDY_MEM_LIMIT:-96m}
 
 volumes:
   vera_pgdata:

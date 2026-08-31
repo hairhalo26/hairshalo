@@ -6,7 +6,8 @@
 #   * an ED25519 key pair     hairshalo
 #   * an S3 backup bucket     hairshalo-backups-<account-id>
 #   * an IAM role + profile   hairshalo-backup-role
-#   * a t3.medium instance    hairshalo-prod  (Ubuntu 24.04, 30 GB gp3, encrypted)
+#   * a t3.small instance     hairshalo-prod  (Ubuntu 24.04, 30 GB gp3, encrypted)
+#                             override with INSTANCE_TYPE=... for a bigger box
 #   * an Elastic IP, associated with that instance
 #
 # It is idempotent: every resource is checked for first, so re-running after a
@@ -35,7 +36,16 @@ MY_IP=""                       # e.g. MY_IP="203.0.113.45"
 EXPECTED_ACCOUNT=""            # e.g. EXPECTED_ACCOUNT="123456789012"
 
 REGION="ap-south-1"
-INSTANCE_TYPE="t3.medium"
+# t3.small (2 vCPU, 2 GB) is what production runs on, and it is free-tier
+# eligible -- accounts on the new AWS free plan may only launch eligible types,
+# and RunInstances rejects anything else with "not eligible for Free Tier".
+# c7i-flex.large (4 GB) is also eligible and is what the stack was originally
+# sized for; it draws down plan credits several times faster. Override without
+# editing this file:
+#     INSTANCE_TYPE=c7i-flex.large bash provision.sh
+# Whatever you pick, match the memory caps in .env.prod -- the sizing blocks
+# are in .env.prod.example, and docs/DEPLOY-AWS.md explains the trade.
+INSTANCE_TYPE="${INSTANCE_TYPE:-t3.small}"
 VOLUME_GB="30"
 NAME="hairshalo"
 
@@ -157,8 +167,12 @@ add_rule 443 "0.0.0.0/0"   "https"
 say "Key pair $NAME"
 if aws ec2 describe-key-pairs --key-names "$NAME" >/dev/null 2>&1; then
   info "exists already - reusing it"
-  info "If you do not have ${NAME}.pem locally, delete the key pair in the"
-  info "console and re-run: AWS cannot re-issue a private key."
+  info "AWS cannot re-issue a private key. If you no longer have ${NAME}.pem,"
+  info "deleting this key pair and re-running does NOT regain access to an"
+  info "instance already built with it -- the old public key stays in that"
+  info "instance's authorized_keys. Add a new public key over a session you"
+  info "still have, or via EC2 Instance Connect; failing both, terminate the"
+  info "instance and re-run from a fresh key pair."
 else
   aws ec2 create-key-pair --key-name "$NAME" --key-type ed25519 \
     --query KeyMaterial --output text > "${HOME}/${NAME}.pem"
@@ -260,7 +274,11 @@ INSTANCE_ID="$(aws ec2 describe-instances \
 if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
   # IAM is eventually consistent: a profile created seconds ago is often not
   # yet visible to RunInstances, which fails with "Invalid IAM Instance
-  # Profile name". Retry rather than make the operator re-run the script.
+  # Profile name". That one is worth retrying. Everything else -- a quota of
+  # zero, an account still being verified, a bad AMI -- will fail identically
+  # on every attempt, so retrying it just hides the reason behind a wall of
+  # identical lines. Keep the error and decide.
+  ERR_LOG="$(mktemp)"
   for attempt in 1 2 3 4 5 6 7 8 9 10; do
     if INSTANCE_ID="$(aws ec2 run-instances \
         --image-id "$AMI_ID" \
@@ -273,14 +291,54 @@ if [ "$INSTANCE_ID" = "None" ] || [ -z "$INSTANCE_ID" ]; then
         --metadata-options "HttpTokens=required,HttpEndpoint=enabled" \
         --block-device-mappings "[{\"DeviceName\":\"/dev/sda1\",\"Ebs\":{\"VolumeSize\":${VOLUME_GB},\"VolumeType\":\"gp3\",\"DeleteOnTermination\":true,\"Encrypted\":true}}]" \
         --tag-specifications "ResourceType=instance,Tags=[{Key=Name,Value=${NAME}-prod},{Key=Project,Value=hairshalo}]" \
-        --query 'Instances[0].InstanceId' --output text 2>/dev/null)"; then
+        --query 'Instances[0].InstanceId' --output text 2>"$ERR_LOG")"; then
       break
     fi
+    INSTANCE_ID=""
+
+    # Only the IAM propagation delay is transient. Anything else: stop now and
+    # show what AWS actually said.
+    if ! grep -qiE 'Invalid IAM Instance Profile|iamInstanceProfile' "$ERR_LOG"; then
+      echo >&2
+      echo "  RunInstances failed, and not for a reason that retrying fixes:" >&2
+      echo >&2
+      sed 's/^/    /' "$ERR_LOG" >&2
+      echo >&2
+      case "$(cat "$ERR_LOG")" in
+        *VcpuLimitExceeded*|*InstanceLimitExceeded*)
+          echo "  Your EC2 vCPU quota is too low for a $INSTANCE_TYPE." >&2
+          echo "  Request an increase: Service Quotas -> EC2 -> Running On-Demand" >&2
+          echo "  Standard instances. New accounts are sometimes capped at 0." >&2 ;;
+        *PendingVerification*|*not\ been\ verified*|*OptInRequired*)
+          echo "  The account is still being verified. This clears by itself," >&2
+          echo "  usually within a couple of hours. Re-run then." >&2 ;;
+        *"not eligible for Free Tier"*|*InvalidParameterCombination*)
+          echo "  This account may only launch free-tier-eligible instance" >&2
+          echo "  types. Either upgrade it to a paid plan in the Billing" >&2
+          echo "  console, or re-run with a free-tier type:" >&2
+          echo >&2
+          echo "    aws ec2 describe-instance-types \\" >&2
+          echo "      --filters Name=free-tier-eligible,Values=true \\" >&2
+          echo "      --query 'InstanceTypes[].InstanceType' --output text" >&2
+          echo >&2
+          echo "    INSTANCE_TYPE=t3.small bash $0" >&2 ;;
+        *UnauthorizedOperation*)
+          echo "  This identity may not launch instances. Use an admin user." >&2 ;;
+      esac
+      rm -f "$ERR_LOG"
+      exit 1
+    fi
+
     info "IAM profile not visible yet (attempt $attempt) - waiting 5s"
     sleep 5
-    INSTANCE_ID=""
   done
-  [ -n "$INSTANCE_ID" ] || { echo "run-instances failed after 10 attempts" >&2; exit 1; }
+  if [ -z "$INSTANCE_ID" ]; then
+    echo "  RunInstances still refused after 10 attempts. Last error:" >&2
+    sed 's/^/    /' "$ERR_LOG" >&2
+    rm -f "$ERR_LOG"
+    exit 1
+  fi
+  rm -f "$ERR_LOG"
   info "launched $INSTANCE_ID"
 else
   info "exists: $INSTANCE_ID"
