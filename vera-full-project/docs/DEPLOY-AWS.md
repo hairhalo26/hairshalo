@@ -217,8 +217,13 @@ sudo apt-get update && sudo apt-get install -y git
 ```
 
 ```bash
-sudo git clone https://github.com/hairhalo26/hairshalo.git /srv/hairshalo
+sudo git clone -b deploy/aws-production https://github.com/hairhalo26/hairshalo.git /srv/hairshalo
 ```
+
+> The deployment lives on `deploy/aws-production` until it has proven itself in
+> production. A plain `git clone` takes `main`, which does not yet have
+> `deploy/aws/` in it at all — the branch is the point. Drop the `-b` once the
+> branch is merged.
 
 > If the repository is private, this prompts for credentials that a server
 > should not hold. Add a **deploy key** instead: generate one on the instance
