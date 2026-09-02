@@ -599,6 +599,19 @@ Pulling a backup back from S3:
 aws s3 cp s3://hairshalo-backups-CHANGEME/vera-20260831T031500Z.sql.gz ./backups/
 ```
 
+Each run also archives the uploaded product media as a matching
+`vera-media-<stamp>.tar.gz`, because the database dump alone would restore a
+catalog with every image missing. It is a plain tar, so it needs no script:
+
+```bash
+gzip -dc backups/vera-media-20260831T031500Z.tar.gz | docker compose -f docker-compose.prod.yml --env-file .env.prod exec -T api tar -xf - -C /app/media
+```
+
+The archive is skipped, with a message, until something has actually been
+uploaded. `SKIP_MEDIA=1` turns it off; a media directory that is missing
+altogether fails the run rather than passing quietly, since that means the
+volume is not mounted where the app expects it.
+
 ### Resize the instance
 
 Resizing keeps the disk, the data and the Elastic IP — only the RAM and the
