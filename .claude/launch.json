@@ -5,22 +5,18 @@
       "name": "storefront",
       "runtimeExecutable": "python",
       "runtimeArgs": [
-        "-m",
-        "http.server",
-        "5500",
-        "--directory",
-        "vera-full-project/frontend"
+        "vera-full-project/scripts/devserver.py",
+        "vera-full-project/frontend",
+        "5500"
       ],
-      "port": 5500
+      "port": 5500,
+      "autoPort": false
     },
     {
       "name": "api",
-      "runtimeExecutable": "cmd",
-      "runtimeArgs": [
-        "/c",
-        "cd vera-full-project\\backend && venv\\Scripts\\python.exe -m uvicorn app.main:app --reload --port 8010"
-      ],
-      "port": 8010
+      "url": "http://localhost:8010",
+      "port": 8010,
+      "autoPort": false
     }
   ]
 }

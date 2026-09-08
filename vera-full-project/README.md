@@ -240,7 +240,38 @@ at 8 MB (images) / 64 MB (video), and stored under a generated UUID filename,
 so a client-supplied filename can never influence the path.
 
 `POST /api/products/{id}/media/upload` (multipart) · `POST .../media/reorder` ·
-`DELETE /api/products/media/{id}`
+`PATCH /api/products/{id}/media/{media_id}` · `DELETE /api/products/media/{id}`
+
+### Media that belongs to one variant
+
+`product_media.variant_id` (migration `0011`) is optional. `NULL` means
+product-level media — the default, and what every row created before that
+migration is. Setting it to a variant means "this photograph shows that
+colour", and the product page then swaps the gallery when a colour is chosen:
+the variant's own photographs first, then product-level media such as a studio
+video. A colour with no photographs of its own falls back to the full gallery
+rather than showing an empty frame.
+
+The foreign key is `ON DELETE SET NULL`, not cascade: retiring a colour must
+not delete the photographs of it.
+
+`variant_id` can be set when uploading (a form field) or afterwards with
+`PATCH .../media/{media_id}` — send `""` to move a file back to product level.
+Either way the server checks the variant belongs to *that* product, so one
+product's photograph can never be filed under another product's colour.
+
+### Importing supplied photography
+
+`python -m app.import_media --source ../Product-Media` inspects the supplied
+ZIP archives and reports what it would do; `--commit` writes. It maps
+`<root>/<colour>/file.jpg` onto colour variants, creates anything missing as
+**Draft** with no price and zero stock, and re-running is safe — files are
+matched by content hash, so nothing is imported twice.
+
+It never modifies the supplied archives, never executes anything from them,
+never publishes, and never alters an image. Archives with no media (and loose
+files with no archive to say which product they belong to) are reported for
+manual attention rather than guessed at.
 
 ## Product architecture
 

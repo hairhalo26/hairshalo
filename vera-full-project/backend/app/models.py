@@ -397,6 +397,15 @@ class ProductMedia(Base):
 
     id = Column(String, primary_key=True, default=gen_uuid)
     product_id = Column(String, ForeignKey("products.id", ondelete="CASCADE"), nullable=False, index=True)
+    # Optional: media that belongs to ONE variant (a colour, typically), so a
+    # customer choosing 1B sees 1B's photos rather than the product's whole
+    # gallery. NULL means product-level media, which is the existing behaviour
+    # and stays the default — nothing that worked before needs this set.
+    #
+    # SET NULL, not CASCADE: retiring a colour must not silently delete the
+    # photographs of it. The media falls back to the product gallery instead.
+    variant_id = Column(String, ForeignKey("product_variants.id", ondelete="SET NULL"),
+                        nullable=True, index=True)
     url = Column(String, nullable=False)
     media_type = Column(Enum(MediaType), default=MediaType.image, nullable=False)
     alt_text = Column(String, default="")
@@ -410,6 +419,7 @@ class ProductMedia(Base):
     created_at = Column(DateTime, default=datetime.utcnow)
 
     product = relationship("Product", back_populates="media")
+    variant = relationship("ProductVariant", back_populates="media")
 
 
 class ProductVariant(Base):
@@ -439,6 +449,8 @@ class ProductVariant(Base):
     # NB: InventoryItem.variant is the legacy free-text label column, so the
     # reverse side is the `variant_ref` relationship, not `variant`.
     inventory = relationship("InventoryItem", back_populates="variant_ref")
+    # Photographs of THIS variant. No cascade delete: see ProductMedia.variant_id.
+    media = relationship("ProductMedia", back_populates="variant")
     movements = relationship(
         "InventoryMovement", back_populates="variant",
         cascade="all, delete-orphan",

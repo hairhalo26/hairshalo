@@ -34,6 +34,12 @@
   "brand": { "@type": "Brand", "name": "Hairshalo" }
 }
 </script>
+<!-- Shared auth helpers (validation, password rules, field errors). The
+     popup below uses the same module as signin.html/signup.html so there is one
+     implementation of "is this password acceptable", not two that drift. Only
+     the JS is shared: assets/auth.css resets *, html and body and would
+     restyle the storefront. -->
+<script src="assets/auth.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -644,6 +650,37 @@
     color:var(--text);text-decoration:none;margin-right:18px;}
   .nav-account:hover{color:var(--wine);}
   .account-modal{max-width:640px;}
+  /* Form furniture for the account popup. Deliberately scoped: assets/auth.css
+     dresses the standalone pages and resets *, html, body and .logo, so pulling
+     it in here would restyle the storefront. */
+  #accountModal .field{margin-bottom:14px;}
+  #accountModal .field label{
+    display:block;font-size:11px;font-weight:700;letter-spacing:.07em;
+    text-transform:uppercase;color:var(--text-soft);margin-bottom:6px;
+  }
+  #accountModal .field .req{color:var(--wine);}
+  #accountModal .control{position:relative;display:flex;align-items:center;}
+  #accountModal .control input{margin-bottom:0;}
+  #accountModal .control.has-toggle input{padding-right:64px;}
+  #accountModal .pw-toggle{
+    position:absolute;right:10px;background:none;border:none;cursor:pointer;
+    font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+    color:var(--wine);padding:4px 6px;
+  }
+  #accountModal .hint{font-size:11.5px;color:var(--text-soft);margin:4px 0 0;}
+  #accountModal .err{
+    font-size:12px;color:#B5443A;margin:5px 0 0;min-height:0;display:none;
+  }
+  #accountModal .err.show{display:block;}
+  #accountModal .field.invalid input{border-color:#B5443A;}
+  #accountModal .pw-rules{list-style:none;margin:8px 0 0;padding:0;}
+  #accountModal .pw-rules li{
+    font-size:11.5px;color:var(--text-soft);padding:2px 0 2px 16px;position:relative;
+  }
+  #accountModal .pw-rules li::before{content:"○";position:absolute;left:0;opacity:.6;}
+  #accountModal .pw-rules li.ok{color:#3F7D58;}
+  #accountModal .pw-rules li.ok::before{content:"✓";opacity:1;}
+  #accountModal .btn[disabled]{opacity:.6;cursor:not-allowed;}
   .account-modal h3{font-size:20px;font-weight:500;margin-bottom:14px;}
   .account-modal input{width:100%;padding:11px 13px;border:1px solid var(--line);
     border-radius:8px;margin-bottom:10px;font-family:inherit;font-size:14px;background:#fff;}
@@ -917,18 +954,12 @@
       <a href="#faq">Book a Fitting</a>
     </nav>
     <div class="header-icons">
-      <div class="cur-wrap">
-        <button class="cur-btn" id="curBtn" aria-haspopup="true" aria-expanded="false" aria-label="Change display currency">
-          <span id="curBtnLabel">₹ INR</span><span class="chev">▼</span>
-        </button>
-        <div class="cur-menu" id="curMenu" role="menu"></div>
-      </div>
       <button class="icon-btn" id="searchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
       <!-- Account and Wishlist are not implemented yet. Rather than render
            controls that do nothing when clicked, they stay out of the DOM
            until the features exist. -->
 
-      <a href="#" class="nav-account" id="accountTrigger">Sign in</a>
+      <a href="/signin" class="nav-account" id="accountTrigger">Sign in</a>
       <button class="icon-btn" id="cartBtn" aria-label="Cart">
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>
         <span class="cart-count" id="cartCount">2</span>
@@ -1358,7 +1389,12 @@
       currencies = {INR:{code:'INR',symbol:'₹',name:'Indian Rupee',decimals:2}};
       fxRates = {INR:1};
     }
-    activeCurrency = await resolveInitialCurrency();
+    // Display is pinned to INR, the currency actually charged. The header's
+    // currency picker was removed, and without it an automatic switch (browser
+    // locale or edge geo) would strand a visitor in a currency they cannot
+    // change back. The conversion module is left intact so restoring the
+    // picker is a markup change plus this one line.
+    activeCurrency = 'INR';
     renderCurrencyMenu();
     updateCurrencyChrome();
   }
@@ -2064,22 +2100,84 @@
 
     <div data-acct-tab="signin">
       <h3>Welcome back</h3>
-      <input type="email" id="loginEmail" placeholder="Email" autocomplete="email">
-      <input type="password" id="loginPassword" placeholder="Password" autocomplete="current-password">
-      <button class="btn btn-primary" id="loginSubmitBtn">Sign in</button>
-      <p class="acct-msg" id="loginMsg" style="display:none;"></p>
+      <form id="loginForm" class="acct-form" novalidate>
+        <div class="field">
+          <label for="loginEmail">Email address <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="email" id="loginEmail" name="email" autocomplete="email"
+                   inputmode="email" required aria-describedby="loginEmailErr">
+          </div>
+          <p class="err" id="loginEmailErr"></p>
+        </div>
+        <div class="field">
+          <label for="loginPassword">Password <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="password" id="loginPassword" name="password"
+                   autocomplete="current-password" required aria-describedby="loginPasswordErr">
+          </div>
+          <p class="err" id="loginPasswordErr"></p>
+        </div>
+        <button class="btn btn-primary" id="loginSubmitBtn" type="submit">Sign in</button>
+        <p class="acct-msg" id="loginMsg" style="display:none;"></p>
+        <!-- The modal had no route out for a forgotten password, so the
+             backend's reset flow was unreachable from the storefront. The
+             reset link arrives by email, so that half stays a real page. -->
+        <p class="acct-muted" style="margin-top:12px;">
+          <a href="/forgot-password">Forgot your password?</a>
+        </p>
+      </form>
     </div>
 
     <div data-acct-tab="register" style="display:none;">
       <h3>Create an account</h3>
-      <input type="text" id="regName" placeholder="Your name" autocomplete="name">
-      <input type="email" id="regEmail" placeholder="Email" autocomplete="email">
-      <input type="tel" id="regPhone" placeholder="Phone (optional)" autocomplete="tel">
-      <input type="password" id="regPassword" placeholder="Password (10+ characters)" autocomplete="new-password">
-      <button class="btn btn-primary" id="registerSubmitBtn">Create account</button>
-      <p class="acct-msg" id="regMsg" style="display:none;"></p>
-      <p class="acct-muted">We send a confirmation link. Your order history stays
-        hidden until you confirm — that is deliberate, so nobody else can claim it.</p>
+      <form id="registerForm" class="acct-form" novalidate>
+        <div class="field">
+          <label for="regName">Full name <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="text" id="regName" name="name" autocomplete="name"
+                   required aria-describedby="regNameErr">
+          </div>
+          <p class="err" id="regNameErr"></p>
+        </div>
+        <div class="field">
+          <label for="regEmail">Email address <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="email" id="regEmail" name="email" autocomplete="email"
+                   inputmode="email" required aria-describedby="regEmailErr">
+          </div>
+          <p class="err" id="regEmailErr"></p>
+        </div>
+        <div class="field">
+          <label for="regPhone">Phone number</label>
+          <div class="control">
+            <input type="tel" id="regPhone" name="phone" autocomplete="tel"
+                   inputmode="tel" aria-describedby="regPhoneHint regPhoneErr">
+          </div>
+          <p class="hint" id="regPhoneHint">Optional — we use it only for delivery updates.</p>
+          <p class="err" id="regPhoneErr"></p>
+        </div>
+        <div class="field">
+          <label for="regPassword">Password <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="password" id="regPassword" name="password"
+                   autocomplete="new-password" required aria-describedby="regPwRules regPasswordErr">
+          </div>
+          <ul class="pw-rules" id="regPwRules" aria-live="polite"></ul>
+          <p class="err" id="regPasswordErr"></p>
+        </div>
+        <div class="field">
+          <label for="regConfirm">Confirm password <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="password" id="regConfirm" name="confirm"
+                   autocomplete="new-password" required aria-describedby="regConfirmErr">
+          </div>
+          <p class="err" id="regConfirmErr"></p>
+        </div>
+        <button class="btn btn-primary" id="registerSubmitBtn" type="submit">Create account</button>
+        <p class="acct-msg" id="regMsg" style="display:none;"></p>
+        <p class="acct-muted">We send a confirmation link. Your order history stays
+          hidden until you confirm — that is deliberate, so nobody else can claim it.</p>
+      </form>
     </div>
   </div>
 
@@ -2089,7 +2187,10 @@
         <h3 id="accountWho"></h3>
         <div class="acct-muted" id="accountEmail"></div>
       </div>
-      <button class="btn" id="accountLogout">Sign out</button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        <a class="btn" href="/account">Full account page</a>
+        <button class="btn" id="accountLogout">Sign out</button>
+      </div>
     </div>
 
     <div class="acct-banner" id="accountVerifyBanner" style="display:none;">
@@ -2385,8 +2486,29 @@
 
   const pdpEl = id => document.getElementById(id);
 
+  function pdpSortMedia(list){
+    return list.slice().sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+  }
+
+  /* The gallery for the CURRENT selection.
+
+     Variant photographs first, then product-level media, so choosing a colour
+     changes what you see without hiding the studio video. A colour with no
+     photographs of its own falls back to the whole set rather than showing an
+     empty frame. */
   function pdpMediaList(){
-    return (pdpProduct.media || []).slice().sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
+    const all = pdpSortMedia(pdpProduct.media || []);
+    if(!pdpVariant) return all;
+    const mine = all.filter(m => m.variant_id === pdpVariant.id);
+    if(mine.length === 0) return all;
+    const shared = all.filter(m => !m.variant_id);
+    return mine.concat(shared);
+  }
+
+  /* Whether any colour actually has its own photographs. Used to decide if the
+     gallery is worth re-rendering when the selection changes. */
+  function pdpHasVariantMedia(){
+    return (pdpProduct.media || []).some(m => m.variant_id);
   }
 
   function pdpRenderGallery(){
@@ -2491,7 +2613,17 @@
     const variants = pdpProduct.variants || [];
     const match = variants.find(v => v[key] === value && v.is_available && v.stock > 0)
       || variants.find(v => v[key] === value);
-    if(match){ pdpVariant = match; pdpRenderOptions(); pdpRenderPricing(); }
+    if(!match) return;
+    const changed = !pdpVariant || pdpVariant.id !== match.id;
+    pdpVariant = match;
+    pdpRenderOptions();
+    pdpRenderPricing();
+    if(changed && pdpHasVariantMedia()){
+      // Back to the first image of the newly chosen colour: keeping the old
+      // index would land on an unrelated photograph, or out of range.
+      pdpMediaIndex = 0;
+      pdpRenderGallery();
+    }
   }
 
   function openProductDetail(product){
@@ -3277,7 +3409,13 @@
 
   function renderAccountUI(){
     const trigger = document.getElementById('accountTrigger');
-    if(trigger) trigger.textContent = customer ? (customer.name.split(' ')[0] || 'Account') : 'Sign in';
+    if(trigger){
+      trigger.textContent = customer ? (customer.name.split(' ')[0] || 'Account') : 'Sign in';
+      // Header goes to the real pages. There were two account experiences --
+      // this modal and signin/signup/account.html -- and only the pages have
+      // labelled fields, inline validation and the password rules.
+      trigger.setAttribute('href', customer ? '/account' : '/signin');
+    }
     const signedOut = document.getElementById('accountSignedOut');
     const signedIn = document.getElementById('accountSignedIn');
     if(!signedOut || !signedIn) return;
@@ -3313,35 +3451,113 @@
   }
 
   // ---- sign in / register ----------------------------------------------
+  // Shared with the standalone pages; guarded so a failed script load leaves
+  // the form usable rather than dead (the server validates regardless).
+  const A = window.HairshaloAuth || null;
+
+  function setFieldError(inputId, errId, message){
+    const input = document.getElementById(inputId);
+    const err = document.getElementById(errId);
+    if(err){
+      err.textContent = message || '';
+      err.classList.toggle('show', !!message);
+    }
+    if(input){
+      input.closest('.field') && input.closest('.field').classList.toggle('invalid', !!message);
+      input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    }
+    return !message;
+  }
+
+  function clearErrors(ids){ ids.forEach(([i, e]) => setFieldError(i, e, '')); }
+
+  function busy(btn, on, label){
+    if(!btn) return;
+    btn.disabled = on;
+    if(on){ btn.dataset.idle = btn.dataset.idle || btn.textContent; btn.textContent = label; }
+    else if(btn.dataset.idle){ btn.textContent = btn.dataset.idle; }
+  }
+
   async function doLogin(){
-    const email = document.getElementById('loginEmail').value;
-    const password = document.getElementById('loginPassword').value;
-    accountMessage('loginMsg', 'Signing in…');
+    const emailEl = document.getElementById('loginEmail');
+    const pwEl = document.getElementById('loginPassword');
+    const btn = document.getElementById('loginSubmitBtn');
+    clearErrors([['loginEmail','loginEmailErr'], ['loginPassword','loginPasswordErr']]);
+
+    let ok = true;
+    const email = emailEl.value.trim();
+    if(!email) ok = setFieldError('loginEmail','loginEmailErr','Enter your email address.') && ok;
+    else if(A && !A.emailLooksValid(email))
+      ok = setFieldError('loginEmail','loginEmailErr','Enter a valid email address.') && ok;
+    if(!pwEl.value) ok = setFieldError('loginPassword','loginPasswordErr','Enter your password.') && ok;
+    if(!ok) return;
+
+    accountMessage('loginMsg', '');
+    busy(btn, true, 'Signing in…');
     try{
-      const data = await accountRequest('/account/login', {method:'POST', body:{email, password}});
+      const data = await accountRequest('/account/login', {method:'POST', body:{email, password: pwEl.value}});
       setAuthToken(data.access_token);
       customer = data.customer;
       accountMessage('loginMsg', '');
+      pwEl.value = '';
       renderAccountUI();
       accountTab('orders');
-      // A saved currency preference follows the customer to this device.
-      if(customer.preferred_currency) setCurrency(customer.preferred_currency);
-    }catch(err){ accountMessage('loginMsg', err.message, true); }
+      // A saved currency preference is deliberately NOT applied while there is
+      // no picker: it would switch the whole shop to a currency the customer
+      // has no way to switch back from.
+    }catch(err){
+      // The server's own wording ("Incorrect email or password.") is already
+      // safe to show and does not reveal whether the address exists.
+      accountMessage('loginMsg', err.message, true);
+    }finally{
+      busy(btn, false);
+    }
   }
 
   async function doRegister(){
-    const body = {
-      name: document.getElementById('regName').value,
-      email: document.getElementById('regEmail').value,
-      password: document.getElementById('regPassword').value,
-      phone: document.getElementById('regPhone').value || null
-    };
-    accountMessage('regMsg', 'Creating your account…');
+    const name = document.getElementById('regName').value.trim();
+    const email = document.getElementById('regEmail').value.trim();
+    const phone = document.getElementById('regPhone').value.trim();
+    const password = document.getElementById('regPassword').value;
+    const confirm = document.getElementById('regConfirm').value;
+    const btn = document.getElementById('registerSubmitBtn');
+    clearErrors([['regName','regNameErr'], ['regEmail','regEmailErr'],
+                 ['regPhone','regPhoneErr'], ['regPassword','regPasswordErr'],
+                 ['regConfirm','regConfirmErr']]);
+
+    let ok = true;
+    if(!name) ok = setFieldError('regName','regNameErr','Please tell us your name.') && ok;
+    if(!email) ok = setFieldError('regEmail','regEmailErr','Enter your email address.') && ok;
+    else if(A && !A.emailLooksValid(email))
+      ok = setFieldError('regEmail','regEmailErr','Enter a valid email address.') && ok;
+    // Phone is optional, so only a value that cannot be a phone number at all
+    // is an error.
+    if(phone && A && !A.phoneLooksValid(phone))
+      ok = setFieldError('regPhone','regPhoneErr','Enter a valid phone number, or leave it blank.') && ok;
+    if(A && !A.passwordOk(password, email))
+      ok = setFieldError('regPassword','regPasswordErr','Please meet the password requirements above.') && ok;
+    else if(!A && password.length < 10)
+      ok = setFieldError('regPassword','regPasswordErr','Use at least 10 characters.') && ok;
+    if(confirm !== password)
+      ok = setFieldError('regConfirm','regConfirmErr','The two passwords do not match.') && ok;
+    if(!ok) return;
+
+    accountMessage('regMsg', '');
+    busy(btn, true, 'Creating your account…');
     try{
-      const data = await accountRequest('/account/register', {method:'POST', body});
-      // Deliberately NOT "you're signed in" — nothing is confirmed yet.
+      const data = await accountRequest('/account/register',
+        {method:'POST', body:{name, email, password, phone: phone || null}});
+      // Deliberately NOT "you're signed in" — nothing is confirmed yet. The
+      // server answers the same way for an address that already exists, so
+      // this cannot be used to discover who has an account.
+      document.getElementById('registerForm').reset();
+      if(A) A.renderPasswordRules(document.getElementById('regPwRules'), '', '');
       accountMessage('regMsg', data.message);
-    }catch(err){ accountMessage('regMsg', err.message, true); }
+    }catch(err){
+      accountMessage('regMsg', err.message, true);
+    }finally{
+      busy(btn, false);
+    }
   }
 
   async function doLogout(){
@@ -3459,7 +3675,13 @@
     }
     const save = e.target.closest('[data-wish-add]');
     if(save){
-      if(!customer){ openAccount('signin'); showToast('Sign in to save items'); return; }
+      if(!customer){
+        // Popup rather than a redirect: the customer keeps their place on the
+        // page they were browsing.
+        openAccount('signin');
+        showToast('Sign in to save items');
+        return;
+      }
       try{
         await accountRequest('/account/wishlist', {method:'POST', body:{
           product_id: save.dataset.wishAdd,
@@ -3479,16 +3701,44 @@
     accountTab(tab || (customer ? 'orders' : 'signin'));
   }
 
+  // The header opens the popup, but the anchor keeps a real href so that
+  // middle-click, "open in new tab" and a JS failure all still reach a working
+  // page. preventDefault only fires for an ordinary left click.
   document.getElementById('accountTrigger').addEventListener('click', (e) => {
-    e.preventDefault(); openAccount();
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
+    e.preventDefault();
+    openAccount();
   });
   document.getElementById('accountClose').addEventListener('click',
     () => closeModal(accountModal, accountOverlay));
   accountOverlay.addEventListener('click', () => closeModal(accountModal, accountOverlay));
   document.querySelectorAll('[data-acct-tab-btn]').forEach(b =>
     b.addEventListener('click', () => accountTab(b.dataset.acctTabBtn)));
-  document.getElementById('loginSubmitBtn').addEventListener('click', doLogin);
-  document.getElementById('registerSubmitBtn').addEventListener('click', doRegister);
+  // Submit handlers rather than button clicks: the buttons are type="submit"
+  // inside real forms now, so Enter works and a click cannot skip validation.
+  document.getElementById('loginForm').addEventListener('submit', (e) => {
+    e.preventDefault(); doLogin();
+  });
+  document.getElementById('registerForm').addEventListener('submit', (e) => {
+    e.preventDefault(); doRegister();
+  });
+
+  if(A){
+    A.attachPasswordToggle(document.getElementById('loginPassword'));
+    A.attachPasswordToggle(document.getElementById('regPassword'));
+    A.attachPasswordToggle(document.getElementById('regConfirm'));
+    const pw = document.getElementById('regPassword');
+    const rules = document.getElementById('regPwRules');
+    const email = document.getElementById('regEmail');
+    const paint = () => A.renderPasswordRules(rules, pw.value, email.value);
+    paint();
+    pw.addEventListener('input', paint);
+    email.addEventListener('input', paint);
+    // Clear a mismatch the moment it stops being true.
+    document.getElementById('regConfirm').addEventListener('input', (e) => {
+      if(e.target.value === pw.value) setFieldError('regConfirm','regConfirmErr','');
+    });
+  }
   document.getElementById('accountLogout').addEventListener('click', doLogout);
   document.getElementById('accountResend').addEventListener('click', async () => {
     try{

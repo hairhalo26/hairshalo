@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign In | Hairshalo</title>
+<meta name="description" content="Sign in to your Hairshalo account to track orders, manage your wishlist and see your loyalty points.">
+<meta name="theme-color" content="#1A2338">
+<link rel="canonical" href="https://hairshalo.com/signin">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Hairshalo">
+<meta property="og:title" content="Sign In | Hairshalo">
+<meta property="og:description" content="Sign in to your Hairshalo account.">
+<meta property="og:url" content="https://hairshalo.com/signin">
+<meta property="og:image" content="https://hairshalo.com/assets/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/auth.css">
+</head>
+<body>
+<div class="auth-shell">
+  <header class="auth-top">
+    <a href="/" class="logo" aria-label="Hairshalo — home">
+      <img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="28">HAIRSHALO
+    </a>
+    <a class="back" href="/">&larr; Back to the shop</a>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="auth-head">
+        <span class="eyebrow">Your Account</span>
+        <h1>Welcome back</h1>
+        <p>Sign in to track orders, save favourites and use your loyalty points.</p>
+      </div>
+
+      <div class="notice" id="notice"></div>
+
+      <form id="form" novalidate>
+        <div class="field">
+          <label for="email">Email address <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="email" id="email" name="email" autocomplete="email"
+                   inputmode="email" required aria-describedby="emailErr">
+          </div>
+          <p class="err" id="emailErr"></p>
+        </div>
+
+        <div class="field">
+          <label for="password">Password <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="password" id="password" name="password"
+                   autocomplete="current-password" required aria-describedby="passwordErr">
+          </div>
+          <p class="err" id="passwordErr"></p>
+        </div>
+
+        <div class="auth-links">
+          <a href="/forgot-password">Forgot your password?</a>
+        </div>
+
+        <button class="btn btn-primary" type="submit" id="submit" style="margin-top:18px;">
+          <span class="spinner" aria-hidden="true"></span><span class="label">Sign in</span>
+        </button>
+      </form>
+
+      <p class="auth-alt">
+        New to Hairshalo? <a href="/signup">Create an account</a>
+      </p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/auth.js"></script>
+<script>
+(function () {
+  var A = window.HairshaloAuth;
+  var form = A.$('#form'), notice = A.$('#notice'), submit = A.$('#submit');
+  var email = A.$('#email'), password = A.$('#password');
+
+  A.attachPasswordToggle(password);
+
+  // Already signed in? Nothing here to do.
+  if (A.getToken()) {
+    A.api('/account/me', { auth: true })
+      .then(function () { A.redirect('/account'); })
+      .catch(function () { /* stale token was cleared by the client */ });
+  }
+
+  // A customer sent here by a protected page gets told why, once.
+  if (A.queryParam('next')) {
+    A.showNotice(notice, 'info', 'Please sign in to continue.');
+  }
+
+  [email, password].forEach(function (el) {
+    el.addEventListener('input', function () { A.fieldError(el, ''); });
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    A.hideNotice(notice);
+
+    var ok = true;
+    ok = A.fieldError(email, A.emailLooksValid(email.value) ? '' : 'Enter a valid email address.') && ok;
+    ok = A.fieldError(password, password.value ? '' : 'Enter your password.') && ok;
+    if (!ok) { (email.getAttribute('aria-invalid') ? email : password).focus(); return; }
+
+    A.setBusy(submit, true, 'Signing in…');
+    A.api('/account/login', {
+      method: 'POST',
+      body: { email: email.value.trim(), password: password.value }
+    }).then(function (data) {
+      A.setToken(data.access_token);
+      // The server decides where a signed-in customer may go; `next` is only
+      // honoured when it is a path on this site, never an absolute URL.
+      var next = A.queryParam('next');
+      var safe = next && /^\/[^/\\]/.test(next) ? next : '/account';
+      A.redirect(safe);
+    }).catch(function (err) {
+      A.setBusy(submit, false);
+      A.showNotice(notice, 'error', err.message);
+      password.value = '';
+      password.focus();
+    });
+  });
+})();
+</script>
+</body>
+</html>

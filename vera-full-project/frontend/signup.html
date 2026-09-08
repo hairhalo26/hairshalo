@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Create an Account | Hairshalo</title>
+<meta name="description" content="Create a Hairshalo account to track orders, save favourites and earn loyalty points on premium human hair wigs and extensions.">
+<meta name="theme-color" content="#1A2338">
+<link rel="canonical" href="https://hairshalo.com/signup">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Hairshalo">
+<meta property="og:title" content="Create an Account | Hairshalo">
+<meta property="og:description" content="Join Hairshalo — track orders, save favourites, earn loyalty points.">
+<meta property="og:url" content="https://hairshalo.com/signup">
+<meta property="og:image" content="https://hairshalo.com/assets/og-image.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/auth.css">
+</head>
+<body>
+<div class="auth-shell">
+  <header class="auth-top">
+    <a href="/" class="logo" aria-label="Hairshalo — home">
+      <img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="28">HAIRSHALO
+    </a>
+    <a class="back" href="/">&larr; Back to the shop</a>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="auth-head">
+        <span class="eyebrow">Your Account</span>
+        <h1>Create your account</h1>
+        <p>Track orders, keep a wishlist, and earn points on every purchase.</p>
+      </div>
+
+      <div class="notice" id="notice"></div>
+
+      <form id="form" novalidate>
+        <div class="field">
+          <label for="name">Full name <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="text" id="name" name="name" autocomplete="name" required
+                   aria-describedby="nameErr">
+          </div>
+          <p class="err" id="nameErr"></p>
+        </div>
+
+        <div class="field">
+          <label for="email">Email address <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="email" id="email" name="email" autocomplete="email"
+                   inputmode="email" required aria-describedby="emailErr">
+          </div>
+          <p class="err" id="emailErr"></p>
+        </div>
+
+        <div class="field">
+          <label for="phone">Phone number</label>
+          <div class="control">
+            <input type="tel" id="phone" name="phone" autocomplete="tel"
+                   inputmode="tel" aria-describedby="phoneHint phoneErr">
+          </div>
+          <p class="hint" id="phoneHint">Optional — we use it only for delivery updates.</p>
+          <p class="err" id="phoneErr"></p>
+        </div>
+
+        <div class="field">
+          <label for="password">Password <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="password" id="password" name="password"
+                   autocomplete="new-password" required aria-describedby="pwRules passwordErr">
+          </div>
+          <ul class="pw-rules" id="pwRules" aria-live="polite"></ul>
+          <p class="err" id="passwordErr"></p>
+        </div>
+
+        <div class="field">
+          <label for="confirm">Confirm password <span class="req" aria-hidden="true">*</span></label>
+          <div class="control">
+            <input type="password" id="confirm" name="confirm"
+                   autocomplete="new-password" required aria-describedby="confirmErr">
+          </div>
+          <p class="err" id="confirmErr"></p>
+        </div>
+
+        <button class="btn btn-primary" type="submit" id="submit" style="margin-top:8px;">
+          <span class="spinner" aria-hidden="true"></span><span class="label">Create account</span>
+        </button>
+      </form>
+
+      <p class="auth-alt">
+        Already have an account? <a href="/signin">Sign in</a>
+      </p>
+    </div>
+  </main>
+</div>
+
+<script src="assets/auth.js"></script>
+<script>
+(function () {
+  var A = window.HairshaloAuth;
+  var form = A.$('#form'), notice = A.$('#notice'), submit = A.$('#submit');
+  var name = A.$('#name'), email = A.$('#email'), phone = A.$('#phone');
+  var password = A.$('#password'), confirm = A.$('#confirm'), rules = A.$('#pwRules');
+
+  A.attachPasswordToggle(password);
+  A.attachPasswordToggle(confirm);
+  A.renderPasswordRules(rules, '', '');
+
+  function refreshRules() { A.renderPasswordRules(rules, password.value, email.value); }
+  password.addEventListener('input', function () { refreshRules(); A.fieldError(password, ''); });
+  email.addEventListener('input', function () { refreshRules(); A.fieldError(email, ''); });
+  [name, phone, confirm].forEach(function (el) {
+    el.addEventListener('input', function () { A.fieldError(el, ''); });
+  });
+
+  form.addEventListener('submit', function (e) {
+    e.preventDefault();
+    A.hideNotice(notice);
+
+    var ok = true;
+    ok = A.fieldError(name, name.value.trim() ? '' : 'Please tell us your name.') && ok;
+    ok = A.fieldError(email, A.emailLooksValid(email.value) ? '' : 'Enter a valid email address.') && ok;
+    ok = A.fieldError(phone, A.phoneLooksValid(phone.value) ? '' : 'Enter a valid phone number, or leave it blank.') && ok;
+    ok = A.fieldError(password, A.passwordOk(password.value, email.value)
+          ? '' : 'Your password does not meet the requirements above.') && ok;
+    ok = A.fieldError(confirm, confirm.value === password.value ? '' : 'The two passwords do not match.') && ok;
+    if (!ok) {
+      var bad = form.querySelector('[aria-invalid="true"]');
+      if (bad) bad.focus();
+      return;
+    }
+
+    A.setBusy(submit, true, 'Creating your account…');
+    A.api('/account/register', {
+      method: 'POST',
+      body: {
+        name: name.value.trim(),
+        email: email.value.trim(),
+        password: password.value,
+        phone: phone.value.trim() || null
+      }
+    }).then(function (data) {
+      /* The backend answers identically whether or not the address already had
+         an account — that is deliberate, so this page cannot be used to find
+         out who shops here. So the success state says "check your inbox" and
+         never "that email is taken". */
+      form.style.display = 'none';
+      A.showNotice(notice, 'ok', data.message ||
+        'Check your inbox to confirm your email address.');
+      document.querySelector('.auth-head h1').textContent = 'Almost there';
+      document.querySelector('.auth-head p').textContent =
+        'We have sent you a confirmation link. Your orders and points appear once your email is confirmed.';
+      notice.focus && notice.focus();
+    }).catch(function (err) {
+      A.setBusy(submit, false);
+      A.showNotice(notice, 'error', err.message);
+    });
+  });
+})();
+</script>
+</body>
+</html>

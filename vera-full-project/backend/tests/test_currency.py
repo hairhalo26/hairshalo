@@ -172,7 +172,11 @@ def test_client_cannot_supply_an_exchange_rate(live):
     assert r.status_code == 201
     order = r.json()
     assert order["currency"] == "INR"                       # settled in INR
-    assert float(order["total"]) == float(v["price"])       # real price charged
+    # Subtotal, not total: total also carries the shipping fee, so comparing it
+    # to the unit price only passed while the first in-stock variant happened
+    # to clear the free-shipping threshold. What this test is actually about is
+    # that the SERVER priced the line, not the client's "price": 1.
+    assert float(order["subtotal"]) == float(v["price"])    # real price charged
     assert float(order["display_rate"]) != 0.00001          # our rate, not theirs
     assert order["display_currency"] == "USD"
 

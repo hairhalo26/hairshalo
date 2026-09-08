@@ -20,7 +20,7 @@ from datetime import datetime, timedelta
 from sqlalchemy import inspect
 
 from app.database import engine, SessionLocal
-from app import loyalty, models, reviews, seed_placeholders
+from app import inventory, loyalty, models, reviews, seed_placeholders
 from app.pricing import compute_pricing
 from app.security import hash_password
 
@@ -213,6 +213,19 @@ def run():
                 products.append(p)
 
             db.add_all(products)
+            db.flush()
+
+            # Demo stock has to enter through the same door real stock does.
+            # Assigning `variant.stock` directly (which this used to do) leaves
+            # the movement log unable to explain the quantity, and
+            # test_the_movement_log_always_explains_the_stock then fails on any
+            # freshly seeded database — training everyone to ignore a failing
+            # inventory invariant. open_stock() rebases to zero and records the
+            # opening balance as a real movement.
+            for p in products:
+                for variant in p.variants:
+                    inventory.open_stock(db, variant, variant.stock or 0,
+                                         actor="seed")
             db.flush()
 
             print("Seeding inventory...")

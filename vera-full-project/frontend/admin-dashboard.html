@@ -232,6 +232,47 @@
     position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
     color:#fff;font-size:20px;background:rgba(43,27,20,.35);
   }
+  /* --- media manager --- */
+  .pf-media-card{
+    width:150px;border:1px solid var(--line);border-radius:12px;overflow:hidden;
+    background:#fff;display:flex;flex-direction:column;
+  }
+  .pf-media-card.primary{border-color:var(--wine);box-shadow:0 0 0 1px var(--wine);}
+  .pf-media-card .mc-thumb{
+    position:relative;height:120px;
+    background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34);
+  }
+  .pf-media-card .mc-thumb img{width:100%;height:100%;object-fit:cover;display:block;}
+  .pf-media-card .mc-pos{
+    position:absolute;top:6px;left:6px;background:rgba(43,27,20,.8);color:#fff;
+    font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;
+  }
+  .pf-media-card .mc-flag{
+    position:absolute;top:6px;right:6px;background:var(--wine);color:#fff;
+    font-size:9px;font-weight:700;padding:2px 7px;border-radius:20px;letter-spacing:.05em;
+  }
+  .pf-media-card .mc-meta{
+    padding:7px 8px 0;font-size:10px;color:var(--muted,#7A6A5F);line-height:1.5;
+    display:flex;justify-content:space-between;gap:6px;
+  }
+  .pf-media-card select{
+    margin:6px 8px;font-family:inherit;font-size:11px;padding:4px 6px;
+    border:1px solid var(--line);border-radius:7px;background:#fff;width:calc(100% - 16px);
+  }
+  .pf-media-card .mc-row{display:flex;border-top:1px solid var(--line);}
+  .pf-media-card .mc-row button{
+    flex:1;font-size:9.5px;font-weight:700;letter-spacing:.04em;padding:6px 0;
+    background:none;cursor:pointer;color:var(--ink,#2B1B14);border:none;
+    border-right:1px solid var(--line);
+  }
+  .pf-media-card .mc-row button:last-child{border-right:none;}
+  .pf-media-card .mc-row button:hover:not(:disabled){background:#FAF5EE;}
+  .pf-media-card .mc-row button:disabled{opacity:.3;cursor:not-allowed;}
+  .pf-media-card .mc-row button.danger{color:var(--danger);}
+  .pf-media-card.busy{opacity:.55;pointer-events:none;}
+  .pf-media-card .mc-error{
+    font-size:10px;color:var(--danger);padding:0 8px 6px;line-height:1.4;
+  }
   .pf-upload{
     border:1.5px dashed var(--line);border-radius:12px;padding:16px;text-align:center;
     font-size:12.5px;color:var(--text-soft);cursor:pointer;transition:border-color .2s;
@@ -1601,21 +1642,87 @@
   });
 
   /* ---- Media ---- */
+  function pfFileSize(bytes){
+    if(bytes == null) return '—';
+    return bytes >= 1048576 ? (bytes / 1048576).toFixed(1) + ' MB'
+                            : Math.max(1, Math.round(bytes / 1024)) + ' KB';
+  }
+
+  // Short label for the type column: the stored content type, not a guess
+  // from the file extension.
+  function pfFileKind(m){
+    if(m.content_type) return m.content_type.split('/')[1].toUpperCase();
+    return m.media_type === 'video' ? 'VIDEO' : 'IMAGE';
+  }
+
+  /* Gallery order is the sort_order the server holds; ties fall back to the
+     order the API returned so the view never reshuffles on its own. */
+  function pfMediaSorted(){
+    return pfMedia.map((m, i) => [m, i])
+      .sort((a, b) => (a[0].sort_order || 0) - (b[0].sort_order || 0) || a[1] - b[1])
+      .map(pair => pair[0]);
+  }
+
   function pfRenderMedia(){
-    el('pfMediaGrid').innerHTML = pfMedia.map(m => `
-      <div class="pf-media-item ${m.is_primary ? 'primary' : ''}">
-        ${m.media_type === 'image'
-          ? `<img src="${resolveMediaUrl(m.url)}" alt="">`
-          : `<div class="mi-video">▶</div>`}
-        <div class="mi-actions">
-          ${m.media_type === 'image' && !m.is_primary ? `<button type="button" data-mprimary="${m.id}">SET MAIN</button>` : ''}
-          <button type="button" data-mdelete="${m.id}">DELETE</button>
+    const ordered = pfMediaSorted();
+    // Only variants that have been saved can own a file; unsaved rows have no id.
+    const variantOptions = (pfVariantRows || [])
+      .filter(v => v.id)
+      .map(v => ({id: v.id, label: [v.color, v.length].filter(Boolean).join(' · ') || v.sku}));
+
+    el('pfMediaGrid').innerHTML = ordered.map((m, idx) => `
+      <div class="pf-media-card ${m.is_primary ? 'primary' : ''}" data-mcard="${m.id}">
+        <div class="mc-thumb">
+          ${m.media_type === 'image'
+            ? `<img src="${resolveMediaUrl(m.url)}" alt="${(m.alt_text || '').replace(/"/g, '&quot;')}" loading="lazy">`
+            : `<div class="mi-video">▶</div>`}
+          <span class="mc-pos">${idx + 1}</span>
+          ${m.is_primary ? `<span class="mc-flag">MAIN</span>` : ''}
         </div>
+        <div class="mc-meta"><span>${pfFileKind(m)}</span><span>${pfFileSize(m.file_size)}</span></div>
+        ${variantOptions.length ? `
+          <select data-mvariant="${m.id}" aria-label="Which colour this file shows">
+            <option value=""${m.variant_id ? '' : ' selected'}>All colours</option>
+            ${variantOptions.map(v => `
+              <option value="${v.id}"${m.variant_id === v.id ? ' selected' : ''}>${v.label}</option>`).join('')}
+          </select>` : ''}
+        <div class="mc-row">
+          <button type="button" data-mmove="${m.id}" data-dir="-1" ${idx === 0 ? 'disabled' : ''} title="Move earlier">◀</button>
+          <button type="button" data-mmove="${m.id}" data-dir="1" ${idx === ordered.length - 1 ? 'disabled' : ''} title="Move later">▶</button>
+          <button type="button" data-mprimary="${m.id}" ${m.is_primary || m.media_type !== 'image' ? 'disabled' : ''} title="Use as the main image">MAIN</button>
+        </div>
+        <div class="mc-row">
+          <button type="button" data-mreplace="${m.id}" title="Upload a new file in place of this one">REPLACE</button>
+          <button type="button" class="danger" data-mdelete="${m.id}">DELETE</button>
+        </div>
+        <div class="mc-error" data-merror="${m.id}"></div>
       </div>`).join('');
+
+    const withVariant = pfMedia.filter(m => m.variant_id).length;
     el('pfMediaHint').textContent = pfEditingId
-      ? (pfMedia.length ? `${pfMedia.length} file(s). The bordered image is the primary.` : 'No media yet — upload at least one image before publishing.')
+      ? (pfMedia.length
+          ? `${pfMedia.length} file(s) · ${withVariant} assigned to a colour · the outlined card is the main image.`
+          : 'No media yet — upload at least one image before publishing.')
       : 'Save the product first, then upload media.';
     el('pfUploadZone').style.display = pfEditingId ? 'block' : 'none';
+  }
+
+  function pfMediaError(id, message){
+    const box = document.querySelector(`[data-merror="${id}"]`);
+    if(box) box.textContent = message || '';
+  }
+
+  function pfCardBusy(id, busy){
+    const card = document.querySelector(`[data-mcard="${id}"]`);
+    if(card) card.classList.toggle('busy', !!busy);
+  }
+
+  /* Persist the current on-screen order. The server owns sort_order, so the
+     new positions are sent and the server's answer replaces local state. */
+  async function pfPersistOrder(ordered){
+    const payload = {order: ordered.map((m, i) => ({id: m.id, sort_order: i}))};
+    pfMedia = await apiSend('POST', `/products/${pfEditingId}/media/reorder`, payload);
+    pfRenderMedia();
   }
 
   // Media URLs are returned relative (e.g. /media/x.jpg); resolve against the API host.
@@ -1625,17 +1732,34 @@
     return API_BASE.replace(/\/api$/, '') + url;
   }
 
-  el('pfUploadZone').addEventListener('click', () => el('pfFileInput').click());
+  let pfReplacingId = null;   // set when the file picker was opened by REPLACE
+
+  el('pfUploadZone').addEventListener('click', () => {
+    pfReplacingId = null;
+    el('pfFileInput').click();
+  });
+
   el('pfFileInput').addEventListener('change', async (e) => {
     const files = [...e.target.files];
     e.target.value = '';
+    const replacing = pfReplacingId;
+    pfReplacingId = null;
     if(!pfEditingId || files.length === 0) return;
+
+    // When replacing, the new file inherits the old one's colour and position
+    // so a swapped photograph does not silently jump to the end of the gallery.
+    const old = replacing ? pfMedia.find(m => m.id === replacing) : null;
+
     el('pfMediaArea').classList.add('pf-busy');
-    el('pfMediaHint').textContent = 'Uploading…';
+    const total = files.length;
+    let done = 0;
+    el('pfMediaHint').textContent = `Uploading 1 of ${total}…`;
+
     for(const f of files){
       const fd = new FormData();
       fd.append('file', f);
       fd.append('alt_text', el('pfName').value || '');
+      if(old && old.variant_id) fd.append('variant_id', old.variant_id);
       try{
         const res = await fetch(`${API_BASE}/products/${pfEditingId}/media/upload`, {
           method:'POST', headers:{'Authorization':'Bearer ' + authToken}, body: fd
@@ -1645,11 +1769,37 @@
           try{ d = (await res.json()).detail || d; }catch(_){}
           throw new Error(d);
         }
-        pfMedia.push(await res.json());
+        const created = await res.json();
+        pfMedia.push(created);
+
+        if(old){
+          // Only now is the old file removed — an upload that failed above
+          // leaves the original in place.
+          try{
+            await apiSend('DELETE', '/products/media/' + old.id);
+            pfMedia = pfMedia.filter(m => m.id !== old.id);
+            const ordered = pfMediaSorted();
+            const oldPos = Math.max(0, (old.sort_order || 0));
+            const cur = ordered.findIndex(m => m.id === created.id);
+            if(cur >= 0 && oldPos < ordered.length){
+              ordered.splice(oldPos, 0, ordered.splice(cur, 1)[0]);
+              await pfPersistOrder(ordered);
+            }
+            if(old.is_primary){
+              pfMedia = await apiSend('POST', `/products/${pfEditingId}/media/reorder`,
+                {order: [], primary_id: created.id});
+            }
+          }catch(err){
+            el('pfError').textContent = 'Uploaded, but the old file could not be removed: ' + err.message;
+            el('pfError').style.display = 'block';
+          }
+        }
       }catch(err){
         el('pfError').textContent = `${f.name}: ${err.message}`;
         el('pfError').style.display = 'block';
       }
+      done += 1;
+      if(done < total) el('pfMediaHint').textContent = `Uploading ${done + 1} of ${total}…`;
     }
     el('pfMediaArea').classList.remove('pf-busy');
     pfRenderMedia();
@@ -1658,23 +1808,69 @@
   document.addEventListener('click', async (e) => {
     const del = e.target.closest('[data-mdelete]');
     const prim = e.target.closest('[data-mprimary]');
+    const move = e.target.closest('[data-mmove]');
+    const repl = e.target.closest('[data-mreplace]');
+
     if(del){
+      const id = del.dataset.mdelete;
+      // Deleting media removes the stored file too, so it is worth a question.
+      if(!confirm('Delete this file? The stored image is removed as well.')) return;
+      pfCardBusy(id, true);
       try{
-        await apiSend('DELETE', '/products/media/' + del.dataset.mdelete);
-        pfMedia = pfMedia.filter(m => m.id !== del.dataset.mdelete);
+        await apiSend('DELETE', '/products/media/' + id);
+        pfMedia = pfMedia.filter(m => m.id !== id);
         if(pfMedia.length && !pfMedia.some(m => m.is_primary)){
           const first = pfMedia.find(m => m.media_type === 'image');
           if(first) first.is_primary = true;
         }
         pfRenderMedia();
-      }catch(err){ alert(err.message); }
+      }catch(err){ pfCardBusy(id, false); pfMediaError(id, err.message); }
+
     } else if(prim){
+      const id = prim.dataset.mprimary;
+      pfCardBusy(id, true);
       try{
-        const updated = await apiSend('POST', `/products/${pfEditingId}/media/reorder`,
-          {order: [], primary_id: prim.dataset.mprimary});
-        pfMedia = updated;
+        pfMedia = await apiSend('POST', `/products/${pfEditingId}/media/reorder`,
+          {order: [], primary_id: id});
         pfRenderMedia();
-      }catch(err){ alert(err.message); }
+      }catch(err){ pfCardBusy(id, false); pfMediaError(id, err.message); }
+
+    } else if(move){
+      const id = move.dataset.mmove;
+      const dir = parseInt(move.dataset.dir, 10);
+      const ordered = pfMediaSorted();
+      const from = ordered.findIndex(m => m.id === id);
+      const to = from + dir;
+      if(from < 0 || to < 0 || to >= ordered.length) return;
+      ordered.splice(to, 0, ordered.splice(from, 1)[0]);
+      pfCardBusy(id, true);
+      try{ await pfPersistOrder(ordered); }
+      catch(err){ pfCardBusy(id, false); pfMediaError(id, err.message); }
+
+    } else if(repl){
+      // Replace = upload the new file, then delete the old one, and only in
+      // that order: if the upload fails the product still has its image.
+      pfReplacingId = repl.dataset.mreplace;
+      el('pfFileInput').click();
+    }
+  });
+
+  /* Re-file an image onto a colour (or back to the whole product). */
+  document.addEventListener('change', async (e) => {
+    const sel = e.target.closest('[data-mvariant]');
+    if(!sel) return;
+    const id = sel.dataset.mvariant;
+    pfCardBusy(id, true);
+    pfMediaError(id, '');
+    try{
+      const updated = await apiSend('PATCH', `/products/${pfEditingId}/media/${id}`,
+        {variant_id: sel.value});
+      const i = pfMedia.findIndex(m => m.id === id);
+      if(i >= 0) pfMedia[i] = updated;
+      pfRenderMedia();
+    }catch(err){
+      pfCardBusy(id, false);
+      pfMediaError(id, err.message);
     }
   });
 

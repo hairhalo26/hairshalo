@@ -83,7 +83,20 @@ class ProductMediaBase(BaseModel):
 
 
 class ProductMediaCreate(ProductMediaBase):
-    pass
+    # Optional: attach this file to one variant (a colour). The router checks
+    # the variant belongs to the same product before accepting it.
+    variant_id: Optional[str] = None
+
+
+class ProductMediaUpdate(BaseModel):
+    """Re-file an existing image: which variant it shows, and its alt text.
+
+    Every field is optional and unset means "leave it alone" — `variant_id`
+    needs to distinguish "not mentioned" from "set to product-level", so
+    clearing it is done by sending the empty string.
+    """
+    variant_id: Optional[str] = None
+    alt_text: Optional[str] = None
 
 
 class ProductMediaReorder(BaseModel):
@@ -97,6 +110,11 @@ class ProductMediaOut(ProductMediaBase):
     id: str
     content_type: Optional[str] = None
     file_size: Optional[int] = None
+    # Which variant this file shows, or None for product-level media. Output
+    # only: assigning media to a variant has to check that the variant actually
+    # belongs to the product, so the write path is a deliberate separate change
+    # rather than a field the client can simply set.
+    variant_id: Optional[str] = None
 
 
 # ---------- Product variants ----------

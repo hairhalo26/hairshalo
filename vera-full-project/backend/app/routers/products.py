@@ -79,6 +79,43 @@ def _variant_out(v: models.ProductVariant, product: models.Product) -> schemas.P
     )
 
 
+def _media_out(m: models.ProductMedia) -> schemas.ProductMediaOut:
+    """The ONE place a ProductMedia becomes JSON.
+
+    This used to be hand-built at four call sites, which is how `variant_id`
+    came to exist on the row, be set correctly by the importer, and still read
+    as null over the API.
+    """
+    return schemas.ProductMediaOut(
+        id=m.id,
+        url=m.url,
+        media_type=m.media_type.value,
+        alt_text=m.alt_text or "",
+        sort_order=m.sort_order or 0,
+        is_primary=bool(m.is_primary),
+        content_type=m.content_type,
+        file_size=m.file_size,
+        variant_id=m.variant_id,
+    )
+
+
+def _variant_of(product: models.Product, variant_id):
+    """Resolve a variant id that must belong to THIS product.
+
+    Without this check an admin request could attach one product's photograph
+    to another product's variant, which is how galleries start lying.
+    """
+    if variant_id in (None, "", "null"):
+        return None
+    variant = next((v for v in product.variants if v.id == variant_id), None)
+    if variant is None:
+        raise HTTPException(
+            status_code=400,
+            detail="variant_id does not belong to this product.",
+        )
+    return variant
+
+
 def _to_out(product: models.Product) -> schemas.ProductOut:
     pmin, pmax = product.price_range
     video = next((m for m in product.media if m.media_type == models.MediaType.video), None)
@@ -119,11 +156,7 @@ def _to_out(product: models.Product) -> schemas.ProductOut:
         on_sale=product.on_sale,
         price_min=pmin,
         price_max=pmax,
-        media=[schemas.ProductMediaOut(
-            id=m.id, url=m.url, media_type=m.media_type.value, alt_text=m.alt_text or "",
-            sort_order=m.sort_order or 0, is_primary=bool(m.is_primary),
-            content_type=m.content_type, file_size=m.file_size,
-        ) for m in product.media],
+        media=[_media_out(m) for m in product.media],
         variants=[_variant_out(v, product) for v in product.variants],
         readiness=_readiness(product),
         published_at=product.published_at,
@@ -657,15 +690,13 @@ def add_media(
         media_type=models.MediaType(payload.media_type),
         alt_text=payload.alt_text, sort_order=payload.sort_order,
         is_primary=payload.is_primary,
+        variant_id=_variant_of(product, payload.variant_id).id
+        if payload.variant_id else None,
     )
     db.add(media)
     db.commit()
     db.refresh(media)
-    return schemas.ProductMediaOut(
-        id=media.id, url=media.url, media_type=media.media_type.value,
-        alt_text=media.alt_text or "", sort_order=media.sort_order or 0,
-        is_primary=bool(media.is_primary),
-    )
+    return _media_out(media)
 
 
 @router.post("/{product_id}/media/upload", response_model=schemas.ProductMediaOut, status_code=201)
@@ -674,6 +705,7 @@ async def upload_media(
     file: UploadFile = File(...),
     alt_text: str = Form(""),
     is_primary: bool = Form(False),
+    variant_id: str = Form(""),
     db: Session = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
@@ -683,6 +715,9 @@ async def upload_media(
     declared content type must agree with the file's magic bytes.
     """
     product = _get_or_404(product_id, db)
+    # Validated BEFORE anything is written to storage, so a bad variant id
+    # cannot leave an orphaned file behind.
+    variant = _variant_of(product, variant_id)
 
     head = await file.read(32)
     try:
@@ -716,16 +751,12 @@ async def upload_media(
         storage_key=storage_key,
         content_type=file.content_type,
         file_size=size,
+        variant_id=variant.id if variant is not None else None,
     )
     db.add(media)
     db.commit()
     db.refresh(media)
-    return schemas.ProductMediaOut(
-        id=media.id, url=media.url, media_type=media.media_type.value,
-        alt_text=media.alt_text or "", sort_order=media.sort_order or 0,
-        is_primary=bool(media.is_primary), content_type=media.content_type,
-        file_size=media.file_size,
-    )
+    return _media_out(media)
 
 
 @router.post("/{product_id}/media/reorder", response_model=List[schemas.ProductMediaOut])
@@ -748,11 +779,38 @@ def reorder_media(
             m.is_primary = (m.id == payload.primary_id)
     db.commit()
     db.refresh(product)
-    return [schemas.ProductMediaOut(
-        id=m.id, url=m.url, media_type=m.media_type.value, alt_text=m.alt_text or "",
-        sort_order=m.sort_order or 0, is_primary=bool(m.is_primary),
-        content_type=m.content_type, file_size=m.file_size,
-    ) for m in product.media]
+    return [_media_out(m) for m in sorted(
+        product.media, key=lambda x: (x.sort_order or 0))]
+
+
+@router.patch("/{product_id}/media/{media_id}", response_model=schemas.ProductMediaOut)
+def update_media(
+    product_id: str,
+    media_id: str,
+    payload: schemas.ProductMediaUpdate,
+    db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Re-file an image: move it to a variant, back to the product, or retitle.
+
+    The media id is looked up WITHIN the product rather than globally, so a
+    request cannot reach another product's row by guessing an id.
+    """
+    product = _get_or_404(product_id, db)
+    media = next((m for m in product.media if m.id == media_id), None)
+    if media is None:
+        raise HTTPException(status_code=404, detail="Media not found on this product")
+
+    if payload.variant_id is not None:
+        # "" means product-level; anything else must be a variant of this product.
+        media.variant_id = (_variant_of(product, payload.variant_id).id
+                            if payload.variant_id else None)
+    if payload.alt_text is not None:
+        media.alt_text = payload.alt_text
+
+    db.commit()
+    db.refresh(media)
+    return _media_out(media)
 
 
 @router.delete("/media/{media_id}", status_code=204)

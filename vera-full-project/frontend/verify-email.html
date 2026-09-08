@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Confirm Your Email | Hairshalo</title>
+<meta name="description" content="Confirm your email address to activate your Hairshalo account.">
+<meta name="theme-color" content="#1A2338">
+<meta name="robots" content="noindex, nofollow">
+<meta name="referrer" content="no-referrer">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/auth.css">
+</head>
+<body>
+<div class="auth-shell">
+  <header class="auth-top">
+    <a href="/" class="logo" aria-label="Hairshalo — home">
+      <img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="28">HAIRSHALO
+    </a>
+    <a class="back" href="/">&larr; Back to the shop</a>
+  </header>
+
+  <main class="auth-main">
+    <div class="auth-card">
+      <div class="auth-head">
+        <span class="eyebrow">Your Account</span>
+        <h1 id="heading">Confirming your email…</h1>
+        <p id="lede">This only takes a moment.</p>
+      </div>
+
+      <div class="notice" id="notice"></div>
+      <div id="actions"></div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/auth.js"></script>
+<script>
+(function () {
+  var A = window.HairshaloAuth;
+  var heading = A.$('#heading'), lede = A.$('#lede');
+  var notice = A.$('#notice'), actions = A.$('#actions');
+  var token = A.queryParam('token');
+
+  function done(kind, title, sub, message, html) {
+    heading.textContent = title;
+    lede.textContent = sub;
+    A.showNotice(notice, kind, message);
+    actions.innerHTML = html || '';
+  }
+
+  if (!token) {
+    done('error', 'That link is incomplete',
+         'Open the link exactly as it appears in the email.',
+         'This page needs the confirmation link from your email.',
+         '<a class="btn btn-outline" href="/signin">Go to sign in</a>');
+    return;
+  }
+
+  /* Verification is a state change, so it is a POST — a link preview or a
+     mail scanner fetching the page must not consume the token. */
+  A.api('/account/verify-email', { method: 'POST', body: { token: token } })
+    .then(function (data) {
+      done('ok', 'Email confirmed',
+           'Your account is active. Your orders and points are now visible.',
+           data.message || 'Thank you — your email address is confirmed.',
+           '<a class="btn btn-primary" href="/account" style="width:auto;">Go to my account</a>');
+    })
+    .catch(function (err) {
+      /* Most failures here are an expired or already-used link. Offer the one
+         action that actually helps rather than a dead end. */
+      done('error', 'We could not confirm that link',
+           'Confirmation links expire, and each one can be used only once.',
+           err.message,
+           '<a class="btn btn-outline" href="/signin">Sign in to send a new link</a>');
+    });
+})();
+</script>
+</body>
+</html>

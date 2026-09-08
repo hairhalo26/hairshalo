@@ -41,3 +41,10 @@ Thumbs.db
 # Docker local state
 run.broken-*/
 run.stale-*/
+
+# Supplied product photography (the originals from the supplier).
+# Source assets, not code: ~520 MB, and one archive is 189 MB, which is past
+# GitHub's 100 MB per-file limit -- committing it would fail the push and bloat
+# every future clone. The importer reads them from disk; what ends up in the
+# product catalog is the imported media, not the archives.
+Product-Media/

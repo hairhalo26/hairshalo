@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account | Hairshalo</title>
+<meta name="description" content="Your Hairshalo account: orders, loyalty points, wishlist and profile.">
+<meta name="theme-color" content="#1A2338">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/auth.css">
+</head>
+<body>
+<div class="auth-shell">
+  <header class="auth-top">
+    <a href="/" class="logo" aria-label="Hairshalo — home">
+      <img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="28">HAIRSHALO
+    </a>
+    <a class="back" href="/">&larr; Back to the shop</a>
+  </header>
+
+  <main class="auth-main" style="align-items:flex-start;">
+    <div class="auth-card wide">
+      <div class="auth-head" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+        <div>
+          <span class="eyebrow">Your Account</span>
+          <h1 id="who">My account</h1>
+          <p id="whoEmail" class="muted"></p>
+        </div>
+        <button class="btn btn-outline" id="logout" style="padding:10px 20px;">
+          <span class="spinner" aria-hidden="true"></span><span class="label">Sign out</span>
+        </button>
+      </div>
+
+      <div class="verify-banner" id="verifyBanner" style="display:none;">
+        <span>Confirm your email to see your orders and points.</span>
+        <button class="btn btn-outline" id="resend" style="padding:8px 16px;font-size:13px;">
+          <span class="spinner" aria-hidden="true"></span><span class="label">Resend link</span>
+        </button>
+      </div>
+
+      <div class="notice" id="notice"></div>
+
+      <div class="acct-grid">
+        <nav class="acct-nav" aria-label="Account sections">
+          <button data-tab="orders" class="active">My orders</button>
+          <button data-tab="points">Points</button>
+          <button data-tab="wishlist">Wishlist</button>
+          <button data-tab="profile">Profile</button>
+        </nav>
+
+        <div>
+          <section class="acct-panel" data-panel="orders"><p class="muted">Loading…</p></section>
+          <section class="acct-panel" data-panel="points" hidden><p class="muted">Loading…</p></section>
+          <section class="acct-panel" data-panel="wishlist" hidden><p class="muted">Loading…</p></section>
+          <section class="acct-panel" data-panel="profile" hidden><p class="muted">Loading…</p></section>
+        </div>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/auth.js"></script>
+<script>
+(function () {
+  var A = window.HairshaloAuth;
+  var notice = A.$('#notice');
+  var customer = null;
+  var loaded = {};
+
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function money(n) {
+    return '₹' + Number(n || 0).toLocaleString('en-IN',
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function panel(name) { return document.querySelector('[data-panel="' + name + '"]'); }
+
+  // A page that needs a session sends you to sign in and back again.
+  if (!A.getToken()) { A.redirect('/signin?next=/account'); return; }
+
+  /* ------------------------------------------------------------- sections */
+  function loadOrders() {
+    var el = panel('orders');
+    A.api('/account/orders', { auth: true }).then(function (orders) {
+      if (!orders.length) {
+        el.innerHTML = '<h2>My orders</h2><div class="empty">No orders yet.<br>' +
+          '<a href="/">Start shopping</a></div>';
+        return;
+      }
+      el.innerHTML = '<h2>My orders</h2>' + orders.map(function (o) {
+        return '<div class="card-row">' +
+          '<div style="display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;">' +
+            '<strong>' + esc(o.order_number) + '</strong>' +
+            '<span class="badge">' + esc(o.status) + '</span>' +
+          '</div>' +
+          '<div class="muted">' +
+            new Date(o.created_at).toLocaleDateString('en-IN',
+              { day: 'numeric', month: 'short', year: 'numeric' }) +
+            (o.is_paid ? ' · Paid' : (o.payment_status ? ' · ' + esc(o.payment_status) : '')) +
+          '</div>' +
+          '<ul style="list-style:none;margin:10px 0;padding:0;font-size:13.5px;">' +
+            o.items.map(function (i) {
+              return '<li style="padding:3px 0;">' + i.quantity + ' × ' + esc(i.product_name) +
+                (i.variant_label ? ' <span class="muted">(' + esc(i.variant_label) + ')</span>' : '') +
+                '</li>';
+            }).join('') +
+          '</ul>' +
+          '<div class="muted">Total ' + money(o.total) + ' ' + esc(o.currency) + '</div>' +
+        '</div>';
+      }).join('');
+    }).catch(function (err) { el.innerHTML = '<h2>My orders</h2><p class="muted">' + esc(err.message) + '</p>'; });
+  }
+
+  function loadPoints() {
+    var el = panel('points');
+    A.api('/account/loyalty', { auth: true }).then(function (d) {
+      el.innerHTML = '<h2>Points</h2>' +
+        '<div class="card-row">' +
+          '<div style="font-family:Fraunces,serif;font-size:30px;color:var(--wine);">' +
+            d.balance + '</div>' +
+          '<div class="muted">worth ' + money(d.value) + ' · earn 1 point per ' +
+            money(d.earn_per) + ' spent · points cover up to ' + d.max_redeem_pct +
+            '% of an order</div>' +
+        '</div>' +
+        (d.history && d.history.length
+          ? '<h2 style="font-size:16px;margin-top:18px;">History</h2>' +
+            d.history.map(function (h) {
+              return '<div class="card-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:baseline;">' +
+                '<strong style="color:' + (h.delta > 0 ? 'var(--ok)' : 'var(--danger)') + ';">' +
+                  (h.delta > 0 ? '+' : '') + h.delta + '</strong>' +
+                '<span>' + esc(h.reason) + '</span>' +
+                '<span class="muted">' + esc(h.note || '') + '</span>' +
+                '<span class="muted" style="margin-left:auto;">balance ' + h.balance_after + '</span>' +
+              '</div>';
+            }).join('')
+          : '<div class="empty">No movements yet. Points are added when an order is paid for.</div>');
+    }).catch(function (err) { el.innerHTML = '<h2>Points</h2><p class="muted">' + esc(err.message) + '</p>'; });
+  }
+
+  function loadWishlist() {
+    var el = panel('wishlist');
+    A.api('/account/wishlist', { auth: true }).then(function (items) {
+      if (!items.length) {
+        el.innerHTML = '<h2>Wishlist</h2><div class="empty">Nothing saved yet.<br>' +
+          '<a href="/">Browse the collection</a></div>';
+        return;
+      }
+      el.innerHTML = '<h2>Wishlist</h2>' + items.map(function (i) {
+        return '<div class="card-row" style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap;">' +
+          '<div><strong>' + esc(i.product_name) + '</strong>' +
+            (i.variant_label ? ' <span class="muted">— ' + esc(i.variant_label) + '</span>' : '') +
+            '<div class="muted">' + (i.price ? money(i.price) : '') + ' · ' +
+              (i.in_stock ? 'In stock' : 'Out of stock') + '</div></div>' +
+          '<button class="btn btn-outline" data-remove="' + esc(i.id) +
+            '" style="padding:9px 18px;font-size:13px;">Remove</button>' +
+        '</div>';
+      }).join('');
+    }).catch(function (err) { el.innerHTML = '<h2>Wishlist</h2><p class="muted">' + esc(err.message) + '</p>'; });
+  }
+
+  function loadProfile() {
+    var el = panel('profile');
+    el.innerHTML =
+      '<h2>Profile</h2>' +
+      '<form id="profileForm" novalidate>' +
+        '<div class="field"><label for="pName">Full name</label>' +
+          '<div class="control"><input id="pName" type="text" autocomplete="name"></div>' +
+          '<p class="err"></p></div>' +
+        '<div class="field"><label for="pEmail">Email address</label>' +
+          '<div class="control"><input id="pEmail" type="email" disabled></div>' +
+          '<p class="hint">Contact us if you need to change the address on your account.</p></div>' +
+        '<div class="field"><label for="pPhone">Phone number</label>' +
+          '<div class="control"><input id="pPhone" type="tel" autocomplete="tel"></div>' +
+          '<p class="err"></p></div>' +
+        '<button class="btn btn-primary" type="submit" id="saveProfile" style="width:auto;">' +
+          '<span class="spinner" aria-hidden="true"></span><span class="label">Save changes</span></button>' +
+      '</form>';
+    A.$('#pName').value = customer.name || '';
+    A.$('#pEmail').value = customer.email || '';
+    A.$('#pPhone').value = customer.phone || '';
+
+    A.$('#profileForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+      A.hideNotice(notice);
+      var nameEl = A.$('#pName'), phoneEl = A.$('#pPhone'), btn = A.$('#saveProfile');
+      var ok = A.fieldError(nameEl, nameEl.value.trim() ? '' : 'Please enter your name.');
+      ok = A.fieldError(phoneEl, A.phoneLooksValid(phoneEl.value)
+            ? '' : 'Enter a valid phone number, or leave it blank.') && ok;
+      if (!ok) return;
+
+      A.setBusy(btn, true, 'Saving…');
+      A.api('/account/me', {
+        method: 'PUT', auth: true,
+        body: { name: nameEl.value.trim(), phone: phoneEl.value.trim() || null }
+      }).then(function (data) {
+        customer = data;
+        A.setBusy(btn, false);
+        A.$('#who').textContent = 'Hello, ' + (customer.name.split(' ')[0] || 'there');
+        A.showNotice(notice, 'ok', 'Your details have been saved.');
+      }).catch(function (err) {
+        A.setBusy(btn, false);
+        A.showNotice(notice, 'error', err.message);
+      });
+    });
+  }
+
+  var LOADERS = { orders: loadOrders, points: loadPoints, wishlist: loadWishlist, profile: loadProfile };
+
+  function show(tab) {
+    document.querySelectorAll('.acct-nav button').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+    document.querySelectorAll('.acct-panel').forEach(function (p) {
+      p.hidden = p.dataset.panel !== tab;
+    });
+    if (!loaded[tab]) { loaded[tab] = true; LOADERS[tab](); }
+  }
+
+  document.querySelectorAll('.acct-nav button').forEach(function (b) {
+    b.addEventListener('click', function () { show(b.dataset.tab); });
+  });
+
+  // Wishlist removal, delegated so re-rendered rows keep working.
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest('[data-remove]');
+    if (!btn) return;
+    btn.disabled = true;
+    A.api('/account/wishlist/' + btn.dataset.remove, { method: 'DELETE', auth: true })
+      .then(function () { loadWishlist(); })
+      .catch(function (err) { btn.disabled = false; A.showNotice(notice, 'error', err.message); });
+  });
+
+  A.$('#logout').addEventListener('click', function () {
+    var btn = A.$('#logout');
+    A.setBusy(btn, true, 'Signing out…');
+    // The token is cleared whether or not the server call succeeds: a failed
+    // logout must not leave the customer looking signed in on this device.
+    A.api('/account/logout', { method: 'POST', auth: true })
+      .catch(function () {})
+      .then(function () { A.setToken(null); A.redirect('/'); });
+  });
+
+  A.$('#resend').addEventListener('click', function () {
+    var btn = A.$('#resend');
+    A.setBusy(btn, true, 'Sending…');
+    A.api('/account/resend-verification', { method: 'POST', auth: true })
+      .then(function (data) {
+        A.setBusy(btn, false);
+        A.showNotice(notice, 'ok', data.message || 'Confirmation link sent.');
+      })
+      .catch(function (err) {
+        A.setBusy(btn, false);
+        A.showNotice(notice, 'error', err.message);
+      });
+  });
+
+  /* ------------------------------------------------------------- start-up */
+  A.api('/account/me', { auth: true }).then(function (me) {
+    customer = me;
+    A.$('#who').textContent = 'Hello, ' + (String(me.name || '').split(' ')[0] || 'there');
+    A.$('#whoEmail').textContent = me.email;
+    if (!me.email_verified) A.$('#verifyBanner').style.display = 'flex';
+    show('orders');
+  }).catch(function (err) {
+    if (err.status === 401) { A.redirect('/signin?next=/account'); return; }
+    A.showNotice(notice, 'error', err.message);
+  });
+})();
+</script>
+</body>
+</html>
