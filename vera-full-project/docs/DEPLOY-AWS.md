@@ -598,6 +598,43 @@ Directory mounts do not have this problem, which is why a change under
 A frontend-only change (anything under `frontend/`) needs neither command — it
 is a directory mount, so the pull alone puts it live.
 
+### Shell access without an open SSH port
+
+Step 1.2 allows SSH from **My IP**, which is right — an SSH port open to the
+internet collects thousands of login attempts a day. The cost is that a
+residential address changes without warning, and when it does the symptom is a
+bare `Connection timed out` that looks exactly like a dead server. Stale rules
+also pile up, and editing them by hand is its own hazard: changing a rule's
+**Type** in the console keeps its old **Source**, which turns an HTTP rule open
+to `0.0.0.0/0` into an SSH rule open to `0.0.0.0/0` while closing port 80.
+
+Session Manager removes the problem rather than managing it. The instance
+connects *outbound* to the SSM service and the session is tunnelled back down
+it, so nothing listens and no inbound rule is needed at all.
+
+```bash
+bash deploy/aws/cloudshell-ssm.sh
+```
+
+Paste that into CloudShell. It adds `AmazonSSMManagedInstanceCore` to the
+instance's existing role — the backup role from step 4.2, because an instance
+carries exactly one instance profile and the permission has to join the role
+already attached — then waits for the agent to register.
+
+Connect from **EC2 → Instances → Connect → Session Manager**, with no key file
+and nothing to install.
+
+**You land as `ssm-user`, not `ubuntu`.** `ssm-user` is not in the `docker`
+group, so every deploy command fails on permissions until you switch:
+
+```bash
+sudo su - ubuntu
+```
+
+The script does not close port 22, and neither should you until a session has
+actually worked. It prints the commands for that at the end. Leave 80 and 443
+alone — 80 carries the HTTPS redirect and Let's Encrypt's HTTP challenge.
+
 ### Logs
 
 ```bash
