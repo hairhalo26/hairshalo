@@ -572,6 +572,27 @@ git pull && docker compose -f docker-compose.prod.yml --env-file .env.prod up -d
 The API container runs `alembic upgrade head` on start. Downtime is a few
 seconds while it restarts.
 
+**If the update touched the Caddyfile, reload Caddy as well:**
+
+```bash
+./scripts/reload-caddy.sh
+```
+
+The command above will not do it. The Caddyfile is a bind mount, so `git pull`
+changes the file on disk while the running process keeps serving the config it
+parsed at startup — and because nothing in Caddy's *service definition* changed,
+`up -d` finds nothing to recreate and reports success. A routing change then
+looks deployed when it is not, which is a confusing way to lose an afternoon.
+
+The script validates before reloading, and a reload swaps the config in a
+running process without dropping connections. Prefer it to `restart caddy`: a
+restart on a broken config leaves Caddy crash-looping under
+`restart: unless-stopped`, taking the whole site down rather than just the new
+route.
+
+A frontend-only change (anything under `frontend/`) needs neither command — it
+is a bind mount too, so the pull alone puts it live.
+
 ### Logs
 
 ```bash
