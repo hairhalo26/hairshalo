@@ -536,7 +536,7 @@ return `200`. If it returns `503`, the body names what is wrong.
 Then in a browser:
 
 - `https://hairshalo.com` — the storefront, with a valid padlock
-- `https://hairshalo.com/admin-dashboard.html` — sign in with the account from step 6
+- `https://hairshalo.com/admin-panel` — sign in with the account from step 6
 - Place a test order, confirm it appears in the dashboard, and check that the
   confirmation email arrives (while SES is sandboxed, use a verified address)
 

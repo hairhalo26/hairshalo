@@ -133,7 +133,7 @@ def main(argv=None) -> int:
 
         db.commit()
         print(f"[create_admin] {action} {email}")
-        print("[create_admin] Sign in at /admin-dashboard.html")
+        print("[create_admin] Sign in at /admin-panel")
         return 0
     finally:
         db.close()

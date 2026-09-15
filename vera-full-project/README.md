@@ -101,8 +101,9 @@ Then open **http://localhost:5500** in your browser:
 - **index.html** — the customer storefront, and what the root of the deployed
   domain serves (products load live from the API; if the API isn't running, it
   falls back to demo data automatically)
-- **admin-dashboard.html** — sign in with the seeded admin login to see real
-  data, or click "Continue in demo mode" to preview with mock data
+- **admin-panel.html**, served at **/admin-panel** — sign in with the seeded
+  admin login to see real data, or click "Continue in demo mode" to preview
+  with mock data
 - **demo.html** — a two-card chooser linking to both, kept for client
   presentations. It is `noindex` and excluded in `robots.txt`.
 

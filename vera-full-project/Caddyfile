@@ -36,13 +36,32 @@
 		reverse_proxy api:8000
 	}
 
-	# The dashboard is protected by its login, but it should never appear in a
+	# The admin panel is protected by its login, but it should never appear in a
 	# search result. The page carries a noindex meta tag; this header covers the
 	# case of a crawler that reads headers and skips the body.
-	handle /admin-dashboard.html {
+	#
+	# Both spellings have to be matched. The catch-all below resolves
+	# /admin-panel to the same file through try_files, so matching only the .html
+	# path would leave the extensionless URL serving the panel from the generic
+	# handler with no X-Robots-Tag on it. A named matcher is required because an
+	# inline path matcher accepts a single path only.
+	@admin path /admin-panel /admin-panel.html
+	handle @admin {
 		header X-Robots-Tag "noindex, nofollow"
 		root * /srv/frontend
+		# /admin-panel has no file of its own; fall through to the .html.
+		try_files {path} {path}.html
 		file_server
+	}
+
+	# The panel used to be /admin-dashboard.html. The old paths have to be named
+	# explicitly, because the catch-all's try_files ends at /index.html: without
+	# this a stale bookmark would not 404, it would quietly serve the storefront
+	# with a 200 and look like the panel had been deleted. 308 keeps the method,
+	# so a POST from an old open tab is not downgraded to GET on the way over.
+	@admin_legacy path /admin-dashboard /admin-dashboard.html
+	handle @admin_legacy {
+		redir * /admin-panel 308
 	}
 
 	handle {
