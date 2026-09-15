@@ -584,14 +584,19 @@ parsed at startup — and because nothing in Caddy's *service definition* change
 `up -d` finds nothing to recreate and reports success. A routing change then
 looks deployed when it is not, which is a confusing way to lose an afternoon.
 
-The script validates before reloading, and a reload swaps the config in a
-running process without dropping connections. Prefer it to `restart caddy`: a
-restart on a broken config leaves Caddy crash-looping under
-`restart: unless-stopped`, taking the whole site down rather than just the new
-route.
+A plain `caddy reload` is not enough, and the reason is worth knowing. Docker
+bind-mounts a single file by inode, and `git pull` replaces Caddyfile rather
+than editing it in place — so the running container keeps reading the old,
+unlinked inode. `caddy validate` and `caddy reload` then both run against the
+stale content and both report success while nothing changes. The script
+checksums the two copies, says plainly when they differ, validates the real
+file in a throwaway container, and only then recreates the running one.
+
+Directory mounts do not have this problem, which is why a change under
+`frontend/` appears immediately but a Caddyfile change does not.
 
 A frontend-only change (anything under `frontend/`) needs neither command — it
-is a bind mount too, so the pull alone puts it live.
+is a directory mount, so the pull alone puts it live.
 
 ### Logs
 
