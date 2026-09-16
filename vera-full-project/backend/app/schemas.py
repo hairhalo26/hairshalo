@@ -27,6 +27,10 @@ class UserOut(BaseModel):
 class CategoryBase(BaseModel):
     name: str
     description: str = ""
+    # Presentation for the storefront's collection cards, so that section is
+    # database-driven instead of hardcoded markup.
+    tagline: Optional[str] = None
+    image_url: Optional[str] = None
     sort_order: int = 0
     is_active: bool = True
 
@@ -38,6 +42,8 @@ class CategoryCreate(CategoryBase):
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    tagline: Optional[str] = None
+    image_url: Optional[str] = None
     sort_order: Optional[int] = None
     is_active: Optional[bool] = None
 
@@ -524,9 +530,70 @@ class OrderItemIn(BaseModel):
     quantity: int = 1
 
 
+class ShippingAddressIn(BaseModel):
+    """The delivery address for one order.
+
+    Pydantic only checks SHAPE here (types, lengths). The real validation —
+    is this a plausible name, is this phone dialable, is this a valid PIN code
+    for India — lives in `app/addresses.py`, because it depends on the country
+    and is shared with the saved-address endpoints. Doing it in two places
+    would mean two answers.
+    """
+    full_name: str
+    phone: Optional[str] = None
+    line1: str
+    line2: Optional[str] = None
+    city: str
+    state: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: str = "India"
+    # Offer to keep this in the customer's address book. Only honoured for a
+    # signed-in customer; a guest has no address book to save into.
+    save_to_address_book: bool = False
+
+
+class ShippingAddressOut(BaseModel):
+    """The address an order was actually sent to, as stored on the order."""
+    full_name: Optional[str] = None
+    phone: Optional[str] = None
+    line1: Optional[str] = None
+    line2: Optional[str] = None
+    city: Optional[str] = None
+    state: Optional[str] = None
+    postal_code: Optional[str] = None
+    country: Optional[str] = None
+    # What the postal field is called where this order is going, so the admin
+    # panel can label it "PIN Code" for India and "ZIP Code" for the US
+    # without shipping a copy of the country table to the browser.
+    postal_label: str = "Postal Code"
+    # False for orders placed before the structured snapshot existed; those
+    # carry only `shipping_address` text.
+    structured: bool = False
+
+
+class CountryOut(BaseModel):
+    """A shipping destination, and what its postal field is called."""
+    name: str
+    code: Optional[str] = None
+    postal_label: str
+    postal_example: str = ""
+    postal_required: bool = True
+    requires_state: bool = False
+
+
 class OrderCreate(BaseModel):
     customer_name: str
     customer_email: EmailStr
+    # Exactly one of these supplies the delivery address:
+    #   `shipping`            - typed at checkout
+    #   `shipping_address_id` - chosen from the signed-in customer's address book
+    # Ownership of a saved address is checked against the TOKEN, never against
+    # anything in this payload.
+    shipping: Optional[ShippingAddressIn] = None
+    shipping_address_id: Optional[str] = None
+    # Legacy free-text address. Retained so the field is not silently dropped
+    # from old clients, but it is no longer sufficient on its own: an order
+    # needs a structured address to be shippable. See the order router.
     shipping_address: str = ""
     items: List[OrderItemIn]
     coupon_code: Optional[str] = None
@@ -558,6 +625,7 @@ class OrderOut(BaseModel):
     customer_name: str
     customer_email: EmailStr
     shipping_address: str = ""
+    shipping: Optional[ShippingAddressOut] = None
     subtotal: Optional[Decimal] = None
     discount_total: Optional[Decimal] = None
     shipping_fee: Optional[Decimal] = None
@@ -633,8 +701,17 @@ class AnalyticsSummary(BaseModel):
     revenue_this_month: float
     orders_this_month: int
     active_customers: int
-    conversion_rate: float
+    # Optional because it is genuinely unknown without traffic tracking. The
+    # dashboard renders "—" rather than inventing a plausible-looking rate.
+    conversion_rate: Optional[float] = None
     avg_order_value: float
+
+
+class LocationShare(BaseModel):
+    """Where orders ship to — computed from the delivery snapshots, not typed in."""
+    city: str
+    orders: int
+    share: float
 
 
 class TopProduct(BaseModel):
@@ -666,6 +743,10 @@ class NotificationOut(BaseModel):
     provider: Optional[str] = None
     provider_message_id: Optional[str] = None
     sent_at: Optional[datetime] = None
+    # NULL until an admin acknowledges it in the panel. Distinct from `status`,
+    # which is about the mail server rather than about a person.
+    read_at: Optional[datetime] = None
+    is_read: bool = False
     created_at: Optional[datetime] = None
 
 
@@ -1025,3 +1106,50 @@ class PaymentStatusOut(BaseModel):
     amount: Optional[Decimal] = None
     currency: str = "INR"
     error_message: Optional[str] = None
+
+
+# ---------- Site content (editable storefront copy) ----------
+class SiteContentOut(BaseModel):
+    """One editable block of storefront copy."""
+    key: str
+    label: str
+    description: str = ""
+    payload: dict = Field(default_factory=dict)
+    is_active: bool = True
+    sort_order: int = 0
+    updated_by: Optional[str] = None
+    updated_at: Optional[datetime] = None
+
+
+class SiteContentUpdate(BaseModel):
+    """A partial update. Fields omitted from `payload` keep their current value.
+
+    There is no `key` field: the key comes from the URL, so a request cannot
+    rename a block out from under the storefront that reads it.
+    """
+    payload: Optional[dict] = None
+    is_active: Optional[bool] = None
+
+
+# ---------- Admin notification centre ----------
+class NotificationSummaryOut(BaseModel):
+    """Counts behind the admin panel's bell.
+
+    Every number here is a COUNT(*) against the notifications table. Nothing is
+    kept in browser state, so a refresh cannot invent or lose an unread badge,
+    and two admin sessions see the same figure.
+    """
+    unread: int = 0
+    unread_orders: int = 0
+    queued: int = 0
+    failed: int = 0
+    total: int = 0
+
+
+class NotificationMarkRead(BaseModel):
+    """Which messages to acknowledge. Empty `ids` with `all=true` clears the lot."""
+    ids: List[str] = Field(default_factory=list)
+    all: bool = False
+    # Restrict a bulk mark-read to one event type, so "clear new-order alerts"
+    # does not also silence a failed-payment alert nobody has looked at.
+    event_type: Optional[str] = None

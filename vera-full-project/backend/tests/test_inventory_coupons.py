@@ -8,6 +8,7 @@ import uuid
 
 import pytest
 import requests
+from shipping import SHIPPING
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -71,6 +72,7 @@ def test_inventory_matches_variant_stock_after_order(auth, product):
     """D-01: the inventory view must never drift from sellable stock."""
     variant = product["variants"][0]
     requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Inv", "customer_email": f"inv{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 3}],
     })
@@ -83,6 +85,7 @@ def test_inventory_matches_variant_stock_after_order(auth, product):
 def test_order_writes_an_inventory_movement(auth, product):
     variant = product["variants"][0]
     requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Mv", "customer_email": f"mv{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 2}],
     })
@@ -108,6 +111,7 @@ def test_movement_log_reconciles_with_running_total(auth, product):
 def test_cancelling_an_order_restocks(auth, product):
     variant = product["variants"][0]
     order = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Cx", "customer_email": f"cx{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 2}],
     }).json()
@@ -231,6 +235,7 @@ def test_unknown_coupon_is_rejected():
 def test_coupon_applied_at_checkout_changes_the_charged_total(auth, product):
     variant = product["variants"][0]
     order = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Cp", "customer_email": f"cp{uuid.uuid4().hex[:6]}@example.com",
         "coupon_code": "WELCOME10",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
@@ -244,6 +249,7 @@ def test_coupon_applied_at_checkout_changes_the_charged_total(auth, product):
 def test_ineffective_coupon_is_rejected_at_checkout(product):
     variant = product["variants"][0]
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Cp", "customer_email": f"cq{uuid.uuid4().hex[:6]}@example.com",
         "coupon_code": "FITKIT",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
@@ -256,6 +262,7 @@ def test_ineffective_coupon_is_rejected_at_checkout(product):
 def test_quantity_is_respected_and_priced_correctly(product):
     variant = product["variants"][0]
     order = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Q", "customer_email": f"q{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 3}],
     }).json()
@@ -267,6 +274,7 @@ def test_quantity_is_respected_and_priced_correctly(product):
 def test_absurd_quantity_is_rejected(product):
     variant = product["variants"][0]
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Q", "customer_email": f"q{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 100000}],
     })
@@ -278,6 +286,7 @@ def test_absurd_quantity_is_rejected(product):
 def test_invalid_status_transition_is_blocked(auth, product):
     variant = product["variants"][0]
     order = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "L", "customer_email": f"l{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
     }).json()
@@ -295,6 +304,7 @@ def test_valid_status_transition_is_allowed(auth, product):
     """
     variant = product["variants"][0]
     order = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "L", "customer_email": f"l{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
     }).json()

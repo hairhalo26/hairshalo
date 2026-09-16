@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy import (
     Column, String, Integer, Float, Boolean, DateTime, ForeignKey, Text, Enum,
-    Index, Numeric, UniqueConstraint
+    Index, JSON, Numeric, UniqueConstraint
 )
 from sqlalchemy.orm import relationship
 
@@ -244,6 +244,10 @@ class Category(Base):
     name = Column(String, unique=True, nullable=False)
     slug = Column(String, unique=True, index=True, nullable=False)
     description = Column(Text, default="")
+    # Presentation, so the storefront's collection cards are database-driven
+    # rather than hardcoded markup with external image URLs.
+    tagline = Column(String, nullable=True)     # "Best for beginners"
+    image_url = Column(String, nullable=True)   # uploaded through /api/site-content/media
     sort_order = Column(Integer, default=0)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
@@ -546,7 +550,24 @@ class Order(Base):
     customer_id = Column(String, ForeignKey("customers.id"), nullable=True)
     customer_name = Column(String, nullable=False)
     customer_email = Column(String, nullable=False)
+    # --- Shipping snapshot ---------------------------------------------
+    # `shipping_address` is the original free-text column and is still
+    # written, so historical orders and anything reading it keep working.
+    # The structured columns below are what a label is printed from.
+    #
+    # These are a COPY of the address used at checkout, never a reference to
+    # `customer_addresses`. A customer who later edits or deletes that saved
+    # address must not change where a past order was sent — which is exactly
+    # what a foreign key here would do.
     shipping_address = Column(Text, default="")
+    shipping_name = Column(String, nullable=True)
+    shipping_phone = Column(String, nullable=True)
+    shipping_line1 = Column(String, nullable=True)
+    shipping_line2 = Column(String, nullable=True)
+    shipping_city = Column(String, nullable=True)
+    shipping_state = Column(String, nullable=True)
+    shipping_postal_code = Column(String, nullable=True)
+    shipping_country = Column(String, nullable=True)
     subtotal = Column(Money, nullable=True)        # goods, before coupon
     discount_total = Column(Money, nullable=True)  # coupon discount applied
     shipping_fee = Column(Money, nullable=True)    # charged shipping (0 when waived)
@@ -576,6 +597,39 @@ class Order(Base):
         "Payment", back_populates="order", cascade="all, delete-orphan",
         order_by="Payment.created_at.desc()",
     )
+
+    @property
+    def shipping(self):
+        """The delivery snapshot, shaped for the API.
+
+        `postal_label` travels with it so the admin panel can print "PIN Code"
+        for an Indian order and "ZIP Code" for an American one without shipping
+        a copy of the country table to the browser — and without guessing from
+        the customer's current profile, which may have changed since.
+        """
+        from app import addresses            # local: avoids a circular import
+        return {
+            "full_name": self.shipping_name,
+            "phone": self.shipping_phone,
+            "line1": self.shipping_line1,
+            "line2": self.shipping_line2,
+            "city": self.shipping_city,
+            "state": self.shipping_state,
+            "postal_code": self.shipping_postal_code,
+            "country": self.shipping_country,
+            "postal_label": addresses.postal_label_for(self.shipping_country),
+            "structured": self.has_structured_shipping,
+        }
+
+    @property
+    def has_structured_shipping(self):
+        """True when this order carries the per-field snapshot.
+
+        Orders placed before migration 0012 have only the text blob. They are
+        not back-filled by parsing it: a mis-parsed address is worse than an
+        honestly unstructured one, because it looks authoritative.
+        """
+        return bool(self.shipping_line1 and self.shipping_city)
 
     @property
     def payment(self):
@@ -766,8 +820,17 @@ class Notification(Base):
     provider = Column(String, nullable=True)            # console | smtp | null
     provider_message_id = Column(String, nullable=True)
     sent_at = Column(DateTime, nullable=True)
+    # When a human in the admin panel acknowledged this. NULL means unread.
+    # Deliberately separate from `status`: "the mail server accepted it" and
+    # "someone has seen it" are different facts, and overloading one column
+    # with both would lose whichever was written second.
+    read_at = Column(DateTime, nullable=True, index=True)
     created_at = Column(DateTime, default=datetime.utcnow, index=True)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    @property
+    def is_read(self):
+        return self.read_at is not None
 
     @property
     def is_terminal(self):
@@ -1014,3 +1077,31 @@ class WishlistItem(Base):
     customer = relationship("Customer", back_populates="wishlist")
     product = relationship("Product")
     variant = relationship("ProductVariant")
+
+
+class SiteContent(Base):
+    """Editable storefront copy — the blocks a shop owner rewrites, not a developer.
+
+    One row per block, keyed by a stable string the storefront asks for
+    ("announcement", "faq", "footer"). The body is JSON rather than a column
+    per field, because these blocks have genuinely different shapes: the
+    announcement is one line, the FAQ is a list of question/answer pairs, the
+    footer is several link columns. A column per field would mean a migration
+    every time the marketing copy grows a bullet point.
+
+    What is deliberately NOT here: anything a customer could be misled by if it
+    drifted from reality. Prices, stock, ratings and review counts are owned by
+    their own services and are never editable as "content".
+    """
+    __tablename__ = "site_content"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    key = Column(String, unique=True, nullable=False, index=True)
+    label = Column(String, nullable=False)          # shown in the admin list
+    description = Column(Text, nullable=True)       # what this block controls
+    payload = Column(JSON, nullable=False, default=dict)
+    is_active = Column(Boolean, default=True, nullable=False)
+    sort_order = Column(Integer, default=0, nullable=False)
+    updated_by = Column(String, nullable=True)      # admin email, for the audit line
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

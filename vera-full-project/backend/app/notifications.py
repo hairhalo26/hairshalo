@@ -401,12 +401,44 @@ def _status_value(status) -> Optional[str]:
     return getattr(status, "value", status)
 
 
+def _postal_label(country) -> str:
+    from app import addresses
+    return addresses.postal_label_for(country)
+
+
+def _shipping_summary(order) -> str:
+    """One scannable line: City, State, Country PIN.
+
+    What an operations person actually reads first when a new-order alert
+    arrives — is this local, is it far, is the postcode plausible.
+    """
+    place = ", ".join(p for p in [order.shipping_city, order.shipping_state,
+                                  order.shipping_country] if p)
+    if order.shipping_postal_code:
+        place = f"{place} {order.shipping_postal_code}".strip()
+    return place
+
+
 def order_context(order, **extra) -> dict:
     ctx = {
         "order_number": order.order_number,
         "customer_name": order.customer_name,
         "customer_email": order.customer_email,
         "shipping_address": order.shipping_address,
+        # The structured snapshot, so a staff alert can lead with "Hyderabad,
+        # Telangana, India 500001" instead of a blob nobody scans. Falls back
+        # to empty strings for orders placed before the snapshot existed.
+        "shipping_name": order.shipping_name or order.customer_name,
+        "shipping_phone": order.shipping_phone or "",
+        "shipping_line1": order.shipping_line1 or "",
+        "shipping_line2": order.shipping_line2 or "",
+        "shipping_city": order.shipping_city or "",
+        "shipping_state": order.shipping_state or "",
+        "shipping_postal_code": order.shipping_postal_code or "",
+        "shipping_country": order.shipping_country or "",
+        "shipping_postal_label": _postal_label(order.shipping_country),
+        "shipping_summary": _shipping_summary(order),
+        "order_id": order.id,
         "status": _status_value(order.status),
         "subtotal": order.subtotal,
         "discount_total": order.discount_total,
@@ -457,11 +489,29 @@ def notify_order_event(db, order, event_type: str, **extra) -> Optional[models.N
     )
 
 
+#: Recipient used when no staff email address is configured.
+#:
+#: Operational alerts have two jobs, and only one of them needs a mailbox: tell
+#: staff by email, and show up in the admin panel's notification centre. With
+#: ADMIN_ALERT_EMAILS empty the old code looped over zero addresses and wrote
+#: NOTHING, so a real order produced no record anywhere an admin could see it.
+#: A row is now always written, addressed here and marked Suppressed — the
+#: panel shows it, and the outbox states honestly that no email was sent.
+PANEL_RECIPIENT = "admin-panel@hairshalo.local"
+
+
 def notify_admins(db, event_type: str, context: dict, *, key_suffix: str,
                   reference_type: str = None, reference_id: str = None) -> int:
-    """Queue an operational alert to every configured staff address."""
+    """Record an operational alert for staff, and queue it to every configured address.
+
+    Always writes at least one row. The event_key still carries the recipient,
+    so configuring a staff address later does not retroactively suppress the
+    alert an admin has already seen in the panel — and a replayed event still
+    collapses onto the same row per recipient.
+    """
     queued = 0
-    for address in _recipients_for_admins():
+    recipients = _recipients_for_admins()
+    for address in recipients:
         row = enqueue(
             db, event_type, address, context,
             event_key=f"{event_type}:{key_suffix}:{address}",
@@ -470,6 +520,23 @@ def notify_admins(db, event_type: str, context: dict, *, key_suffix: str,
         )
         if row:
             queued += 1
+
+    if not recipients:
+        row = enqueue(
+            db, event_type, PANEL_RECIPIENT, context,
+            event_key=f"{event_type}:{key_suffix}:{PANEL_RECIPIENT}",
+            category=models.NotificationCategory.operational,
+            reference_type=reference_type, reference_id=reference_id,
+        )
+        if row:
+            # Not queued for delivery: there is no address to deliver to, and
+            # leaving it Queued would have the worker retry it five times
+            # against a domain that does not exist.
+            row.status = models.NotificationStatus.suppressed
+            row.last_error = (
+                "No staff email configured (ADMIN_ALERT_EMAILS is empty), so "
+                "nothing was emailed. The alert is recorded here."
+            )
     return queued
 
 

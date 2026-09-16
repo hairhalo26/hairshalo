@@ -15,7 +15,10 @@ from typing import List, Optional
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
-from app import accounts, loyalty as loyalty_service, models, notifications as notify, schemas
+from app import (
+    accounts, addresses, loyalty as loyalty_service, models,
+    notifications as notify, schemas,
+)
 from app.database import get_db
 from app.deps import get_current_customer, get_verified_customer
 
@@ -294,8 +297,12 @@ def list_addresses(current: models.Customer = Depends(get_current_customer),
 def add_address(payload: schemas.AddressIn,
                 current: models.Customer = Depends(get_current_customer),
                 db: Session = Depends(get_db)):
+    # Same validator checkout uses. Without this an address could be saved
+    # here unchecked and then selected at checkout by id, walking straight
+    # past the validation that endpoint performs on typed input.
+    cleaned = _validated(payload, require_phone=False)
     address = models.CustomerAddress(
-        customer_id=current.id, **payload.model_dump(exclude={"is_default"}))
+        customer_id=current.id, label=payload.label, **cleaned)
     if payload.is_default:
         _clear_default(db, current.id)
         address.is_default = True
@@ -310,7 +317,9 @@ def update_address(address_id: str, payload: schemas.AddressIn,
                    current: models.Customer = Depends(get_current_customer),
                    db: Session = Depends(get_db)):
     address = _owned_address(db, address_id, current.id)
-    for field, value in payload.model_dump(exclude={"is_default"}).items():
+    cleaned = _validated(payload, require_phone=False)
+    address.label = payload.label
+    for field, value in cleaned.items():
         setattr(address, field, value)
     if payload.is_default:
         _clear_default(db, current.id)
@@ -326,6 +335,32 @@ def delete_address(address_id: str,
                    db: Session = Depends(get_db)):
     db.delete(_owned_address(db, address_id, current.id))
     db.commit()
+
+
+def _validated(payload: schemas.AddressIn, *, require_phone: bool) -> dict:
+    """Run one saved address through the shared validator.
+
+    `require_phone` is False here: a customer may reasonably keep an address in
+    their book before they have a number for it. Checkout requires one, because
+    a courier who cannot call cannot deliver.
+    """
+    try:
+        return addresses.validate(
+            payload.model_dump(exclude={"is_default", "label"}),
+            require_phone=require_phone,
+        )
+    except addresses.AddressError as exc:
+        raise HTTPException(
+            status_code=422,
+            detail={"message": "Please check this address.", "fields": exc.errors},
+        )
+
+
+@router.get("/shipping-countries", response_model=List[schemas.CountryOut])
+def account_shipping_countries():
+    """Same table the checkout form reads — exposed here so the account area's
+    address form labels its postal field correctly too."""
+    return addresses.known_countries()
 
 
 def _owned_address(db: Session, address_id: str, customer_id: str) -> models.CustomerAddress:

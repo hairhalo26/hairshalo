@@ -18,6 +18,7 @@ from sqlalchemy import text
 
 from app import loyalty, marketing, models, notifications as notify, reviews
 from app.config import settings
+from shipping import SHIPPING
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -363,6 +364,7 @@ def test_points_are_spendable_at_checkout_and_recorded(auth):
     email = f"{MARKER}-{uuid.uuid4().hex[:8]}@example.com"
 
     first = requests.post(f"{API}/orders", timeout=20, json={
+        "shipping": SHIPPING,
         "customer_name": "Loyalty Test", "customer_email": email,
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
     })
@@ -381,6 +383,7 @@ def test_points_are_spendable_at_checkout_and_recorded(auth):
     assert balance["balance"] == int(Decimal(order["total"]) // Decimal(balance["earn_per"]))
 
     second = requests.post(f"{API}/orders", timeout=20, json={
+        "shipping": SHIPPING,
         "customer_name": "Loyalty Test", "customer_email": email,
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
         "redeem_loyalty_points": balance["balance"],
@@ -405,6 +408,7 @@ def test_a_client_cannot_state_what_its_points_are_worth(auth):
     product, variant = _sellable(requests.get(f"{API}/products", timeout=10).json())
     email = f"{MARKER}-{uuid.uuid4().hex[:8]}@example.com"
     response = requests.post(f"{API}/orders", timeout=20, json={
+        "shipping": SHIPPING,
         "customer_name": "Forger", "customer_email": email,
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
         "loyalty_discount": "9999.00", "loyalty_points_redeemed": 9999,
@@ -420,6 +424,7 @@ def test_a_client_cannot_state_what_its_points_are_worth(auth):
 def test_redeeming_points_you_do_not_have_is_refused(auth):
     product, variant = _sellable(requests.get(f"{API}/products", timeout=10).json())
     response = requests.post(f"{API}/orders", timeout=20, json={
+        "shipping": SHIPPING,
         "customer_name": "No Points",
         "customer_email": f"{MARKER}-{uuid.uuid4().hex[:8]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],

@@ -25,6 +25,7 @@ from app import email_templates as tpl
 from app import models
 from app import notifications as notify
 from app.config import settings
+from shipping import SHIPPING
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -454,6 +455,7 @@ def placed_order(auth):
     product, variant = _sellable(requests.get(f"{API}/products", timeout=10).json())
     email = f"notify{uuid.uuid4().hex[:8]}@example.com"
     order = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Notify Test", "customer_email": email,
         "shipping_address": "12 MG Road",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
@@ -584,6 +586,7 @@ def test_a_hard_bounce_stops_even_transactional_mail(auth):
     try:
         product, variant = _sellable(requests.get(f"{API}/products", timeout=10).json())
         order = requests.post(f"{API}/orders", timeout=15, json={
+            "shipping": SHIPPING,
             "customer_name": "Bounced", "customer_email": address,
             "items": [{"product_id": product["id"],
                        "variant_id": variant["id"], "quantity": 1}],

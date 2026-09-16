@@ -419,12 +419,74 @@ def appointment_cancelled(ctx) -> Rendered:
 STAFF_FOOTER = "Operational alert for Hairshalo staff."
 
 
+def _shipping_lines_text(ctx) -> str:
+    """The delivery address as labelled lines, not one run-on string.
+
+    Operations reads this to decide couriers and to spot a nonsense postcode
+    before a parcel is packed, so each field is named — and the postal field is
+    called what it is called where the parcel is going.
+    """
+    if not ctx.get("shipping_line1"):
+        # Placed before the structured snapshot existed; the blob is all there is.
+        return f'  {ctx.get("shipping_address") or "—"}'
+    label = ctx.get("shipping_postal_label") or "Postal Code"
+    rows = [
+        ("Name", ctx.get("shipping_name")),
+        ("Phone", ctx.get("shipping_phone")),
+        ("Address", ctx.get("shipping_line1")),
+        ("", ctx.get("shipping_line2")),
+        ("City", ctx.get("shipping_city")),
+        ("State", ctx.get("shipping_state")),
+        ("Country", ctx.get("shipping_country")),
+        (label, ctx.get("shipping_postal_code")),
+    ]
+    return "\n".join(f'  {(k + ":") if k else "":<10}{v}' for k, v in rows if v)
+
+
+def _shipping_lines_html(ctx) -> str:
+    if not ctx.get("shipping_line1"):
+        return (f'<p style="margin:6px 0 0;font-size:13px;color:{MUTED};">'
+                f'{esc(ctx.get("shipping_address") or "—")}</p>')
+    label = ctx.get("shipping_postal_label") or "Postal Code"
+    rows = [
+        ("Name", ctx.get("shipping_name")),
+        ("Phone", ctx.get("shipping_phone")),
+        ("Address", ctx.get("shipping_line1")),
+        ("", ctx.get("shipping_line2")),
+        ("City", ctx.get("shipping_city")),
+        ("State", ctx.get("shipping_state")),
+        ("Country", ctx.get("shipping_country")),
+        (label, ctx.get("shipping_postal_code")),
+    ]
+    cells = "".join(
+        f'<tr><td style="padding:2px 12px 2px 0;font-size:12px;color:{MUTED};'
+        f'white-space:nowrap;">{esc(k)}</td>'
+        f'<td style="padding:2px 0;font-size:13px;">{esc(v)}</td></tr>'
+        for k, v in rows if v
+    )
+    return (f'<table role="presentation" cellpadding="0" cellspacing="0" '
+            f'style="margin:10px 0 0;">{cells}</table>')
+
+
 def admin_order_placed(ctx) -> Rendered:
+    """The new-order alert.
+
+    Led by the five things an operations person acts on — order, customer,
+    phone, total, where it is going — before the itemised detail, because that
+    is the order they are read in when an alert arrives on a phone.
+    """
     subject = f'New order {ctx["order_number"]} — {money(ctx.get("total"))}'
-    text = (f'{ctx["customer_name"]} <{ctx.get("customer_email")}> placed order '
-            f'{ctx["order_number"]}.\n\n{_items_text(ctx.get("items"))}\n\n'
+    where = ctx.get("shipping_summary") or ""
+    text = ("NEW ORDER RECEIVED\n\n"
+            f'Order:    {ctx["order_number"]}\n'
+            f'Customer: {ctx["customer_name"]} <{ctx.get("customer_email")}>\n'
+            f'Phone:    {ctx.get("shipping_phone") or "—"}\n'
+            f'Total:    {money(ctx.get("total"))}\n'
+            f'Shipping: {where or "—"}\n'
+            f'Time:     {ctx.get("created_at")}\n\n'
+            f'{_items_text(ctx.get("items"))}\n\n'
             f'{_totals_text(ctx)}\n\nStatus: {ctx.get("status")}\n'
-            f'Shipping to:\n  {ctx.get("shipping_address") or "—"}\n')
+            f'Shipping to:\n{_shipping_lines_text(ctx)}\n')
     html = _wrap(subject, f"""
     <p style="margin:0 0 14px;"><strong>{esc(ctx["customer_name"])}</strong>
       &lt;{esc(ctx.get("customer_email"))}&gt; placed order
@@ -433,9 +495,10 @@ def admin_order_placed(ctx) -> Rendered:
     {_totals_html(ctx)}
     <p style="margin:16px 0 0;font-size:13px;color:{MUTED};">
       Status: {esc(ctx.get("status"))}</p>
-    <p style="margin:6px 0 0;font-size:13px;color:{MUTED};">
-      {esc(ctx.get("shipping_address") or "—")}</p>
-    """, preheader=f'{money(ctx.get("total"))} · {ctx.get("status")}',
+    <p style="margin:16px 0 2px;font-size:11px;letter-spacing:.06em;
+       text-transform:uppercase;color:{MUTED};">Deliver to</p>
+    {_shipping_lines_html(ctx)}
+    """, preheader=f'{money(ctx.get("total"))} · {where or ctx.get("status")}',
         footer_note=STAFF_FOOTER)
     return Rendered(subject, text, html)
 

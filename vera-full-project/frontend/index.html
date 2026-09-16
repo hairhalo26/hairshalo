@@ -579,13 +579,14 @@
   .ba-wrap{max-width:680px;margin:0 auto;}
   .ba-slider{
     position:relative;border-radius:var(--radius);overflow:hidden;aspect-ratio:16/10;
-    background-image:linear-gradient(rgba(43,27,20,.12),rgba(43,27,20,.12)), url('https://images.unsplash.com/photo-1587045525473-4861b1f9b5b2?w=1000&q=80&fm=jpg&fit=crop&auto=format');
+    /* Filled by the content renderer from Back Office → Content → Before /
+       after slider. No default image: a stock photograph shown as a customer
+       result is a claim about work the shop did not do. */
     background-size:cover;background-position:center;
     user-select:none;
   }
   .ba-after{
     position:absolute;inset:0;
-    background-image:linear-gradient(rgba(43,27,20,.1),rgba(43,27,20,.1)), url('https://images.unsplash.com/photo-1496440737103-cd596325d314?w=1000&q=80&fm=jpg&fit=crop&auto=format');
     background-size:cover;background-position:center;
     clip-path:inset(0 0 0 50%);
   }
@@ -928,6 +929,77 @@
     .header-icons{gap:8px;}
     .nav-account{margin-right:0;white-space:nowrap;}
   }
+  /* Footer link columns are rendered into one container, so it has to carry
+     the same track sizing the columns used to get from .foot-grid directly. */
+  .foot-cols{display:contents;}
+  /* Branded fallback panel, used wherever an image has not been uploaded yet
+     or has failed to load. Never a broken-image icon, never a grey box. */
+  .brand-panel{
+    background:linear-gradient(150deg,#F6EDE4 0%,#EFDDD2 45%,#E6CFC4 100%);
+    position:relative;
+  }
+  .brand-panel::after{
+    content:"HAIRSHALO";
+    position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+    font-family:'Fraunces',serif;font-size:15px;letter-spacing:.22em;
+    color:rgba(122,46,62,.34);pointer-events:none;
+  }
+
+  /* ---- Checkout form ---- */
+  .ck-section{margin-bottom:22px;}
+  .ck-legend{
+    font-size:11px;text-transform:uppercase;letter-spacing:.07em;
+    color:var(--text-soft);font-weight:700;margin-bottom:10px;
+  }
+  .ck-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .ck-span2{grid-column:1 / -1;}
+  .ck-field{display:flex;flex-direction:column;gap:5px;min-width:0;}
+  .ck-field label{font-size:12px;font-weight:600;color:var(--text);}
+  .ck-opt{font-weight:400;color:var(--text-soft);}
+  .ck-field input,.ck-field select{
+    padding:12px 14px;border:1px solid var(--line);border-radius:12px;
+    font-family:inherit;font-size:13.5px;background:#fff;color:var(--text);
+    width:100%;min-width:0;
+  }
+  .ck-field select{appearance:none;background-image:none;cursor:pointer;}
+  .ck-field input:focus,.ck-field select:focus{outline:2px solid var(--wine);outline-offset:1px;}
+  /* Invalid state is applied only after the SERVER rejects a field, so nothing
+     is marked red while it is still being typed. */
+  .ck-field.invalid input,.ck-field.invalid select{border-color:#B4483F;background:#FDF6F5;}
+  .ck-err{font-size:11.5px;color:#B4483F;display:none;}
+  .ck-field.invalid .ck-err{display:block;}
+  .ck-hint{font-size:11.5px;color:var(--text-soft);}
+  .ck-field.invalid .ck-hint{display:none;}
+  .ck-form-error{
+    background:#FDF6F5;border:1px solid #E9C9C5;color:#8E3A33;
+    border-radius:12px;padding:11px 14px;font-size:12.5px;margin-bottom:14px;
+  }
+  .ck-save{
+    display:flex;align-items:center;gap:8px;margin-top:12px;
+    font-size:12.5px;color:var(--text-soft);cursor:pointer;
+  }
+  .ck-save input{width:15px;height:15px;accent-color:var(--wine);}
+  .ck-saved{display:flex;flex-direction:column;gap:9px;}
+  .ck-addr{
+    display:flex;gap:11px;align-items:flex-start;padding:12px 14px;
+    border:1px solid var(--line);border-radius:12px;cursor:pointer;
+    background:#fff;text-align:left;font-family:inherit;width:100%;
+  }
+  .ck-addr:hover{border-color:var(--wine);}
+  .ck-addr.sel{border-color:var(--wine);background:#FCF7F6;}
+  .ck-addr input{margin-top:3px;accent-color:var(--wine);flex:none;}
+  .ck-addr-body{font-size:12.5px;color:var(--text-soft);line-height:1.55;min-width:0;}
+  .ck-addr-body strong{display:block;font-size:13px;color:var(--text);font-weight:600;}
+  .ck-addr-tag{
+    display:inline-block;margin-left:7px;font-size:9.5px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;color:var(--wine);
+    background:#F6ECEA;border-radius:4px;padding:2px 6px;vertical-align:middle;
+  }
+  @media (max-width:520px){
+    .ck-grid{grid-template-columns:1fr;}
+    .ck-span2{grid-column:auto;}
+  }
+
   /* Below the common 375px phone width, shed a little more so the lockup
      never pushes the header wider than the viewport. */
   @media (max-width:374px){
@@ -941,18 +1013,13 @@
 <body>
 <div class="fx-banner" id="fxBanner"></div>
 
-<div class="announce">Complimentary virtual consultation with every order &nbsp;·&nbsp; Ships pan-India in 3–5 days</div>
+<div class="announce" id="announceBar" hidden></div>
 
 <header id="siteHeader">
   <div class="wrap header-inner">
     <a href="#" class="logo" aria-label="Hairshalo — home"><img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="30">HAIRSHALO</a>
-    <nav class="main-nav">
-      <a href="#collections">Wigs</a>
-      <a href="#collections">Extensions</a>
-      <a href="#bestsellers">Toppers</a>
-      <a href="#editorial">Hair Care</a>
-      <a href="#faq">Book a Fitting</a>
-    </nav>
+    <!-- Filled from /api/site-content (Back Office → Content → Header navigation). -->
+    <nav class="main-nav"></nav>
     <div class="header-icons">
       <button class="icon-btn" id="searchBtn" aria-label="Search"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg></button>
       <!-- Account and Wishlist are not implemented yet. Rather than render
@@ -975,11 +1042,7 @@
     <a href="#" class="logo" aria-label="Hairshalo — home"><img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="30">HAIRSHALO</a>
     <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
-  <a href="#collections">Wigs</a>
-  <a href="#collections">Extensions</a>
-  <a href="#bestsellers">Toppers</a>
-  <a href="#editorial">Hair Care</a>
-  <a href="#faq">Book a Fitting</a>
+  <div id="mobileNavLinks"></div>
   <a href="#collections" class="btn btn-primary">Shop Now</a>
 </div>
 
@@ -987,22 +1050,20 @@
 <section class="hero">
   <div class="wrap hero-grid">
     <div class="hero-copy">
-      <span class="eyebrow">Premium Human Hair</span>
-      <h1>Hair that moves<br>like it's <em>always</em><br>been yours.</h1>
-      <p>Hand-tied human hair wigs and extensions with a natural hairline, breathable lace, and a fit built for everyday wear — from your first install to your best hair day.</p>
+      <span class="eyebrow" id="heroEyebrow"></span>
+      <h1 id="heroHeading"></h1>
+      <p id="heroBody"></p>
       <div class="hero-btns">
-        <a href="#collections" class="btn btn-primary">Shop Wigs</a>
-        <a href="#faq" class="btn btn-outline">Book a Fitting</a>
+        <a class="btn btn-primary" id="heroPrimaryCta" href="#collections" hidden></a>
+        <a class="btn btn-outline" id="heroSecondaryCta" href="#faq" hidden></a>
       </div>
-      <div class="hero-chips">
-        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>100% Human Hair</span>
-        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>HD Lace, Natural Hairline</span>
-        <span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>Free Cap Size Guidance</span>
-      </div>
+      <div class="hero-chips" id="heroChips"></div>
     </div>
     <div class="hero-visual">
-      <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.18), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1496440737103-cd596325d314?w=900&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;">
-        <span class="tag"><svg viewBox="0 0 24 24" fill="none" stroke="var(--wine)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> Glueless &amp; Beginner-Friendly</span>
+      <!-- Image comes from Back Office → Content → Homepage hero. Until one is
+           uploaded this stays the branded panel rather than borrowing a stock photo. -->
+      <div class="arch brand-panel" id="heroArch">
+        <span class="tag" id="heroArchTag" hidden></span>
       </div>
       <!-- Filled with a real review when there is one; otherwise it states a
            fact about the product rather than quoting a customer who does not
@@ -1016,60 +1077,32 @@
 </section>
 
 <!-- TRUST -->
-<div class="trust">
-  <div class="wrap trust-grid">
-    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>100% Human Hair</div>
-    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg>Natural Scalp Finish</div>
-    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/></svg>Secure Payments</div>
-    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 12l7 7 11-13"/></svg>7-Day Fit Guarantee</div>
-    <div class="trust-item"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M5 12h14M13 5l7 7-7 7"/></svg>Fast Pan-India Delivery</div>
-  </div>
+<div class="trust" id="trustStrip" hidden>
+  <div class="wrap trust-grid" id="trustGrid"></div>
 </div>
 
 <!-- CATEGORIES -->
-<section class="section" id="collections">
+<section class="section" id="collections" hidden>
   <div class="wrap">
     <div class="section-head">
-      <div><h2>Find your perfect install</h2></div>
-      <p>Every texture and density, made for a natural finish and easy everyday wear.</p>
+      <div><h2 id="collectionsHeading"></h2></div>
+      <p id="collectionsIntro"></p>
     </div>
-    <div class="cat-grid">
-      <div class="cat-card">
-        <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1583599499601-6ace8c41b622?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">Best for beginners</span></div>
-        <h3>Glueless Wigs</h3>
-        <p>Adjustable straps, no glue required</p>
-        <a href="#" class="arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-      </div>
-      <div class="cat-card">
-        <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1589424214513-b672297bf8c4?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">Undetectable lace</span></div>
-        <h3>HD Lace Wigs</h3>
-        <p>Melts seamlessly into your skin tone</p>
-        <a href="#" class="arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-      </div>
-      <div class="cat-card">
-        <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1546877625-cb8c71916608?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">Everyday styling</span></div>
-        <h3>Closure Wigs</h3>
-        <p>Versatile parting, low-maintenance wear</p>
-        <a href="#" class="arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-      </div>
-      <div class="cat-card">
-        <div class="arch" style="background-image:linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1591155048800-93b29d215ed8?w=700&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">360° styling freedom</span></div>
-        <h3>Frontal Wigs</h3>
-        <p>Full hairline for updos and edges</p>
-        <a href="#" class="arrow">Explore <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg></a>
-      </div>
-    </div>
+    <!-- One card per active category from /api/categories. Name, tagline,
+         description and image are all edited in Back Office → Categories, and
+         the count is the real number of published products in that category. -->
+    <div class="cat-grid" id="catGrid"></div>
   </div>
 </section>
 
-<!-- PROMO -->
+<!-- PROMO — Back Office → Content → Promotional banner -->
 <div class="wrap">
-  <div class="promo">
+  <div class="promo" id="promoPanel" hidden>
     <div>
-      <h3>Free cap sizing kit with your first wig order.</h3>
-      <p>Get a precise, comfortable fit before you buy — we'll mail a sizing kit and walk you through it over WhatsApp.</p>
+      <h3 id="promoHeading"></h3>
+      <p id="promoBody"></p>
     </div>
-    <a href="#" class="btn">Claim Your Kit</a>
+    <a class="btn" id="promoCta" href="#collections" hidden></a>
   </div>
 </div>
 
@@ -1077,8 +1110,8 @@
 <section class="section" id="bestsellers">
   <div class="wrap">
     <div class="section-head">
-      <div><h2>Best sellers</h2></div>
-      <p>Our most-loved units, chosen by customers who wear them every day.</p>
+      <div><h2 id="bestsellersHeading"></h2></div>
+      <p id="bestsellersIntro"></p>
     </div>
     <!-- Cards are rendered from the live API by renderBestSellers().
          Real products come from /api/products; if the section cannot be
@@ -1121,30 +1154,31 @@
 </section>
 
 <!-- EDITORIAL -->
-<section class="section" id="editorial">
+<section class="section" id="editorial" hidden>
   <div class="wrap editorial">
-    <div class="arch order-2" style="aspect-ratio:4/4.6;background-image:linear-gradient(160deg, rgba(43,27,20,.18), rgba(140,90,60,.05)), url('https://images.unsplash.com/photo-1500917293891-ef795e70e1f6?w=800&q=80&fm=jpg&fit=crop&auto=format');background-size:cover;background-position:center;"><span class="tag">Density: Soft &amp; natural</span></div>
+    <div class="arch order-2 brand-panel" id="editorialArch" style="aspect-ratio:4/4.6;">
+      <span class="tag" id="editorialArchTag" hidden></span>
+    </div>
     <div class="editorial-copy">
-      <span class="eyebrow">The Hairshalo Difference</span>
-      <h2>Looks natural. Feels like yours.</h2>
-      <p>Every unit starts with ethically sourced human hair, hand-tied strand by strand onto breathable Swiss lace. No stiff parting, no plastic shine — just movement, softness, and a scalp-like finish that holds up to real, everyday life.</p>
-      <p>Our stylists size, trim, and customise the hairline for you before it ships, so what arrives is ready to wear from day one.</p>
-      <a href="#" class="btn btn-outline">Discover Our Hair</a>
+      <span class="eyebrow" id="editorialEyebrow"></span>
+      <h2 id="editorialHeading"></h2>
+      <div id="editorialBody"></div>
+      <a class="btn btn-outline" id="editorialCta" href="#collections" hidden></a>
     </div>
   </div>
 </section>
 
-<!-- BEFORE / AFTER -->
-<section class="section">
+<!-- BEFORE / AFTER — hidden until the shop uploads its own pair. -->
+<section class="section" id="beforeAfter" hidden>
   <div class="wrap">
     <div class="section-head" style="justify-content:center;text-align:center;flex-direction:column;align-items:center;">
-      <h2>The difference is in the detail</h2>
-      <p>Drag to compare — from natural roots to a completely blended install.</p>
+      <h2 id="baHeading"></h2>
+      <p id="baIntro"></p>
     </div>
     <div class="ba-wrap">
       <div class="ba-slider" id="baSlider">
-        <span class="ba-label before">Before</span>
-        <span class="ba-label after">After</span>
+        <span class="ba-label before" id="baLabelBefore">Before</span>
+        <span class="ba-label after" id="baLabelAfter">After</span>
         <div class="ba-after" id="baAfter"></div>
         <div class="ba-handle" id="baHandle"></div>
       </div>
@@ -1152,32 +1186,11 @@
   </div>
 </section>
 
-<!-- WHY CHOOSE -->
-<section class="section">
+<!-- WHY CHOOSE — Back Office → Content → Why customers choose us -->
+<section class="section" id="whySection" hidden>
   <div class="wrap">
-    <div class="section-head"><h2>Why customers choose Hairshalo</h2></div>
-    <div class="why-grid">
-      <div class="why-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/></svg>
-        <h4>100% Human Hair</h4>
-        <p>Natural movement, softness, and full styling versatility — heat-safe up to 180°C.</p>
-      </div>
-      <div class="why-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/></svg>
-        <h4>Ethically Sourced</h4>
-        <p>Every bundle is hand-selected for quality, consistency, and traceable origin.</p>
-      </div>
-      <div class="why-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/></svg>
-        <h4>Long Lasting</h4>
-        <p>With proper care, our units stay soft and full for 12+ months of regular wear.</p>
-      </div>
-      <div class="why-item">
-        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M4 12c2-4 6-6 8-6s6 2 8 6c-2 4-6 6-8 6s-6-2-8-6z"/><circle cx="12" cy="12" r="2.4"/></svg>
-        <h4>Natural Finish</h4>
-        <p>HD lace and hand-plucked hairlines blend seamlessly with your own skin tone.</p>
-      </div>
-    </div>
+    <div class="section-head"><h2 id="whyHeading"></h2></div>
+    <div class="why-grid" id="whyGrid"></div>
   </div>
 </section>
 
@@ -1194,41 +1207,22 @@
 </section>
 
 <!-- FAQ -->
-<section class="section" id="faq">
+<section class="section" id="faq" hidden>
   <div class="wrap">
     <div class="section-head" style="justify-content:center;text-align:center;flex-direction:column;align-items:center;">
-      <h2>Questions, answered</h2>
+      <h2 id="faqHeading"></h2>
     </div>
-    <div class="faq-wrap">
-      <div class="faq-item">
-        <div class="faq-q">How do I choose the right cap size?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-        <div class="faq-a"><p>We send a free sizing kit with a measuring guide, or you can book a virtual fitting and our stylists will measure with you over video call.</p></div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">How long does a human hair wig last?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-        <div class="faq-a"><p>With proper washing, conditioning, and storage, most customers get 12–18 months of regular wear from a single unit.</p></div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">Can I colour or heat style the hair?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-        <div class="faq-a"><p>Yes — since it's 100% human hair, it can be safely heat-styled up to 180°C and coloured up to two shades darker at a professional salon.</p></div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">Do you offer returns or exchanges?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-        <div class="faq-a"><p>Unworn units in original packaging can be exchanged within 7 days. Our fit guarantee covers sizing issues on your first order.</p></div>
-      </div>
-      <div class="faq-item">
-        <div class="faq-q">How long does shipping take?<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
-        <div class="faq-a"><p>Most orders ship within 24 hours and arrive in 3–5 business days across India, with live tracking sent to your email and WhatsApp.</p></div>
-      </div>
-    </div>
+    <!-- Questions come from Back Office → Content → FAQ. An empty list hides
+         the whole section rather than showing invented questions. -->
+    <div class="faq-wrap" id="faqWrap"></div>
   </div>
 </section>
 
 <!-- NEWSLETTER -->
 <div class="wrap">
   <div class="newsletter">
-    <h2>Your best hair starts here</h2>
-    <p>Styling tips, new arrivals, and offers — straight to your inbox.</p>
+    <h2 id="newsletterHeading"></h2>
+    <p id="newsletterBody"></p>
     <!-- Double opt-in: this only asks for a confirmation email. Nothing is
          added to the list until the link in that email is clicked. -->
     <form class="nl-form" id="newsletterForm">
@@ -1238,35 +1232,22 @@
   </div>
 </div>
 
-<!-- FOOTER -->
+<!-- FOOTER — every link, the blurb, socials and contact details come from
+     Back Office → Content (Footer / Social links / Business details). -->
 <footer>
   <div class="wrap">
     <div class="foot-grid">
       <div class="foot-brand">
         <a href="#" class="logo" aria-label="Hairshalo — home"><img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="30">HAIRSHALO</a>
-        <p>Premium human hair wigs and extensions, fitted and finished for a completely natural, everyday wear.</p>
-        <div class="foot-social">
-          <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/></svg></a>
-          <a href="#" aria-label="Facebook"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M14 9h3V6h-3c-1.7 0-3 1.3-3 3v2H8v3h3v6h3v-6h3l1-3h-4V9c0-.6.4-1 1-1z"/></svg></a>
-          <a href="#" aria-label="WhatsApp"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 21l1.4-4.2A9 9 0 1112 21a9 9 0 01-4.2-1L3 21z"/></svg></a>
-        </div>
+        <p id="footBlurb"></p>
+        <div class="foot-social" id="footSocial" hidden></div>
       </div>
-      <div class="foot-col">
-        <h5>Shop</h5>
-        <a href="#">Wigs</a><a href="#">Extensions</a><a href="#">Toppers</a><a href="#">Best Sellers</a>
-      </div>
-      <div class="foot-col">
-        <h5>Help</h5>
-        <a href="#">Contact</a><a href="#">Shipping</a><a href="#">Returns</a><a href="#">FAQ</a>
-      </div>
-      <div class="foot-col">
-        <h5>About</h5>
-        <a href="#">Our Story</a><a href="#">Hair Care Guide</a><a href="#">Reviews</a>
-      </div>
+      <div class="foot-cols" id="footColumns"></div>
+      <div class="foot-col" id="footContact" hidden></div>
     </div>
     <div class="foot-bottom">
-      <span>© 2026 Hairshalo. All rights reserved.</span>
-      <div class="foot-legal"><a href="#">Privacy Policy</a><a href="#">Terms</a><a href="#">Refund Policy</a></div>
+      <span id="footCopyright"></span>
+      <div class="foot-legal" id="footLegal"></div>
     </div>
   </div>
 </footer>
@@ -1749,19 +1730,30 @@
     openCart();
   });
 
-  // FAQ accordion
-  document.querySelectorAll('.faq-item').forEach(item => {
-    const q = item.querySelector('.faq-q');
-    const a = item.querySelector('.faq-a');
-    q.addEventListener('click', () => {
-      const isOpen = item.classList.contains('open');
-      document.querySelectorAll('.faq-item.open').forEach(o => { o.classList.remove('open'); o.querySelector('.faq-a').style.maxHeight = null; });
-      if(!isOpen){
-        item.classList.add('open');
-        a.style.maxHeight = a.scrollHeight + 'px';
-      }
+  // FAQ accordion. Called again after the questions are rendered from the API,
+  // so it binds whatever the Back Office currently holds rather than markup
+  // that no longer exists.
+  function bindFaqAccordion(){
+    document.querySelectorAll('.faq-item').forEach(item => {
+      if(item.dataset.bound) return;
+      item.dataset.bound = '1';
+      const q = item.querySelector('.faq-q');
+      const a = item.querySelector('.faq-a');
+      if(!q || !a) return;
+      q.addEventListener('click', () => {
+        const isOpen = item.classList.contains('open');
+        document.querySelectorAll('.faq-item.open').forEach(o => {
+          o.classList.remove('open');
+          o.querySelector('.faq-a').style.maxHeight = null;
+        });
+        if(!isOpen){
+          item.classList.add('open');
+          a.style.maxHeight = a.scrollHeight + 'px';
+        }
+      });
     });
-  });
+  }
+  bindFaqAccordion();
 
   // Before / After slider
   const baSlider = document.getElementById('baSlider');
@@ -1837,12 +1829,12 @@
   <div class="quiz-result" id="quizResult">
     <p style="font-size:13px;color:var(--text-soft);margin-bottom:6px;">Based on your answers —</p>
     <div class="quiz-result-card">
-      <div class="thumb" id="resultThumb"></div>
+      <div class="thumb brand-panel" id="resultThumb"></div>
       <div>
-        <span class="match-badge" id="resultMatch">96% Match</span>
-        <h4 id="resultName">Anaya Glueless Bob</h4>
-        <p id="resultDesc">Medium length, beginner-friendly, glueless fit</p>
-        <strong id="resultPrice">₹12,499</strong>
+        <span class="match-badge" id="resultMatch"></span>
+        <h4 id="resultName"></h4>
+        <p id="resultDesc"></p>
+        <strong id="resultPrice"></strong>
       </div>
     </div>
     <div class="quiz-nav">
@@ -1917,13 +1909,6 @@
   const quizOverlay = document.getElementById('quizOverlay');
   const quizAnswers = {};
 
-  const productCatalog = [
-    {name:'Anaya Glueless Bob', desc:'Medium length, beginner-friendly, glueless fit', price:'₹12,499', img:'https://images.unsplash.com/photo-1634449571010-02389ed0f9b0?w=200&q=80&fm=jpg&fit=crop&auto=format', tag:'length:Medium,occasion:First-time wig'},
-    {name:'Malaika HD Lace Frontal', desc:'Full hairline, 360° styling freedom', price:'₹18,999', img:'https://images.unsplash.com/photo-1675034743339-0b0747047727?w=200&q=80&fm=jpg&fit=crop&auto=format', tag:'length:Long,occasion:Special event'},
-    {name:'Ishita Closure Wave', desc:'Everyday wear, versatile parting', price:'₹15,999', img:'https://images.unsplash.com/photo-1503830232159-4b417691001e?w=200&q=80&fm=jpg&fit=crop&auto=format', tag:'length:Wavy,occasion:Everyday wear'},
-    {name:'Kavya Silk Topper', desc:'Blends with your own hair, crown coverage', price:'₹9,499', img:'https://images.unsplash.com/photo-1560869713-bf165a9cfac1?w=200&q=80&fm=jpg&fit=crop&auto=format', tag:'occasion:Hair loss support'}
-  ];
-
   document.getElementById('openQuiz').addEventListener('click', () => openModal(quizModal, quizOverlay));
   document.getElementById('quizClose').addEventListener('click', () => closeModal(quizModal, quizOverlay));
   quizOverlay.addEventListener('click', () => closeModal(quizModal, quizOverlay));
@@ -1954,25 +1939,127 @@
     btn.addEventListener('click', () => goToStep(parseInt(btn.dataset.back)));
   });
 
-  document.getElementById('quizFinish').addEventListener('click', () => {
-    let best = productCatalog[0];
-    let bestScore = -1;
-    productCatalog.forEach(p => {
-      let score = 0;
-      if(quizAnswers.length && p.tag.includes('length:'+quizAnswers.length)) score += 2;
-      if(quizAnswers.occasion && p.tag.includes('occasion:'+quizAnswers.occasion)) score += 2;
+  /* The quiz recommends a REAL product.
+
+     It used to score a hardcoded array of four names with invented prices, and
+     "Add to Bag" pushed a cart line carrying that name and price but no product
+     id — so the recommendation could not be bought, and the price shown was not
+     a price anything was actually sold at.
+
+     It now scores whatever /api/products returned: published products, with
+     their real price, their real image, and their real id, so the thing the
+     quiz suggests is the thing that reaches the cart. With no products
+     published it says so instead of recommending something imaginary. */
+  function quizBudgetBand(price){
+    const value = Number(price || 0);
+    if(!value) return null;
+    if(value < 10000) return 'Under ₹10,000';
+    if(value <= 16000) return '₹10,000–₹16,000';
+    return '₹16,000+';
+  }
+
+  function quizScore(product){
+    let score = 0;
+    const text = [product.name, product.description, product.short_description,
+                  product.texture, product.hair_type, product.construction,
+                  product.category].filter(Boolean).join(' ').toLowerCase();
+    const lengths = (product.variants || []).map(v => String(v.length || '')).join(' ');
+
+    // Length: "Short & Sleek" etc. map onto the inches carried by the variants.
+    const wanted = quizAnswers.length;
+    if(wanted){
+      const inches = (lengths.match(/\d+/g) || []).map(Number);
+      const shortest = inches.length ? Math.min(...inches) : null;
+      if(wanted === 'Wavy' && /wav|curl|body/.test(text)) score += 3;
+      else if(shortest !== null){
+        if(wanted === 'Short' && shortest <= 14) score += 3;
+        else if(wanted === 'Medium' && shortest > 12 && shortest <= 20) score += 3;
+        else if(wanted === 'Long' && shortest >= 20) score += 3;
+      }
+    }
+
+    if(quizAnswers.occasion){
+      const map = {
+        'First-time wig': /glueless|beginner|easy|closure/,
+        'Special event':  /frontal|hd lace|360|full/,
+        'Everyday wear':  /everyday|closure|bob|natural/,
+        'Hair loss support': /topper|crown|coverage|volume/
+      };
+      const pattern = map[quizAnswers.occasion];
+      if(pattern && pattern.test(text)) score += 3;
+    }
+
+    // Budget matches against the real selling price, so the quiz can never
+    // suggest something outside the band the customer just chose.
+    if(quizAnswers.budget && quizAnswers.budget !== 'Not sure yet'){
+      if(quizBudgetBand(product.price) === quizAnswers.budget) score += 2;
+    }
+
+    // In stock beats out of stock, all else equal.
+    if((product.variants || []).some(v => v.is_available && v.stock > 0)) score += 1;
+    return score;
+  }
+
+  function quizEligible(){
+    return (typeof liveProducts !== 'undefined' ? liveProducts : [])
+      .filter(p => p.status === 'Published' || !p.status);
+  }
+
+  function renderQuizResult(){
+    const candidates = quizEligible();
+    const result = document.getElementById('quizResult');
+    const card = result.querySelector('.quiz-result-card');
+    const addBtn = document.getElementById('quizAddToBag');
+
+    if(!candidates.length){
+      // Nothing published. Say so rather than recommending a product that
+      // does not exist or cannot be bought.
+      card.innerHTML = '<div class="quiz-empty"><strong>No matches yet</strong>' +
+        '<p>Our stylists are preparing the new collection. Check back shortly, ' +
+        'or book a fitting and we will recommend a unit in person.</p></div>';
+      addBtn.disabled = true;
+      addBtn.textContent = 'Add to Bag';
+      delete quizModal.dataset.matchedId;
+      document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
+      result.classList.add('active');
+      return;
+    }
+
+    let best = candidates[0], bestScore = -1;
+    candidates.forEach(p => {
+      const score = quizScore(p);
       if(score > bestScore){ bestScore = score; best = p; }
     });
-    document.getElementById('resultThumb').style.backgroundImage = `url('${best.img}')`;
+
+    // Restore the card structure, in case a previous run rendered the empty state.
+    card.innerHTML =
+      '<div class="thumb" id="resultThumb"></div>' +
+      '<div><span class="match-badge" id="resultMatch"></span>' +
+      '<h4 id="resultName"></h4><p id="resultDesc"></p><strong id="resultPrice"></strong></div>';
+
+    const thumb = document.getElementById('resultThumb');
+    applyBackdrop(thumb, best.image_url);
     document.getElementById('resultName').textContent = best.name;
-    document.getElementById('resultDesc').textContent = best.desc;
-    document.getElementById('resultPrice').textContent = best.price;
-    document.getElementById('resultMatch').textContent = (92 + Math.floor(Math.random()*7)) + '% Match';
+    document.getElementById('resultDesc').textContent =
+      best.short_description || best.description || '';
+    document.getElementById('resultPrice').textContent = money(Number(best.price || 0));
+    // How well it matched, from the score actually computed — not a random
+    // number dressed up as a percentage.
+    const maxScore = 9;
+    document.getElementById('resultMatch').textContent =
+      Math.round(Math.max(bestScore, 1) / maxScore * 100) + '% Match';
+
+    const variant = (best.variants || []).find(v => v.is_available && v.stock > 0);
+    quizModal.dataset.matchedId = best.id;
+    quizModal.dataset.matchedVariant = variant ? variant.id : '';
+    addBtn.disabled = !variant && (best.variants || []).length > 0;
+    addBtn.textContent = addBtn.disabled ? 'Out of stock' : 'Add to Bag';
+
     document.querySelectorAll('.quiz-step').forEach(s => s.classList.remove('active'));
-    document.getElementById('quizResult').classList.add('active');
-    quizModal.dataset.matchedProduct = best.name;
-    quizModal.dataset.matchedPrice = best.price.replace(/[₹,]/g,'');
-  });
+    result.classList.add('active');
+  }
+
+  document.getElementById('quizFinish').addEventListener('click', renderQuizResult);
 
   document.getElementById('quizRestart').addEventListener('click', () => {
     document.getElementById('quizResult').classList.remove('active');
@@ -1982,10 +2069,25 @@
   });
 
   document.getElementById('quizAddToBag').addEventListener('click', () => {
-    cart.push({name: quizModal.dataset.matchedProduct, price: parseInt(quizModal.dataset.matchedPrice)});
+    // Carries the real product id and variant, so the recommendation is the
+    // thing that reaches checkout — and is priced from the database there.
+    const id = quizModal.dataset.matchedId;
+    const product = quizEligible().find(p => p.id === id);
+    if(!product) return;
+    const variantId = quizModal.dataset.matchedVariant || null;
+    const variant = (product.variants || []).find(v => v.id === variantId);
+    cart.push({
+      id: product.id,
+      name: product.name,
+      variantId: variantId,
+      variantLabel: variant ? variant.label : null,
+      price: Number((variant && variant.price) || product.price || 0),
+      image: product.image_url || '',
+      qty: 1
+    });
     renderCart();
     closeModal(quizModal, quizOverlay);
-    showToast(quizModal.dataset.matchedProduct + ' added to bag');
+    showToast(product.name + ' added to bag');
     openCart();
   });
 
@@ -2211,13 +2313,87 @@
 <div class="modal" id="checkoutModal">
   <button class="modal-close" id="checkoutClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="modal-head"><span>Checkout</span><h3>Complete your order</h3></div>
-  <form id="checkoutForm">
-    <div style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px;">
-      <input type="text" id="ckName" placeholder="Full name" required style="padding:13px 16px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:13.5px;">
-      <input type="email" id="ckEmail" placeholder="Email address" required style="padding:13px 16px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:13.5px;">
-      <textarea id="ckAddress" placeholder="Shipping address" required rows="3" style="padding:13px 16px;border:1px solid var(--line);border-radius:12px;font-family:inherit;font-size:13.5px;resize:vertical;"></textarea>
+  <form id="checkoutForm" novalidate>
+    <div class="ck-section">
+      <h4 class="ck-legend">Contact</h4>
+      <div class="ck-grid">
+        <div class="ck-field ck-span2">
+          <label for="ckName">Full name</label>
+          <input type="text" id="ckName" autocomplete="name" required>
+          <span class="ck-err" data-err="customer_name"></span>
+        </div>
+        <div class="ck-field ck-span2">
+          <label for="ckEmail">Email address</label>
+          <input type="email" id="ckEmail" autocomplete="email" required>
+          <span class="ck-err" data-err="customer_email"></span>
+          <span class="ck-hint">Your order confirmation and tracking go here.</span>
+        </div>
+      </div>
     </div>
-    <label for="ckCoupon" style="display:block;font-size:11px;text-transform:uppercase;letter-spacing:.07em;color:var(--text-soft);font-weight:700;margin-bottom:7px;">Have a coupon?</label>
+
+    <!-- Saved addresses. Only rendered for a signed-in customer with at least
+         one saved address; the list comes from /api/account/addresses, which
+         answers from the TOKEN, so no other customer's address can appear. -->
+    <div class="ck-section" id="ckSavedWrap" hidden>
+      <h4 class="ck-legend">Deliver to</h4>
+      <div class="ck-saved" id="ckSavedList"></div>
+    </div>
+
+    <div class="ck-section" id="ckAddressWrap">
+      <h4 class="ck-legend">Delivery address</h4>
+      <div class="ck-grid">
+        <div class="ck-field ck-span2">
+          <label for="ckShipName">Recipient's full name</label>
+          <input type="text" id="ckShipName" autocomplete="shipping name" required>
+          <span class="ck-err" data-err="full_name"></span>
+        </div>
+        <div class="ck-field ck-span2">
+          <label for="ckPhone">Phone number</label>
+          <input type="tel" id="ckPhone" autocomplete="shipping tel" inputmode="tel" required>
+          <span class="ck-err" data-err="phone"></span>
+          <span class="ck-hint">So the courier can reach you on delivery day.</span>
+        </div>
+        <div class="ck-field ck-span2">
+          <label for="ckLine1">Address</label>
+          <input type="text" id="ckLine1" autocomplete="shipping address-line1"
+                 placeholder="House / flat number and street" required>
+          <span class="ck-err" data-err="line1"></span>
+        </div>
+        <div class="ck-field ck-span2">
+          <label for="ckLine2">Apartment, landmark <span class="ck-opt">(optional)</span></label>
+          <input type="text" id="ckLine2" autocomplete="shipping address-line2">
+          <span class="ck-err" data-err="line2"></span>
+        </div>
+        <div class="ck-field">
+          <label for="ckCity">Town / city</label>
+          <input type="text" id="ckCity" autocomplete="shipping address-level2" required>
+          <span class="ck-err" data-err="city"></span>
+        </div>
+        <div class="ck-field">
+          <label for="ckState" id="ckStateLabel">State</label>
+          <input type="text" id="ckState" autocomplete="shipping address-level1">
+          <span class="ck-err" data-err="state"></span>
+        </div>
+        <div class="ck-field">
+          <label for="ckCountry">Country</label>
+          <select id="ckCountry" autocomplete="shipping country-name"></select>
+          <span class="ck-err" data-err="country"></span>
+        </div>
+        <div class="ck-field">
+          <!-- Relabelled from the server's country table: "PIN Code" for India,
+               "ZIP Code" for the US, "Postcode" for the UK. Never assumed. -->
+          <label for="ckPostal" id="ckPostalLabel">PIN Code</label>
+          <input type="text" id="ckPostal" autocomplete="shipping postal-code"
+                 inputmode="numeric" required>
+          <span class="ck-err" data-err="postal_code"></span>
+        </div>
+      </div>
+      <label class="ck-save" id="ckSaveWrap" hidden>
+        <input type="checkbox" id="ckSaveAddress"> Save this address to my account
+      </label>
+    </div>
+
+    <label for="ckCoupon" class="ck-legend" style="display:block;margin-bottom:7px;">Have a coupon?</label>
     <div class="coupon-row">
       <input type="text" id="ckCoupon" placeholder="Enter coupon code" autocomplete="off">
       <button type="button" id="ckCouponApply">Apply</button>
@@ -2231,6 +2407,7 @@
       <div class="totals-row grand"><span>Total</span><span id="ttTotal">₹0</span></div>
     </div>
 
+    <div class="ck-form-error" id="ckFormError" hidden></div>
     <p id="checkoutNote" class="tryon-note" style="margin-bottom:16px;">Connecting to the live backend to place a real order...</p>
     <button type="submit" class="btn btn-primary" style="width:100%;" id="checkoutSubmit">Place Order</button>
   </form>
@@ -2313,6 +2490,18 @@
   const esc = s => String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
     .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+
+  /* A URL going into a CSS url('...') context. HTML escaping is the wrong
+     tool here: inside a style value a stray quote or paren ends the string and
+     starts new CSS, so those characters are percent-encoded instead. The URLs
+     are admin-set, which limits who could abuse it — but "only an admin can do
+     it" is not a reason to leave an injection in a page every customer loads. */
+  function cssUrl(url){
+    return encodeURI(String(url || ''))
+      .replace(/'/g, '%27').replace(/"/g, '%22')
+      .replace(/\(/g, '%28').replace(/\)/g, '%29');
+  }
 
   const WISH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg>';
 
@@ -2438,7 +2627,9 @@
       }
       status.textContent = `${hits.length} ${hits.length===1?'result':'results'} for “${term}”`;
       results.innerHTML = hits.map(p => {
-        const img = p.image_url ? `style="background-image:url('${esc(resolveMediaUrl(p.image_url))}')"` : '';
+        // cssUrl, not esc: the HTML parser decodes &#39; back to a quote
+        // inside a style attribute, which would end the CSS string.
+        const img = p.image_url ? `style="background-image:url('${cssUrl(resolveMediaUrl(p.image_url))}')"` : '';
         const price = p.on_sale
           ? `${inr(p.price)} <span style="color:var(--text-soft);text-decoration:line-through;font-weight:500;font-size:12px;">${inr(p.compare_at_price)}</span>`
           : inr(p.price);
@@ -2742,7 +2933,7 @@
       if(!url){ el.classList.add('no-image'); return; }
       const probe = new Image();
       probe.onload = () => {
-        el.style.backgroundImage = `linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('${url}')`;
+        el.style.backgroundImage = `linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('${cssUrl(url)}')`;
         el.style.backgroundSize = 'cover';
         el.style.backgroundPosition = 'center';
         el.classList.remove('no-image');
@@ -2819,7 +3010,10 @@
   }
 
   (async () => {
-    await Promise.all([loadCurrencies(), loadShippingRules()]);
+    // Page copy first: every section above the fold is empty until the Back
+    // Office content arrives, so it is fetched alongside the rate table rather
+    // than after the catalog.
+    await Promise.all([loadCurrencies(), loadShippingRules(), loadSiteContent()]);
     // The first paint formatted the (empty) basket in INR, because no rate
     // table existed yet. Re-render so the subtotal is in the currency the
     // customer actually resolved to.
@@ -2925,24 +3119,601 @@
   const checkoutOverlay = document.getElementById('checkoutOverlay');
   const checkoutNote = document.getElementById('checkoutNote');
 
-  document.getElementById('checkoutBtn').addEventListener('click', (e) => {
+  document.getElementById('checkoutBtn').addEventListener('click', async (e) => {
     e.preventDefault();
     if(cart.length === 0){ showToast('Your bag is empty'); return; }
     refreshTotals();
     checkoutNote.textContent = apiConnected
       ? 'Order will be placed on the live backend.'
       : 'Our store is temporarily unreachable — orders cannot be placed right now.';
+    ckClearErrors();
     openModal(checkoutModal, checkoutOverlay);
+    // Opened first, populated after: the country list and address book are one
+    // network round trip each, and the customer should not wait on them to see
+    // their own order total.
+    await loadShippingCountries();
+    prefillCheckoutFromProfile();
+    loadSavedAddresses();
   });
+
+  /* Prefill contact details for a signed-in customer. Only their OWN profile —
+     `customer` is whatever /account/me returned for their token. */
+  function prefillCheckoutFromProfile(){
+    if(!customer) return;
+    const nameInput = document.getElementById('ckName');
+    const emailInput = document.getElementById('ckEmail');
+    const shipName = document.getElementById('ckShipName');
+    const phone = document.getElementById('ckPhone');
+    if(nameInput && !nameInput.value) nameInput.value = customer.name || '';
+    if(emailInput && !emailInput.value) emailInput.value = customer.email || '';
+    if(shipName && !shipName.value) shipName.value = customer.name || '';
+    if(phone && !phone.value && customer.phone) phone.value = customer.phone;
+  }
   document.getElementById('checkoutClose').addEventListener('click', () => closeModal(checkoutModal, checkoutOverlay));
   checkoutOverlay.addEventListener('click', () => closeModal(checkoutModal, checkoutOverlay));
 
+  /* ================= Storefront content =================
+     Every word and image below comes from /api/site-content and /api/categories,
+     which are edited in the Back Office under Content and Catalog → Categories.
+     Nothing in this file holds a copy of that text.
+
+     Two consequences, both deliberate:
+
+     * A section with nothing in it HIDES rather than falling back to sample
+       copy. An empty FAQ means the shop has not written one, and inventing
+       five questions would be putting words in the owner's mouth.
+     * If the content API is unreachable the page keeps its structure and the
+       shop's own defaults are simply absent, the same way the product grid
+       reports a catalog it cannot reach instead of showing products that
+       might not exist. */
+
+  let siteContent = {};
+
+  const ICONS = {
+    star:   '<path d="M12 2l3 7h7l-5.5 4.5L18.5 21 12 16.5 5.5 21l2-7.5L2 9h7z"/>',
+    check:  '<circle cx="12" cy="12" r="9"/><path d="M8 12l2.5 2.5L16 9"/>',
+    card:   '<rect x="3" y="6" width="18" height="13" rx="2"/><path d="M3 10h18"/>',
+    tick:   '<path d="M3 12l7 7 11-13"/>',
+    arrow:  '<path d="M5 12h14M13 5l7 7-7 7"/>',
+    layers: '<path d="M12 3v18M5 8l7-5 7 5M5 16l7 5 7-5"/>',
+    eye:    '<path d="M4 12c2-4 6-6 8-6s6 2 8 6c-2 4-6 6-8 6s-6-2-8-6z"/><circle cx="12" cy="12" r="2.4"/>'
+  };
+
+  function icon(name, width){
+    return `<svg viewBox="0 0 24 24" fill="none" stroke-width="${width || 1.8}">${
+      ICONS[name] || ICONS.check}</svg>`;
+  }
+
+  /* Links come from the Back Office, so they are treated as untrusted input:
+     only same-page anchors and http(s) URLs are allowed through. Without this
+     a "javascript:" href typed into the admin form would execute for every
+     visitor — an admin can already edit copy, but that must not extend to
+     running script in a customer's browser. */
+  function safeHref(href){
+    const value = String(href || '').trim();
+    if(!value) return '#';
+    if(value.startsWith('#') || value.startsWith('/')) return value;
+    return /^https?:\/\//i.test(value) ? value : '#';
+  }
+
+  function setText(id, value){
+    const node = document.getElementById(id);
+    if(node) node.textContent = value || '';
+  }
+
+  // Hide a section entirely when it has nothing to say.
+  function toggleSection(id, show){
+    const node = document.getElementById(id);
+    if(node) node.hidden = !show;
+  }
+
+  function renderAnnouncement(block){
+    const bar = document.getElementById('announceBar');
+    if(!bar) return;
+    const text = (block && block.text) || '';
+    bar.textContent = text;
+    bar.hidden = !text;
+  }
+
+  function renderHero(block){
+    if(!block) return;
+    setText('heroEyebrow', block.eyebrow);
+    const heading = document.getElementById('heroHeading');
+    if(heading){
+      // Built as text nodes and one <em>, never innerHTML: a headline is admin
+      // input, and rendering it as markup would make the homepage an injection
+      // point for anyone who can reach the Content screen.
+      heading.textContent = '';
+      (block.heading_lines || []).forEach((line, index) => {
+        if(index) heading.appendChild(document.createElement('br'));
+        const emphasis = block.heading_emphasis;
+        if(emphasis && line.includes(emphasis)){
+          const [before, after] = line.split(emphasis);
+          heading.appendChild(document.createTextNode(before));
+          const em = document.createElement('em');
+          em.textContent = emphasis;
+          heading.appendChild(em);
+          heading.appendChild(document.createTextNode(after));
+        } else {
+          heading.appendChild(document.createTextNode(line));
+        }
+      });
+    }
+    setText('heroBody', block.body);
+
+    const primary = document.getElementById('heroPrimaryCta');
+    if(primary){
+      primary.textContent = block.primary_cta_label || '';
+      primary.href = safeHref(block.primary_cta_href);
+      primary.hidden = !block.primary_cta_label;
+    }
+    const secondary = document.getElementById('heroSecondaryCta');
+    if(secondary){
+      secondary.textContent = block.secondary_cta_label || '';
+      secondary.href = safeHref(block.secondary_cta_href);
+      secondary.hidden = !block.secondary_cta_label;
+    }
+
+    const chips = document.getElementById('heroChips');
+    if(chips){
+      chips.innerHTML = (block.chips || []).map(chip =>
+        `<span class="chip"><svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M20 6L9 17l-5-5"/></svg>${esc(chip)}</span>`
+      ).join('');
+    }
+
+    const visual = document.getElementById('heroArch');
+    if(visual){
+      applyBackdrop(visual, block.image_url);
+      const tag = document.getElementById('heroArchTag');
+      if(tag){
+        tag.innerHTML = block.image_tag
+          ? `<svg viewBox="0 0 24 24" fill="none" stroke="var(--wine)" stroke-width="2.5"><path d="M20 6L9 17l-5-5"/></svg> ${esc(block.image_tag)}`
+          : '';
+        tag.hidden = !block.image_tag;
+      }
+    }
+  }
+
+  /* Apply an image as a background only once it has genuinely loaded — the
+     same rule the product cards follow. A URL that 404s therefore leaves the
+     branded panel showing, never a broken-image icon or a grey skeleton. */
+  function applyBackdrop(node, url){
+    if(!node) return;
+    node.classList.add('brand-panel');
+    if(!url) return;
+    const resolved = resolveMediaUrl(url);
+    const probe = new Image();
+    probe.onload = () => {
+      node.style.backgroundImage =
+        `linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('${cssUrl(resolved)}')`;
+      node.style.backgroundSize = 'cover';
+      node.style.backgroundPosition = 'center';
+      node.classList.remove('brand-panel');
+    };
+    probe.src = resolved;
+  }
+
+  function renderTrust(block){
+    const grid = document.getElementById('trustGrid');
+    const items = (block && block.items) || [];
+    if(!grid) return;
+    grid.innerHTML = items.map(item =>
+      `<div class="trust-item">${icon(item.icon)}${esc(item.text)}</div>`).join('');
+    toggleSection('trustStrip', items.length > 0);
+  }
+
+  /* Collection cards ARE the categories — one source of truth, so a category
+     renamed in the Back Office renames the card, and its product count is the
+     real number of published products in it. */
+  function renderCollections(block, categories){
+    setText('collectionsHeading', block && block.heading);
+    setText('collectionsIntro', block && block.intro);
+    const grid = document.getElementById('catGrid');
+    if(!grid) return;
+
+    const visible = (categories || []).filter(c => c.is_active);
+    grid.innerHTML = visible.map(cat => `
+      <div class="cat-card">
+        <div class="arch brand-panel" data-cat-image="${esc(cat.image_url || '')}">
+          ${cat.tagline ? `<span class="tag">${esc(cat.tagline)}</span>` : ''}
+        </div>
+        <h3>${esc(cat.name)}</h3>
+        <p>${esc(cat.description || '')}</p>
+        <a href="#bestsellers" class="arrow" data-cat-shop="${esc(cat.slug)}">
+          ${cat.product_count ? `Explore ${cat.product_count} product${cat.product_count === 1 ? '' : 's'}` : 'Explore'}
+          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
+        </a>
+      </div>`).join('');
+
+    grid.querySelectorAll('[data-cat-image]').forEach(node => {
+      applyBackdrop(node, node.dataset.catImage);
+    });
+    toggleSection('collections', visible.length > 0);
+  }
+
+  function renderPromo(block){
+    const panel = document.getElementById('promoPanel');
+    if(!panel) return;
+    if(!block || !block.heading){ panel.hidden = true; return; }
+    panel.hidden = false;
+    setText('promoHeading', block.heading);
+    setText('promoBody', block.body);
+    const cta = document.getElementById('promoCta');
+    if(cta){
+      cta.textContent = block.cta_label || '';
+      cta.href = safeHref(block.cta_href);
+      cta.hidden = !block.cta_label;
+    }
+  }
+
+  function renderEditorial(block){
+    if(!block){ toggleSection('editorial', false); return; }
+    toggleSection('editorial', true);
+    setText('editorialEyebrow', block.eyebrow);
+    setText('editorialHeading', block.heading);
+    const body = document.getElementById('editorialBody');
+    if(body){
+      body.innerHTML = (block.paragraphs || [])
+        .map(p => `<p>${esc(p)}</p>`).join('');
+    }
+    const cta = document.getElementById('editorialCta');
+    if(cta){
+      cta.textContent = block.cta_label || '';
+      cta.href = safeHref(block.cta_href);
+      cta.hidden = !block.cta_label;
+    }
+    const arch = document.getElementById('editorialArch');
+    applyBackdrop(arch, block.image_url);
+    const tag = document.getElementById('editorialArchTag');
+    if(tag){
+      tag.textContent = block.image_tag || '';
+      tag.hidden = !block.image_tag;
+    }
+  }
+
+  /* Both images must be present. One alone cannot be a comparison, and
+     filling the other half with a stock photo would be inventing the result. */
+  function renderBeforeAfter(block){
+    const section = document.getElementById('beforeAfter');
+    if(!section) return;
+    const ready = block && block.before_image && block.after_image;
+    section.hidden = !ready;
+    if(!ready) return;
+    setText('baHeading', block.heading);
+    setText('baIntro', block.intro);
+    setText('baLabelBefore', block.before_label || 'Before');
+    setText('baLabelAfter', block.after_label || 'After');
+    const slider = document.getElementById('baSlider');
+    const after = document.getElementById('baAfter');
+    if(slider) slider.style.backgroundImage =
+      `linear-gradient(rgba(43,27,20,.12),rgba(43,27,20,.12)), url('${cssUrl(resolveMediaUrl(block.before_image))}')`;
+    if(after) after.style.backgroundImage =
+      `linear-gradient(rgba(43,27,20,.1),rgba(43,27,20,.1)), url('${cssUrl(resolveMediaUrl(block.after_image))}')`;
+  }
+
+  function renderWhy(block){
+    const grid = document.getElementById('whyGrid');
+    const items = (block && block.items) || [];
+    setText('whyHeading', block && block.heading);
+    if(grid){
+      grid.innerHTML = items.map(item => `
+        <div class="why-item">${icon(item.icon, 1.6)}
+          <h4>${esc(item.title)}</h4>
+          <p>${esc(item.body)}</p>
+        </div>`).join('');
+    }
+    toggleSection('whySection', items.length > 0);
+  }
+
+  function renderFaq(block){
+    const wrap = document.getElementById('faqWrap');
+    const items = (block && block.items) || [];
+    setText('faqHeading', block && block.heading);
+    if(wrap){
+      wrap.innerHTML = items.map(item => `
+        <div class="faq-item">
+          <div class="faq-q">${esc(item.q)}<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg></div>
+          <div class="faq-a"><p>${esc(item.a)}</p></div>
+        </div>`).join('');
+    }
+    toggleSection('faq', items.length > 0);
+  }
+
+  function renderNewsletter(block){
+    if(!block) return;
+    setText('newsletterHeading', block.heading);
+    setText('newsletterBody', block.body);
+    const button = document.getElementById('newsletterSubmit');
+    if(button && block.cta_label) button.textContent = block.cta_label;
+  }
+
+  function renderNavigation(block){
+    const items = (block && block.items) || [];
+    const markup = items.map(item =>
+      `<a href="${esc(safeHref(item.href))}">${esc(item.label)}</a>`).join('');
+    const nav = document.querySelector('.main-nav');
+    if(nav) nav.innerHTML = markup;
+    const mobile = document.getElementById('mobileNavLinks');
+    if(mobile) mobile.innerHTML = markup;
+  }
+
+  function renderFooter(block, social, business){
+    if(block){
+      setText('footBlurb', block.blurb);
+      const columns = document.getElementById('footColumns');
+      if(columns){
+        columns.innerHTML = (block.columns || []).map(col => `
+          <div class="foot-col">
+            <h5>${esc(col.heading)}</h5>
+            ${(col.links || []).map(l =>
+              `<a href="${esc(safeHref(l.href))}">${esc(l.label)}</a>`).join('')}
+          </div>`).join('');
+      }
+      setText('footCopyright', block.copyright);
+      const legal = document.getElementById('footLegal');
+      if(legal){
+        legal.innerHTML = (block.legal_links || []).map(l =>
+          `<a href="${esc(safeHref(l.href))}">${esc(l.label)}</a>`).join('');
+      }
+    }
+
+    // Only networks with a URL are shown. An icon linking to "#" is a dead
+    // control, and a shop without a TikTok should not appear to have one.
+    const socialWrap = document.getElementById('footSocial');
+    if(socialWrap){
+      const GLYPHS = {
+        instagram: '<rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1"/>',
+        facebook:  '<path d="M14 9h3V6h-3c-1.7 0-3 1.3-3 3v2H8v3h3v6h3v-6h3l1-3h-4V9c0-.6.4-1 1-1z"/>',
+        whatsapp:  '<path d="M3 21l1.4-4.2A9 9 0 1112 21a9 9 0 01-4.2-1L3 21z"/>',
+        youtube:   '<rect x="2.5" y="5.5" width="19" height="13" rx="3.5"/><path d="M10 9.5l5 2.5-5 2.5z"/>',
+        tiktok:    '<path d="M14 4v9.5a3.5 3.5 0 11-3-3.46"/><path d="M14 4c.6 2.2 2.1 3.5 4.5 3.7"/>'
+      };
+      const links = Object.entries(social || {})
+        .filter(([key, url]) => url && GLYPHS[key])
+        .map(([key, url]) =>
+          `<a href="${esc(safeHref(url))}" target="_blank" rel="noopener noreferrer" aria-label="${esc(key)}">
+             <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6">${GLYPHS[key]}</svg></a>`);
+      socialWrap.innerHTML = links.join('');
+      socialWrap.hidden = links.length === 0;
+    }
+
+    // Contact details, shown only for the ones the shop has filled in.
+    const contact = document.getElementById('footContact');
+    if(contact && business){
+      const rows = [
+        business.email ? `<a href="mailto:${esc(business.email)}">${esc(business.email)}</a>` : '',
+        business.phone ? `<a href="tel:${esc(String(business.phone).replace(/\s+/g, ''))}">${esc(business.phone)}</a>` : '',
+        business.address ? `<span>${esc(business.address)}</span>` : '',
+        business.hours ? `<span>${esc(business.hours)}</span>` : ''
+      ].filter(Boolean);
+      contact.innerHTML = rows.length ? `<h5>Contact</h5>${rows.join('')}` : '';
+      contact.hidden = rows.length === 0;
+    }
+  }
+
+  async function loadSiteContent(){
+    let categories = [];
+    try{
+      const [content, cats] = await Promise.all([
+        fetch(API_BASE + '/site-content').then(r => r.ok ? r.json() : {}),
+        fetch(API_BASE + '/categories').then(r => r.ok ? r.json() : [])
+      ]);
+      siteContent = content || {};
+      categories = cats || [];
+    }catch(e){
+      siteContent = {};
+    }
+
+    renderAnnouncement(siteContent.announcement);
+    renderHero(siteContent.hero);
+    renderTrust(siteContent.trust);
+    renderCollections(siteContent.collections, categories);
+    renderPromo(siteContent.promo);
+    setText('bestsellersHeading', (siteContent.bestsellers || {}).heading);
+    setText('bestsellersIntro', (siteContent.bestsellers || {}).intro);
+    renderEditorial(siteContent.editorial);
+    renderBeforeAfter(siteContent.before_after);
+    renderWhy(siteContent.why_choose);
+    renderFaq(siteContent.faq);
+    renderNewsletter(siteContent.newsletter);
+    renderNavigation(siteContent.navigation);
+    renderFooter(siteContent.footer, siteContent.social, siteContent.business);
+
+    // The FAQ accordion is bound after its items exist.
+    bindFaqAccordion();
+  }
+
+  /* ================= Checkout: delivery address =================
+     The rule this block respects: the SERVER decides whether an address is
+     valid. Everything here is presentation — the country list, the postal
+     field's label, marking the input the server objected to. Nothing is
+     approved locally and then trusted; the order POST is the only judge.
+
+     The country table comes from /api/orders/shipping-countries, which is the
+     same table the validator uses, so "PIN Code" / "ZIP Code" / "Postcode"
+     cannot drift from what the backend actually enforces. */
+  let shipCountries = [];
+  let savedAddresses = [];
+  let selectedAddressId = null;      // null = "use the typed address"
+
+  const CK_FIELDS = {
+    full_name: 'ckShipName', phone: 'ckPhone', line1: 'ckLine1', line2: 'ckLine2',
+    city: 'ckCity', state: 'ckState', country: 'ckCountry', postal_code: 'ckPostal',
+    customer_name: 'ckName', customer_email: 'ckEmail'
+  };
+
+  function ckClearErrors(){
+    document.querySelectorAll('#checkoutForm .ck-field.invalid')
+      .forEach(f => f.classList.remove('invalid'));
+    document.querySelectorAll('#checkoutForm .ck-err').forEach(e => { e.textContent = ''; });
+    const box = document.getElementById('ckFormError');
+    if(box){ box.hidden = true; box.textContent = ''; }
+  }
+
+  /* Mark the fields the SERVER rejected. `fields` is the {field: message} map
+     from a 422; anything without a matching input falls back to the summary
+     line, so a message is never silently swallowed. */
+  function ckShowErrors(fields, summary){
+    ckClearErrors();
+    const orphans = [];
+    Object.entries(fields || {}).forEach(([key, message]) => {
+      const input = document.getElementById(CK_FIELDS[key] || '');
+      const slot = document.querySelector(`#checkoutForm [data-err="${key}"]`);
+      if(input && slot){
+        input.closest('.ck-field').classList.add('invalid');
+        slot.textContent = message;
+      } else {
+        orphans.push(message);
+      }
+    });
+    const box = document.getElementById('ckFormError');
+    const text = [summary, ...orphans].filter(Boolean).join(' ');
+    if(box && text){ box.textContent = text; box.hidden = false; }
+    // Move focus to the first thing that needs fixing — on a phone the invalid
+    // field is usually off-screen, and an untouched form looks like a no-op.
+    const firstBad = document.querySelector('#checkoutForm .ck-field.invalid input, #checkoutForm .ck-field.invalid select');
+    if(firstBad){ firstBad.focus(); firstBad.scrollIntoView({block:'center', behavior:'smooth'}); }
+  }
+
+  function ckCountryRule(name){
+    return shipCountries.find(c => c.name === name) || null;
+  }
+
+  /* Relabel the postal and state fields for the chosen country. A UK address
+     has no state and its postcode is not six digits, so demanding an Indian
+     PIN there would reject a perfectly real address. */
+  function ckApplyCountry(){
+    const select = document.getElementById('ckCountry');
+    const rule = ckCountryRule(select ? select.value : '');
+    const postalLabel = document.getElementById('ckPostalLabel');
+    const postalInput = document.getElementById('ckPostal');
+    const stateLabel = document.getElementById('ckStateLabel');
+    const stateInput = document.getElementById('ckState');
+    if(!rule || !postalLabel || !postalInput) return;
+
+    postalLabel.textContent = rule.postal_label;
+    postalInput.required = !!rule.postal_required;
+    postalInput.placeholder = rule.postal_example || '';
+    // Only India and Singapore are purely numeric; a UK or Canadian postcode
+    // needs letters, and a numeric keypad would hide them on a phone.
+    postalInput.inputMode = (rule.code === 'IN' || rule.code === 'SG' || rule.code === 'AU')
+      ? 'numeric' : 'text';
+    if(stateLabel && stateInput){
+      stateLabel.innerHTML = rule.requires_state
+        ? 'State' : 'State / Province <span class="ck-opt">(optional)</span>';
+      stateInput.required = !!rule.requires_state;
+    }
+  }
+
+  async function loadShippingCountries(){
+    if(shipCountries.length) return;
+    try{
+      shipCountries = await fetch(API_BASE + '/orders/shipping-countries').then(r => r.json());
+    }catch(e){
+      shipCountries = [];
+    }
+    const select = document.getElementById('ckCountry');
+    if(!select) return;
+    if(!shipCountries.length){
+      // The list could not be fetched. India is the shop's home market and the
+      // server will still validate whatever is sent, so checkout stays usable
+      // rather than blocking on a failed lookup.
+      shipCountries = [{name:'India', code:'IN', postal_label:'PIN Code',
+                        postal_example:'500001', postal_required:true, requires_state:true}];
+    }
+    select.innerHTML = shipCountries
+      .map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+    select.value = 'India';
+    ckApplyCountry();
+  }
+
+  /* Saved addresses, for a signed-in customer only. The endpoint answers from
+     the token, so this list can only ever be the caller's own. */
+  async function loadSavedAddresses(){
+    const wrap = document.getElementById('ckSavedWrap');
+    const saveWrap = document.getElementById('ckSaveWrap');
+    savedAddresses = [];
+    selectedAddressId = null;
+    if(!authToken()){
+      if(wrap) wrap.hidden = true;
+      if(saveWrap) saveWrap.hidden = true;
+      return;
+    }
+    if(saveWrap) saveWrap.hidden = false;
+    try{
+      savedAddresses = await accountRequest('/account/addresses');
+    }catch(e){
+      savedAddresses = [];
+    }
+    renderSavedAddresses();
+  }
+
+  function renderSavedAddresses(){
+    const wrap = document.getElementById('ckSavedWrap');
+    const list = document.getElementById('ckSavedList');
+    if(!wrap || !list) return;
+    if(!savedAddresses.length){ wrap.hidden = true; return; }
+    wrap.hidden = false;
+
+    const rows = savedAddresses.map(a => {
+      const place = [a.city, a.state, a.postal_code].filter(Boolean).join(', ');
+      return `
+        <label class="ck-addr${selectedAddressId === a.id ? ' sel' : ''}" data-addr="${esc(a.id)}">
+          <input type="radio" name="ckAddr" value="${esc(a.id)}"${selectedAddressId === a.id ? ' checked' : ''}>
+          <span class="ck-addr-body">
+            <strong>${esc(a.full_name)}${a.is_default ? '<span class="ck-addr-tag">Default</span>' : ''}</strong>
+            ${esc([a.line1, a.line2].filter(Boolean).join(', '))}<br>
+            ${esc(place)}<br>${esc(a.country || '')}${a.phone ? ' · ' + esc(a.phone) : ''}
+          </span>
+        </label>`;
+    }).join('');
+
+    list.innerHTML = rows + `
+      <label class="ck-addr${selectedAddressId === null ? ' sel' : ''}" data-addr="">
+        <input type="radio" name="ckAddr" value=""${selectedAddressId === null ? ' checked' : ''}>
+        <span class="ck-addr-body"><strong>Use a new address</strong>
+          Enter the delivery details below.</span>
+      </label>`;
+  }
+
+  document.addEventListener('change', (e) => {
+    if(!e.target.matches('input[name="ckAddr"]')) return;
+    selectedAddressId = e.target.value || null;
+    renderSavedAddresses();
+    // Hide the typed form when a saved address is chosen — leaving both on
+    // screen invites filling one and posting the other.
+    const addrWrap = document.getElementById('ckAddressWrap');
+    if(addrWrap) addrWrap.hidden = selectedAddressId !== null;
+    ckClearErrors();
+  });
+
+  const ckCountrySelect = document.getElementById('ckCountry');
+  if(ckCountrySelect) ckCountrySelect.addEventListener('change', ckApplyCountry);
+
+  /* Read the typed address. No validation happens here beyond trimming —
+     the server is the authority, and duplicating its rules in the browser
+     would mean two sets of rules to keep in step. */
+  function readTypedAddress(){
+    const val = id => (document.getElementById(id) || {}).value || '';
+    return {
+      full_name: val('ckShipName').trim(),
+      phone: val('ckPhone').trim(),
+      line1: val('ckLine1').trim(),
+      line2: val('ckLine2').trim(),
+      city: val('ckCity').trim(),
+      state: val('ckState').trim(),
+      country: val('ckCountry'),
+      postal_code: val('ckPostal').trim(),
+      save_to_address_book: !!(document.getElementById('ckSaveAddress') || {}).checked
+    };
+  }
+
   document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('ckName').value;
-    const email = document.getElementById('ckEmail').value;
-    const address = document.getElementById('ckAddress').value;
+    const name = document.getElementById('ckName').value.trim();
+    const email = document.getElementById('ckEmail').value.trim();
     const submitBtn = document.getElementById('checkoutSubmit');
+    ckClearErrors();
     submitBtn.disabled = true;
     submitBtn.textContent = 'Placing order...';
 
@@ -2973,19 +3744,41 @@
       try{
         const res = await fetch(API_BASE + '/orders', {
           method:'POST',
-          headers:{'Content-Type':'application/json'},
-          // Only the code is sent — never a discount or total. The server
-          // re-validates the coupon and recalculates everything.
-          body: JSON.stringify({
-            customer_name:name, customer_email:email, shipping_address:address, items,
+          // The token is sent when there is one, so a saved address can be
+          // resolved against its OWNER. A guest checkout simply has none.
+          headers: Object.assign({'Content-Type':'application/json'},
+                                 authToken() ? {Authorization:'Bearer ' + authToken()} : {}),
+          // Only the coupon CODE is sent — never a discount or total. The
+          // server re-validates it and recalculates everything.
+          //
+          // The address goes as fields, not a blob: the server validates it
+          // per country and stores it on the order as an immutable snapshot.
+          // A saved address is referenced by id alone — ownership is decided
+          // by the token, never by anything in this payload.
+          body: JSON.stringify(Object.assign({
+            customer_name:name, customer_email:email, items,
             coupon_code: appliedCoupon ? appliedCoupon.code : null,
             display_currency: activeCurrency
-          })
+          }, selectedAddressId
+               ? {shipping_address_id: selectedAddressId}
+               : {shipping: readTypedAddress()}))
         });
         if(!res.ok){
-          // Surface the backend's reason (out of stock, unpublished, etc.)
+          // Surface the backend's reason (out of stock, unpublished, etc.).
+          // A 422 carries a per-field map, so the offending input is marked
+          // rather than the customer being told "something was wrong" about a
+          // form with ten fields in it.
           let detail = 'Order failed — please try again';
-          try{ detail = (await res.json()).detail || detail; }catch(e){}
+          try{
+            const body = await res.json();
+            if(body && body.detail && typeof body.detail === 'object'){
+              ckShowErrors(body.detail.fields, body.detail.message);
+              submitBtn.disabled = false;
+              submitBtn.textContent = 'Place Order';
+              return;
+            }
+            detail = (body && body.detail) || detail;
+          }catch(e){}
           throw new Error(detail);
         }
         const order = await res.json();

@@ -99,8 +99,9 @@ python3 -m http.server 5500
 
 Then open **http://localhost:5500** in your browser:
 - **index.html** — the customer storefront, and what the root of the deployed
-  domain serves (products load live from the API; if the API isn't running, it
-  falls back to demo data automatically)
+  domain serves. Products and page copy both load live from the API; if the API
+  is unreachable the catalog reports that rather than falling back to invented
+  products.
 - **admin-panel.html**, served at **/admin-panel** — sign in with the seeded
   admin login to see real data, or click "Continue in demo mode" to preview
   with mock data
@@ -159,7 +160,8 @@ the row, tops it up from `/api/product-placeholders`. That top-up is opt-in via
 | POST | `/api/appointments` | — | Book a fitting/consultation |
 | GET | `/api/appointments` | Admin | List appointments |
 | GET/POST | `/api/inventory` | Admin | Stock levels, add SKUs |
-| PUT | `/api/inventory/{id}/adjust` | Admin | Adjust stock quantity |
+| POST | `/api/inventory/adjust` | Admin | Adjust stock (`variant_id`, `delta`, `reason` in the body); writes a movement |
+| GET | `/api/inventory/movements/{variant_id}` | Admin | The ledger behind one variant's stock |
 | POST | `/api/coupons/validate` | — | Validate a coupon code |
 | GET | `/api/product-placeholders` | — | List visible placeholders (`?include_hidden=true` for admin) |
 | GET | `/api/product-placeholders/{id}` | — | Single placeholder |
@@ -185,6 +187,16 @@ the row, tops it up from `/api/product-placeholders`. That top-up is opt-in via
 | POST | `/api/notifications/test` | Admin | Send a test message to prove the channel works |
 | GET/POST | `/api/notifications/unsubscribe` | — | Preview / act on a signed opt-out token |
 | GET/POST/DELETE | `/api/notifications/suppressions[/{email}]` | Admin | Manage bounces and opt-outs |
+| GET | `/api/orders/shipping-countries` | — | Shipping destinations and what the postal field is called there |
+| GET | `/api/site-content` | — | Every active storefront content block, keyed by name |
+| GET | `/api/site-content/blocks[/{key}]` | Admin | Content blocks including switched-off ones |
+| PUT | `/api/site-content/blocks/{key}` | Admin | Edit one block |
+| POST | `/api/site-content/blocks/{key}/reset` | Admin | Restore a block to the shipped copy |
+| POST | `/api/site-content/media` | Admin | Upload an image for a content block or category card |
+| GET | `/api/notifications/summary` | Admin | Unread counts behind the panel's bell |
+| POST | `/api/notifications/read` | Admin | Acknowledge messages (ids, or all of one event type) |
+| POST | `/api/notifications/{id}/unread` | Admin | Put one message back in the unread pile |
+| GET | `/api/analytics/customer-locations` | Admin | Where orders ship, from the delivery snapshots |
 | GET | `/api/health` | — | Liveness. Touches nothing else, by design |
 | GET | `/api/ready` | — | Readiness: database reachable, migrations applied, configuration findings |
 | GET | `/api/version` | — | Version, commit and environment of what is deployed |
@@ -328,6 +340,52 @@ later product edits never rewrite past orders.
 
 **Stock is decremented server-side** when an order succeeds.
 
+### The delivery address
+
+**The rule this enforces: an address is validated on the server, against the
+country it claims to be in — and the one an order shipped to never changes.**
+
+Checkout collects the recipient's name, phone, street, optional second line,
+city, state, country and postal code as separate fields. `app/addresses.py` is
+the single validator, shared by checkout and the saved-address endpoints, so an
+unchecked address cannot be stored in the address book and then selected by id
+at checkout.
+
+Per-country rules, because "PIN code" is an Indian term for a six-digit number
+and applying that shape elsewhere rejects real addresses:
+
+| Country | Field is called | Shape |
+|---|---|---|
+| India | PIN Code | six digits, first not 0 |
+| United States | ZIP Code | `94103` or `94103-1234` |
+| United Kingdom | Postcode | `SW1A 1AA` |
+| Canada | Postal Code | `K1A 0B1`, excluding D F I O Q U |
+| Australia / Singapore | Postcode / Postal Code | four / six digits |
+| United Arab Emirates | — | none exists; not required |
+| anything else | Postal Code | loose sanity check, accepted |
+
+A country with no rule is **accepted**, not refused: inventing a format for a
+country nobody has verified blocks real customers for no benefit. The same
+table drives the checkout form's label, served from
+`GET /api/orders/shipping-countries`, so the label and the validator cannot
+drift apart. Failures come back as 422 with a `{field: message}` map, and the
+form marks the offending input rather than showing one generic error for a
+ten-field form.
+
+**The address is snapshotted onto the order** (migration `0012`) in its own
+columns — `shipping_name`, `shipping_phone`, `shipping_line1`, `shipping_city`,
+`shipping_state`, `shipping_postal_code`, `shipping_country`. Deliberately a
+copy, never a foreign key into `customer_addresses`: a customer who moves house
+must not rewrite where last month's parcel was sent. The legacy
+`shipping_address` text column is still written, so everything that already
+read it keeps working, and orders placed before `0012` keep their original text
+rather than being back-filled by parsing it — a mis-parsed address looks
+authoritative, which is worse than an honestly unstructured one.
+
+A signed-in customer can pick a saved address by id. Ownership comes from the
+**token**; an id belonging to somebody else returns 404, not 403, for the same
+reason the account endpoints do.
+
 ---
 
 ## Payments
@@ -449,12 +507,73 @@ A marketing opt-out does not silence order receipts or delivery updates: those
 are a record of a transaction the customer entered into. Only a hard bounce or
 complaint (`scope=all`, recorded by staff) stops transactional mail too.
 
+### New-order alerts in the panel
+
+`admin.order_placed` is queued inside the checkout transaction like every other
+message, so a rolled-back order produces no alert. The outbox's UNIQUE
+`event_key` means one committed order produces exactly one alert, however many
+times the request was retried.
+
+Two things changed here. First, `notify_admins()` used to loop over
+`ADMIN_ALERT_EMAILS` and, with that unset, write **nothing** — so a real order
+left no record anywhere an admin could see. It now always writes at least one
+row; with no address configured that row is marked Suppressed and says so,
+which is honest about the fact that no email left the building while still
+putting the order in front of whoever opens the panel.
+
+Second, `notifications.read_at` (migration `0012`) is read state for a human,
+kept separate from `status`, which is about the mail server. The bell in the
+dashboard counts unread `admin.order_placed` rows with a `COUNT(*)` — so a
+refresh cannot reset it, two admin sessions cannot disagree, and acknowledging
+one is visible to everyone. Clicking an alert marks it read and opens the order
+it references. `GET /api/notifications/{id}` is deliberately side-effect free.
+
 ### Seeing what was sent
 
 The admin dashboard's **Notifications** view is the outbox: queued / sent /
 failed / suppressed counts, per-message status and attempt count, the exact
 stored email previewed in a sandboxed frame, and buttons to retry a dead
 letter, cancel a queued message, drain the queue, or send a test message.
+
+---
+
+## Storefront content
+
+**The rule this enforces: content a shop owner should be able to change must
+not require a developer.**
+
+The announcement bar, hero, trust strip, promotional panel, editorial block,
+"why choose us" grid, FAQ, newsletter copy, header navigation, footer, social
+links, business details and policy text are rows in `site_content`, edited in
+the admin panel under **Content**. The storefront holds no copy of that text: it
+fetches `/api/site-content` once and renders whatever the database holds.
+
+Collection cards **are** the categories, so a category renamed in the Back
+Office renames the card, and the count on it is the real number of published
+products in that category. Categories gained `tagline` and `image_url` for that
+(migration `0012`), edited under **Content → Categories**.
+
+Two consequences, both deliberate:
+
+- **An empty section hides.** No FAQ entries means no FAQ section, not five
+  invented questions. Same for the promo panel, the trust strip and the
+  collections grid.
+- **No image means the branded panel**, not a broken-image icon. Images are
+  preloaded and applied only once they genuinely load, the same rule product
+  cards already followed.
+
+`app/site_content.py` seeds each block with **the copy that was already on the
+page**, so switching to this changed nothing a customer sees, and a fresh
+install is not an empty homepage waiting for someone to type into a form they
+have not found yet. A later deploy never overwrites an edited block.
+
+Deliberately **not** content: prices, stock, ratings, review counts and
+subscriber counts, all of which are owned by their own services. Making those
+editable would put a number on the storefront that no longer traces to the
+thing it claims to count.
+
+What is *not* database-driven, and correctly so: structural UI labels ("Add to
+Bag", "Subtotal"), the checkout and account flows, and the AI demo copy.
 
 ---
 
@@ -865,9 +984,11 @@ real thing does not exist yet, the interface now says so.
   frontend are still rule-based/local demos, not connected to a real model —
   wiring the chat assistant to the Claude API is a natural next step
 - File uploads for product images (currently just image URLs)
-- Traffic/conversion analytics (the numbers shown are illustrative — real
-  tracking needs an analytics pipeline, e.g. GA4 or PostHog). These are the
-  last invented numbers left in the dashboard, and they are labelled as such.
+- Traffic/conversion analytics. The conversion rate now reports **`null`**, and
+  the dashboard renders "—  needs traffic tracking", because a conversion rate
+  is orders over *sessions* and nothing here counts sessions. It was previously
+  a hardcoded `3.8` presented as a measurement. "Where orders ship" became real
+  in the same change — it is computed from the delivery snapshots.
 - Razorpay has never been run against the live sandbox (see **Payments**).
   Everything up to the network call is tested; the call itself is not.
 - Abandoned-cart recovery, welcome series and birthday offers. The campaign

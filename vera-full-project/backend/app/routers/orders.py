@@ -1,3 +1,4 @@
+import logging
 import random
 import string
 from datetime import datetime
@@ -8,12 +9,14 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
-from app.deps import get_current_admin
+from app.deps import get_current_admin, get_optional_customer
 from app import (
-    models, schemas, inventory, coupons, currency, payments as gateway,
-    notifications as notify, loyalty,
+    models, schemas, addresses, inventory, coupons, currency,
+    payments as gateway, notifications as notify, loyalty,
 )
 from app.pricing import money
+
+logger = logging.getLogger("vera.orders")
 
 router = APIRouter(prefix="/api/orders", tags=["orders"])
 
@@ -56,11 +59,71 @@ def generate_order_number(db: Session) -> str:
     raise HTTPException(status_code=500, detail="Could not allocate an order number")
 
 
+def _resolve_shipping(db: Session, payload: schemas.OrderCreate, customer) -> dict:
+    """Decide which address this order ships to, and prove it is usable.
+
+    Two routes in, and both end at the same validator:
+
+    * `shipping_address_id` — a saved address. Ownership comes from the TOKEN.
+      An id belonging to somebody else returns 404, not 403: "you may not see
+      this" would confirm the address exists, which is the same enumeration
+      leak the account endpoints already refuse to give away.
+    * `shipping` — typed at checkout.
+
+    A bare `shipping_address` string is no longer enough. It cannot be printed
+    on a label, filtered by city, or checked for a valid PIN code, so accepting
+    it would mean accepting orders nobody can actually ship.
+    """
+    if payload.shipping_address_id:
+        if customer is None:
+            # Not 401: an anonymous caller quoting an address id should learn
+            # nothing about whether that id exists.
+            raise HTTPException(
+                status_code=404,
+                detail="That saved address could not be found.",
+            )
+        row = db.query(models.CustomerAddress).filter(
+            models.CustomerAddress.id == payload.shipping_address_id,
+            models.CustomerAddress.customer_id == customer.id,
+        ).first()
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail="That saved address could not be found.",
+            )
+        source = addresses.from_saved(row)
+    elif payload.shipping is not None:
+        source = payload.shipping.model_dump(exclude={"save_to_address_book"})
+    else:
+        raise HTTPException(
+            status_code=400,
+            detail=("A delivery address is required. Send `shipping` with the "
+                    "recipient's name, phone, street, city, state, country and "
+                    "postal code — or `shipping_address_id` to use a saved address."),
+        )
+
+    try:
+        return addresses.validate(source, require_phone=True)
+    except addresses.AddressError as exc:
+        # Per-field, so the checkout form can mark the offending input rather
+        # than showing one generic failure for an eight-field form.
+        raise HTTPException(
+            status_code=422,
+            detail={"message": "Please check the delivery address.",
+                    "fields": exc.errors},
+        )
+
+
 @router.post("", response_model=schemas.OrderOut, status_code=201)
 def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
-                 db: Session = Depends(get_db)):
+                 db: Session = Depends(get_db),
+                 customer_token=Depends(get_optional_customer)):
     if not payload.items:
         raise HTTPException(status_code=400, detail="Order must contain at least one item")
+
+    # Resolved before anything is written: an unshippable address should cost
+    # nothing, and must not take stock locks on its way to being refused.
+    shipping = _resolve_shipping(db, payload, customer_token)
 
     # find or create the customer record
     customer = db.query(models.Customer).filter(
@@ -248,7 +311,6 @@ def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
         customer_id=customer.id,
         customer_name=payload.customer_name,
         customer_email=payload.customer_email,
-        shipping_address=payload.shipping_address,
         subtotal=subtotal,
         discount_total=discount_total,
         shipping_fee=shipping_fee,
@@ -270,6 +332,12 @@ def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
         display_total=currency.convert(total, display_code) if display_code != currency.BASE else None,
         items=order_items,
     )
+    # The immutable delivery snapshot. Written once, here, and never updated:
+    # where an order was sent is a historical fact, and a customer editing
+    # their address book afterwards must not rewrite it. This also fills the
+    # legacy `shipping_address` text, so everything already reading that column
+    # — the admin table, the confirmation email — keeps working unchanged.
+    addresses.snapshot_onto_order(order, shipping)
     db.add(order)
     db.flush()
     # Back-fill the movement rows with the order they belong to, now that the
@@ -309,8 +377,66 @@ def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
     # rolls the whole thing back and releases the row locks.
     db.commit()
     db.refresh(order)
+
+    # Offer to remember the address — AFTER the order has committed, and in its
+    # own transaction. Saving an address is a convenience; failing to save one
+    # must never undo a paid-for order.
+    if (payload.shipping is not None and payload.shipping.save_to_address_book
+            and customer_token is not None):
+        try:
+            _remember_address(db, customer_token, shipping)
+        except Exception:                # noqa: BLE001 - convenience, not the order
+            logger.warning("Could not save the delivery address to the address book",
+                           exc_info=True)
+            db.rollback()
+
     notify.schedule_dispatch(background)
     return order
+
+
+def _remember_address(db: Session, customer, shipping: dict) -> None:
+    """Add this address to the customer's book, unless it is already there.
+
+    Matched on the fields that decide where a parcel goes, so re-ordering to
+    the same place does not accumulate a duplicate every time.
+    """
+    existing = db.query(models.CustomerAddress).filter(
+        models.CustomerAddress.customer_id == customer.id,
+        models.CustomerAddress.line1 == shipping["line1"],
+        models.CustomerAddress.city == shipping["city"],
+        models.CustomerAddress.postal_code == shipping["postal_code"],
+    ).first()
+    if existing:
+        return
+    has_any = db.query(models.CustomerAddress.id).filter(
+        models.CustomerAddress.customer_id == customer.id).first() is not None
+    db.add(models.CustomerAddress(
+        customer_id=customer.id,
+        full_name=shipping["full_name"],
+        phone=shipping["phone"],
+        line1=shipping["line1"],
+        line2=shipping["line2"],
+        city=shipping["city"],
+        state=shipping["state"],
+        postal_code=shipping["postal_code"],
+        country=shipping["country"],
+        # The first address saved becomes the default; later ones do not steal
+        # that from it silently.
+        is_default=not has_any,
+    ))
+    db.commit()
+
+
+@router.get("/shipping-countries", response_model=List[schemas.CountryOut])
+def shipping_countries():
+    """Where we ship, and what the postal field is called there.
+
+    Served from the server so the checkout form's label switches between
+    "PIN Code", "ZIP Code" and "Postcode" from the same table the validator
+    uses. A hardcoded frontend list would drift from it the first time a
+    country was added.
+    """
+    return addresses.known_countries()
 
 
 @router.get("", response_model=List[schemas.OrderOut])

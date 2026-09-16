@@ -21,7 +21,7 @@ from app.observability import configure_logging
 from app.routers import (
     auth, products, categories, product_placeholders, orders, customers,
     appointments, inventory, coupons, analytics, currency, payments,
-    notifications, reviews, loyalty, marketing, account
+    notifications, reviews, loyalty, marketing, account, site_content
 )
 
 logger = logging.getLogger("vera")
@@ -123,6 +123,7 @@ app.include_router(reviews.router)
 app.include_router(loyalty.router)
 app.include_router(marketing.router)
 app.include_router(account.router)
+app.include_router(site_content.router)
 
 
 if settings.cors_is_wildcard and not settings.is_production:

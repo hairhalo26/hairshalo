@@ -23,6 +23,7 @@ import uuid
 
 import pytest
 import requests
+from shipping import SHIPPING
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -125,9 +126,9 @@ def _place(product, variant):
     return requests.post(
         f"{API}/orders", timeout=30,
         json={
+            "shipping": SHIPPING,
             "customer_name": "Concurrency Test",
             "customer_email": f"conc{uuid.uuid4().hex[:8]}@example.com",
-            "shipping_address": "1 Test Street",
             "items": [{"product_id": product["id"], "variant_id": variant["id"],
                        "quantity": 1}],
         },

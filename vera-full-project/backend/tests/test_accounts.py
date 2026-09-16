@@ -17,6 +17,7 @@ from sqlalchemy import text
 
 from app import accounts, models
 from app.security import decode_access_token
+from shipping import SHIPPING, valid_shipping
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -251,8 +252,8 @@ def _place_order(email, token=None):
         for variant in product.get("variants") or []:
             if (variant.get("stock") or 0) > 2:
                 r = requests.post(f"{API}/orders", timeout=15, json={
+                    "shipping": SHIPPING,
                     "customer_name": "API Shopper", "customer_email": email,
-                    "shipping_address": "12 MG Road",
                     "items": [{"product_id": product["id"],
                                "variant_id": variant["id"], "quantity": 1}],
                 })
@@ -384,16 +385,20 @@ def test_addresses_and_wishlist_are_scoped_to_the_owner():
     _email_a, token_a, _ = _new_account()
     _email_b, token_b, _ = _new_account()
 
+    # A complete address: an Indian one needs a state and a valid PIN code, and
+    # the server checks that for saved addresses as well as at checkout — so an
+    # unvalidated address cannot be stored here and then selected by id later.
     created = requests.post(f"{API}/account/addresses", headers=_auth(token_a), timeout=15,
-                            json={"full_name": "A Shopper", "line1": "12 MG Road",
-                                  "city": "Bengaluru", "country": "India"})
+                            json=valid_shipping(full_name="A Shopper",
+                                                city="Bengaluru", state="Karnataka",
+                                                postal_code="560001"))
     assert created.status_code == 201
     address_id = created.json()["id"]
 
     assert requests.get(f"{API}/account/addresses", headers=_auth(token_b),
                         timeout=10).json() == []
     for method in (requests.put, requests.delete):
-        kwargs = {"json": {"full_name": "B", "line1": "x", "city": "y"}} \
+        kwargs = {"json": valid_shipping(full_name="B Shopper")} \
             if method is requests.put else {}
         r = method(f"{API}/account/addresses/{address_id}", headers=_auth(token_b),
                    timeout=10, **kwargs)

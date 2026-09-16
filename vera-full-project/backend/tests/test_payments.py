@@ -18,6 +18,7 @@ import pytest
 import requests
 
 from app import payments as gateway
+from shipping import SHIPPING
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -167,6 +168,7 @@ def order(auth):
     # with a bare StopIteration.
     p, v = _sellable_variant(requests.get(f"{API}/products", timeout=10).json())
     o = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Pay", "customer_email": f"pay{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": p["id"], "variant_id": v["id"], "quantity": 1}],
     }).json()

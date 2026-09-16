@@ -14,6 +14,7 @@ import uuid
 
 import pytest
 import requests
+from shipping import SHIPPING
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -132,6 +133,7 @@ def test_negative_discount_rejected_by_schema(auth, category_id):
 def test_client_supplied_price_is_ignored(product):
     variant = product["variants"][0]
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Attacker", "customer_email": f"atk{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"],
                    "quantity": 1, "price": 1, "total": 1}],
@@ -146,6 +148,7 @@ def test_stock_is_validated_server_side(product):
     """Quantity within the per-line cap but above stock must fail on stock."""
     variant = product["variants"][0]
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Greedy", "customer_email": f"greedy{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 50}],
     })
@@ -157,6 +160,7 @@ def test_absurd_quantity_hits_the_per_line_cap(product):
     """A quantity beyond the cap is refused before any stock work happens."""
     variant = product["variants"][0]
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Greedy", "customer_email": f"greedy{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 9999}],
     })
@@ -174,6 +178,7 @@ def test_variant_from_another_product_rejected(auth, product, category_id):
     if not foreign:
         pytest.skip("no other product with variants")
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "X", "customer_email": f"x{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": foreign, "quantity": 1}],
     })
@@ -186,6 +191,7 @@ def test_placeholder_cannot_be_ordered():
     if not placeholders:
         pytest.skip("no placeholders seeded")
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "X", "customer_email": f"ph{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": placeholders[0]["id"], "quantity": 1}],
     })
@@ -220,6 +226,7 @@ def test_unpublished_product_cannot_be_ordered(auth, product):
                   json={"action": "unpublish"}, headers=auth, timeout=15)
     variant = product["variants"][0]
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "X", "customer_email": f"np{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
     })
@@ -232,6 +239,7 @@ def test_unpublished_product_cannot_be_ordered(auth, product):
 def test_price_change_does_not_rewrite_history(auth, product):
     variant = product["variants"][0]
     order = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Buyer", "customer_email": f"hist{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
     }).json()

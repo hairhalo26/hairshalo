@@ -28,6 +28,134 @@
   .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh;}
 
   /* ---- Sidebar ---- */
+  /* ---- New-order alerts ---- */
+  .bell-wrap{position:relative;}
+  .icon-bell{
+    position:relative;background:#fff;border:1px solid var(--line);border-radius:11px;
+    width:40px;height:40px;display:grid;place-items:center;cursor:pointer;color:var(--text);
+  }
+  .icon-bell:hover{border-color:var(--wine);color:var(--wine);}
+  .icon-bell svg{width:18px;height:18px;}
+  .bell-badge{
+    position:absolute;top:-5px;right:-5px;min-width:18px;height:18px;padding:0 5px;
+    background:#B4483F;color:#fff;border-radius:9px;font-size:10.5px;font-weight:700;
+    display:grid;place-items:center;border:2px solid #FBF8F4;
+  }
+  .bell-panel{
+    position:absolute;top:48px;right:0;width:308px;background:#fff;z-index:60;
+    border:1px solid var(--line);border-radius:14px;overflow:hidden;
+    box-shadow:0 18px 44px -20px rgba(36,24,17,.45);
+  }
+  .bell-head{
+    display:flex;justify-content:space-between;align-items:center;gap:10px;
+    padding:11px 13px;border-bottom:1px solid var(--line);font-size:13px;
+  }
+  .bell-list{max-height:340px;overflow-y:auto;}
+  .bell-empty{padding:22px 14px;text-align:center;font-size:12.5px;color:var(--text-soft);margin:0;}
+  .bell-row{
+    display:flex;gap:10px;align-items:flex-start;width:100%;text-align:left;
+    background:none;border:0;border-bottom:1px solid var(--line);padding:11px 13px;
+    cursor:pointer;font-family:inherit;
+  }
+  .bell-row:last-child{border-bottom:0;}
+  .bell-row:hover{background:#FBF7F2;}
+  .bell-dot{width:7px;height:7px;border-radius:50%;background:transparent;margin-top:6px;flex:none;}
+  .bell-row.unread .bell-dot{background:#B4483F;}
+  .bell-row.unread strong{font-weight:700;}
+  .bell-body{display:grid;gap:2px;min-width:0;}
+  .bell-body strong{font-size:13px;color:var(--text);font-weight:500;}
+  .bell-amount{font-size:12.5px;color:var(--wine);font-weight:600;}
+  .bell-when{font-size:11px;color:var(--text-soft);}
+  .bell-foot{
+    display:block;width:100%;background:#FBF7F2;border:0;border-top:1px solid var(--line);
+    padding:9px;font-family:inherit;font-size:12px;color:var(--wine);cursor:pointer;
+  }
+
+  /* ---- Order delivery address ---- */
+  .od-addr{
+    display:grid;grid-template-columns:auto 1fr;gap:4px 16px;margin:0;
+    font-size:13.5px;align-items:baseline;
+  }
+  .od-addr dt{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-soft);white-space:nowrap;}
+  .od-addr dd{margin:0;color:var(--text);}
+  .od-legacy{white-space:pre-wrap;font-size:13.5px;color:var(--text-soft);margin:0 0 6px;}
+
+  /* ---- Content management ---- */
+  .cms-layout{display:grid;grid-template-columns:238px minmax(0,1fr);gap:18px;align-items:start;}
+  .cms-list{
+    background:#fff;border:1px solid var(--line);border-radius:14px;
+    overflow:hidden;position:sticky;top:20px;
+  }
+  .cms-item{
+    display:block;width:100%;text-align:left;background:none;border:0;
+    border-bottom:1px solid var(--line);padding:11px 14px;cursor:pointer;
+    font-family:inherit;color:var(--text);
+  }
+  .cms-item:last-child{border-bottom:0;}
+  .cms-item:hover{background:#FBF7F2;}
+  .cms-item.active{background:#F6ECE0;box-shadow:inset 3px 0 0 var(--gold);}
+  .cms-item strong{display:block;font-size:13px;font-weight:600;}
+  .cms-item span{display:block;font-size:11px;color:var(--text-soft);margin-top:2px;}
+  .cms-item .off{
+    display:inline-block;margin-top:5px;font-size:9.5px;font-weight:700;
+    letter-spacing:.06em;text-transform:uppercase;color:#8A6212;
+    background:#F7EFDC;border-radius:4px;padding:2px 6px;
+  }
+  .cms-editor{padding:20px;}
+  .cms-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;margin-bottom:6px;}
+  .cms-head h3{font-size:16px;margin:0;}
+  .cms-head p{font-size:12px;color:var(--text-soft);margin:4px 0 0;max-width:52ch;}
+  .cms-field{display:flex;flex-direction:column;gap:5px;margin-bottom:14px;}
+  .cms-field label{font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--text-soft);}
+  .cms-field input,.cms-field textarea,.cms-field select{
+    padding:9px 12px;border:1px solid var(--line);border-radius:9px;
+    font-family:inherit;font-size:13px;background:#fff;color:var(--text);width:100%;
+  }
+  .cms-field textarea{resize:vertical;min-height:70px;line-height:1.55;}
+  .cms-field .cms-note{font-size:11px;color:var(--text-soft);}
+  .cms-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+  .cms-group{
+    border:1px solid var(--line);border-radius:11px;padding:13px 14px;
+    margin-bottom:11px;background:#FDFBF8;position:relative;
+  }
+  .cms-group-head{
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:10.5px;font-weight:700;letter-spacing:.07em;text-transform:uppercase;
+    color:var(--text-soft);margin-bottom:9px;
+  }
+  .cms-mini{
+    background:none;border:1px solid var(--line);border-radius:7px;
+    padding:3px 8px;font-size:10.5px;cursor:pointer;font-family:inherit;color:var(--text-soft);
+  }
+  .cms-mini:hover{border-color:var(--wine);color:var(--wine);}
+  .cms-mini.danger:hover{border-color:#B4483F;color:#B4483F;}
+  .cms-actions{
+    display:flex;gap:9px;align-items:center;justify-content:flex-end;
+    border-top:1px solid var(--line);padding-top:15px;margin-top:6px;flex-wrap:wrap;
+  }
+  .cms-actions .spacer{margin-right:auto;font-size:11.5px;color:var(--text-soft);}
+  .cms-msg{font-size:12px;padding:8px 12px;border-radius:8px;margin-bottom:12px;display:none;}
+  .cms-msg.ok{display:block;background:#E8F0EA;color:#33614A;}
+  .cms-msg.err{display:block;background:#F8ECEA;color:#8E3A33;}
+  .cms-img{
+    display:flex;gap:11px;align-items:center;padding:10px;border:1px dashed var(--line);
+    border-radius:10px;background:#fff;
+  }
+  .cms-img-thumb{
+    width:64px;height:64px;border-radius:8px;flex:none;background-size:cover;
+    background-position:center;background-color:#F2E7DA;
+  }
+  .cms-img-body{min-width:0;font-size:11.5px;color:var(--text-soft);}
+  .cat-thumb{
+    width:42px;height:52px;border-radius:7px 7px 3px 3px;background-size:cover;
+    background-position:center;background-color:#F2E7DA;flex:none;
+  }
+  @media (max-width:900px){
+    .cms-layout{grid-template-columns:1fr;}
+    .cms-list{position:static;}
+    .cms-row{grid-template-columns:1fr;}
+  }
+
   .sidebar{background:var(--sidebar);color:#EFE6DA;padding:24px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
   /* Balldoug is the Hairshalo logotype face — brand name lockup only.
      Every other heading and label stays on Fraunces/Inter. */
@@ -366,6 +494,10 @@
       <div id="odCustomer" style="font-size:14px;line-height:1.9;"></div>
     </div>
     <div class="pf-section">
+      <h4>Deliver to <button class="cms-mini" id="odCopyAddress" type="button">Copy address</button></h4>
+      <div id="odShipping"></div>
+    </div>
+    <div class="pf-section">
       <h4>Items</h4>
       <div class="tablewrap" style="overflow-x:auto;">
         <table><thead><tr><th>Product</th><th>Variant</th><th>SKU</th><th>Qty</th><th>Unit</th><th>Line</th></tr></thead>
@@ -699,6 +831,11 @@
     </div>
 
     <div class="nav-group">
+      <div class="nav-label">Storefront</div>
+      <button class="nav-link" data-view="content"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18M8 13h8M8 16h5"/></svg>Content</button>
+    </div>
+
+    <div class="nav-group">
       <div class="nav-label">Growth</div>
       <button class="nav-link" data-view="marketing"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M4 4l16 8-16 8V4z"/></svg>Marketing</button>
       <button class="nav-link" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M4 19V9M12 19V4M20 19v-6"/></svg>Analytics</button>
@@ -719,6 +856,22 @@
         <div><h1><span id="dashGreeting">Welcome</span> <span class="conn-badge demo" id="connBadge"><span></span>Demo Mode</span></h1><p>Here's how Hairshalo is doing today · <span id="dashDate"></span></p></div>
         <div class="topbar-actions">
           <div class="search-box"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg><input placeholder="Search orders, products, customers..."></div>
+          <!-- New-order alerts. The count is a COUNT(*) on the notifications
+               table, so a refresh cannot reset it and two admin sessions agree. -->
+          <div class="bell-wrap">
+            <button class="icon-bell" id="bellBtn" aria-label="New order alerts">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M18 8a6 6 0 10-12 0c0 7-3 8-3 8h18s-3-1-3-8"/><path d="M13.7 21a2 2 0 01-3.4 0"/></svg>
+              <span class="bell-badge" id="bellBadge" hidden>0</span>
+            </button>
+            <div class="bell-panel" id="bellPanel" hidden>
+              <div class="bell-head">
+                <strong>New orders</strong>
+                <button class="cms-mini" id="bellMarkAll">Mark all read</button>
+              </div>
+              <div class="bell-list" id="bellList"></div>
+              <button class="bell-foot" data-goto="notifications">Open the full outbox</button>
+            </div>
+          </div>
           <button class="btn btn-primary" id="addProductBtnDash"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add Product</button>
         </div>
       </div>
@@ -738,7 +891,7 @@
         </div>
         <div class="stat-card">
           <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6L9 17l-5-5"/></svg></div><span class="stat-delta" data-delta></span></div>
-          <div class="stat-value">3.8%</div><div class="stat-label">Conversion rate</div>
+          <div class="stat-value">—</div><div class="stat-label" id="convLabel">Conversion rate</div>
         </div>
       </div>
 
@@ -874,7 +1027,7 @@
 
     <!-- CUSTOMERS -->
     <section class="view" id="view-customers">
-      <div class="topbar"><div><h1>Customers</h1><p>1,284 total customers, 312 ordered this month</p></div></div>
+      <div class="topbar"><div><h1>Customers</h1><p id="custSummary">Everyone who has ordered or registered</p></div></div>
       <div class="panel">
         <table>
           <thead><tr><th>Customer</th><th>Orders</th><th>Total spent</th><th>Last order</th><th>Loyalty points</th></tr></thead>
@@ -1015,18 +1168,112 @@
           <div class="chart-wrap"><canvas id="trafficChart"></canvas></div>
         </div>
         <div class="panel">
-          <div class="panel-head"><h3>Customer locations</h3></div>
-          <div class="kpi-mini"><span>Mumbai</span><strong>24%</strong></div>
-          <div class="kpi-mini"><span>Delhi NCR</span><strong>19%</strong></div>
-          <div class="kpi-mini"><span>Bengaluru</span><strong>14%</strong></div>
-          <div class="kpi-mini"><span>Hyderabad</span><strong>9%</strong></div>
-          <div class="kpi-mini"><span>Other cities</span><strong>34%</strong></div>
+          <div class="panel-head"><h3>Where orders ship</h3></div>
+          <!-- Computed from the delivery snapshot on each order. Was five
+               hardcoded percentages; real now that orders carry a city. -->
+          <div id="locationsList"><p class="empty-note">Loading…</p></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- CONTENT -->
+    <section class="view" id="view-content">
+      <div class="topbar">
+        <div><h1>Content</h1><p>The words and images on your storefront — no code required</p></div>
+        <div class="topbar-actions">
+          <a class="btn btn-ghost" href="/" target="_blank" rel="noopener">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 4h6v6M20 4l-8 8M18 14v5a1 1 0 01-1 1H5a1 1 0 01-1-1V7a1 1 0 011-1h5"/></svg>
+            View storefront
+          </a>
+        </div>
+      </div>
+
+      <div class="panel-head tabs" id="contentTabs">
+        <button class="active" data-ctab="blocks">Page sections</button>
+        <button data-ctab="categories">Categories</button>
+      </div>
+
+      <!-- Page sections -->
+      <div id="contentBlocksPane">
+        <div class="cms-layout">
+          <aside class="cms-list" id="cmsList"></aside>
+          <div class="panel cms-editor" id="cmsEditor">
+            <p class="empty-note">Pick a section on the left to edit it.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Categories -->
+      <div id="contentCategoriesPane" hidden>
+        <div class="panel">
+          <div class="panel-head">
+            <h3>Categories</h3>
+            <button class="btn btn-primary" id="catAddBtn">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 5v14M5 12h14"/></svg>Add category
+            </button>
+          </div>
+          <table>
+            <thead><tr><th>Card</th><th>Name</th><th>Tagline</th><th>Products</th><th>Shown</th><th></th></tr></thead>
+            <tbody id="categoriesBody"></tbody>
+          </table>
+          <p class="empty-note">Each active category becomes a collection card on the storefront homepage. The product count is the number of <strong>published</strong> products in it.</p>
         </div>
       </div>
     </section>
 
   </main>
 </div>
+
+<!-- Category editor -->
+<div class="ph-modal" id="catModal">
+  <div class="ph-modal-card" style="max-width:520px;">
+    <h3 id="catModalTitle">New category</h3>
+    <p class="ph-sub">Each active category is a collection card on the storefront homepage.</p>
+    <div class="cms-msg" id="catMsg"></div>
+    <input type="hidden" id="catId">
+    <input type="hidden" id="catImageUrl">
+
+    <div class="cms-field">
+      <label for="catName">Name</label>
+      <input type="text" id="catName" placeholder="e.g. Glueless Wigs">
+    </div>
+    <div class="cms-field">
+      <label for="catTagline">Card tagline</label>
+      <input type="text" id="catTagline" placeholder="e.g. Best for beginners">
+      <span class="cms-note">The small badge shown on the card image.</span>
+    </div>
+    <div class="cms-field">
+      <label for="catDesc">Description</label>
+      <input type="text" id="catDesc" placeholder="One line under the card title">
+    </div>
+    <div class="cms-field">
+      <label>Card image</label>
+      <div class="cms-img">
+        <div class="cms-img-thumb" id="catThumb"></div>
+        <div class="cms-img-body">
+          JPG, PNG or WEBP. Uploaded at full quality and never resized or cropped by us.
+          <div style="margin-top:7px;"><button type="button" class="cms-mini" id="catUpload">Upload image</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="cms-row">
+      <div class="cms-field">
+        <label for="catSort">Sort order</label>
+        <input type="number" id="catSort" value="0">
+      </div>
+      <div class="cms-field" style="justify-content:flex-end;">
+        <label class="ph-check"><input type="checkbox" id="catActive" checked> Show on storefront</label>
+      </div>
+    </div>
+
+    <div class="cms-actions">
+      <button class="btn btn-ghost" id="catDelete" style="color:#B4483F;">Delete</button>
+      <button class="btn btn-ghost" id="catCancel">Cancel</button>
+      <button class="btn btn-primary" id="catSave">Save category</button>
+    </div>
+  </div>
+</div>
+
 
 <script>
   // ---- View switching ----
@@ -1101,7 +1348,7 @@
       return `
       <tr>
         <td><div class="cell-prod">
-          <div class="cell-thumb" style="${p.image_url ? `background-image:url('${resolveMediaUrl(p.image_url)}')` : 'background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34)'}"></div>
+          <div class="cell-thumb" style="${p.image_url ? `background-image:url('${cssUrl(resolveMediaUrl(p.image_url))}')` : 'background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34)'}"></div>
           <div><strong>${escAttr(p.name)}</strong><span>${(p.variants||[]).length} variant(s)${p.is_demo ? ' · demo' : ''}</span></div>
         </div></td>
         <td>${escAttr(p.category || '—')}</td>
@@ -1124,7 +1371,7 @@
   function renderProducts(products){
     document.getElementById('productsBody').innerHTML = products.map(p => `
       <tr>
-        <td><div class="cell-prod"><div class="cell-thumb" style="${p.img ? `background-image:url('${p.img}')` : 'background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34)'}"></div><div><strong>${p.name}</strong><span>${p.cat}</span></div></div></td>
+        <td><div class="cell-prod"><div class="cell-thumb" style="${p.img ? `background-image:url('${cssUrl(p.img)}')` : 'background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34)'}"></div><div><strong>${p.name}</strong><span>${p.cat}</span></div></div></td>
         <td>${p.cat || '—'}</td>
         <td>${p.price}</td>
         <td>${stockBar(p.stockLevel, p.stock)}</td>
@@ -1228,6 +1475,7 @@
 
   /* ---- Orders: real filtering + detail ---- */
   let liveOrders = [];
+  let currentOrderId = null;
   let orderStatusFilter = 'All';
 
   function renderOrders(orders){
@@ -1254,24 +1502,64 @@
 
   let ordersForTable = [];
 
+  // Mirrors ALLOWED_TRANSITIONS in app/routers/orders.py. The server remains
+  // the authority — this only avoids offering a move the API would refuse.
+  // It previously omitted the payment states entirely, so a Pending Payment or
+  // Paid order showed "no further transitions" and could not be managed here.
   const ORDER_TRANSITIONS = {
-    'Processing': ['Shipped','Cancelled'],
-    'Shipped': ['Out for Delivery','Delivered','Cancelled'],
-    'Out for Delivery': ['Delivered','Cancelled'],
-    'Delivered': [],
-    'Cancelled': []
+    'Pending Payment': ['Cancelled'],
+    'Paid': ['Processing','Cancelled','Refunded'],
+    'Processing': ['Shipped','Cancelled','Refunded'],
+    'Shipped': ['Out for Delivery','Delivered','Cancelled','Refunded'],
+    'Out for Delivery': ['Delivered','Cancelled','Refunded'],
+    'Delivered': ['Refunded'],
+    'Cancelled': [],
+    'Refunded': []
   };
+
+  /* The delivery address as labelled fields, with the postal field named the
+     way the destination country names it. The address shown is the order's own
+     SNAPSHOT: it is what the customer entered at checkout and does not move if
+     they later edit their address book — which is what makes it usable for a
+     dispute months later. */
+  function renderShippingPanel(order){
+    const ship = order.shipping || {};
+    if(!ship.structured){
+      // Placed before structured addresses existed. Show the original text
+      // rather than parsing it into fields it was never split into: a
+      // mis-parsed address looks authoritative and is worse than an honest blob.
+      return `<p class="od-legacy">${escAttr(order.shipping_address || 'No delivery address was recorded for this order.')}</p>
+        <p class="pf-calc-note">This order predates structured addresses, so only the
+          original single-field text is available.</p>`;
+    }
+    const rows = [
+      ['Name', ship.full_name],
+      ['Phone', ship.phone],
+      ['Address', ship.line1],
+      ['', ship.line2],
+      ['City', ship.city],
+      ['State', ship.state],
+      ['Country', ship.country],
+      [ship.postal_label || 'Postal Code', ship.postal_code]
+    ].filter(row => row[1]);
+    return `<dl class="od-addr">${rows.map(([label, value]) =>
+      `<dt>${escAttr(label)}</dt><dd>${escAttr(value)}</dd>`).join('')}</dl>`;
+  }
 
   async function openOrderDetail(orderId){
     const o = liveOrders.find(x => x.id === orderId);
     if(!o) return;
+    currentOrderId = orderId;
     document.getElementById('odNumber').textContent = 'Order #' + o.order_number;
     document.getElementById('odMeta').textContent =
       new Date(o.created_at).toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'});
     document.getElementById('odCustomer').innerHTML = `
       <div><strong>${escAttr(o.customer_name)}</strong></div>
       <div>${escAttr(o.customer_email)}</div>
-      ${o.shipping_address ? `<div style="color:var(--text-soft);white-space:pre-wrap;">${escAttr(o.shipping_address)}</div>` : ''}`;
+      ${(o.shipping && o.shipping.phone) ? `<div>${escAttr(o.shipping.phone)}</div>` : ''}`;
+    document.getElementById('odShipping').innerHTML = renderShippingPanel(o);
+    document.getElementById('odCopyAddress').style.display =
+      (o.shipping && o.shipping.structured) ? '' : 'none';
     document.getElementById('odItems').innerHTML = (o.items||[]).map(i => `
       <tr>
         <td>${escAttr(i.product_name)}</td>
@@ -1281,13 +1569,18 @@
         <td>${fmtINR(i.price)}${i.compare_at_price ? `<br><s style="color:var(--text-soft);font-size:11px;">${fmtINR(i.compare_at_price)}</s>` : ''}</td>
         <td><strong>${fmtINR(Number(i.price) * i.quantity)}</strong></td>
       </tr>`).join('');
-    const sub = Number(o.subtotal ?? o.total), disc = Number(o.discount_total || 0), ship = Number(o.shipping_fee || 0);
+    const sub = Number(o.subtotal ?? o.total), disc = Number(o.discount_total || 0),
+          ship = Number(o.shipping_fee || 0), loyalty = Number(o.loyalty_discount || 0);
     document.getElementById('odTotals').innerHTML = `
       <div class="pf-calc-row"><span>Subtotal</span><strong>${fmtINR(sub)}</strong></div>
       ${disc > 0 ? `<div class="pf-calc-row"><span>Discount${o.coupon_code ? ' ('+escAttr(o.coupon_code)+')' : ''}</span><strong>− ${fmtINR(disc)}</strong></div>` : ''}
+      ${loyalty > 0 ? `<div class="pf-calc-row"><span>Loyalty (${o.loyalty_points_redeemed} pts)</span><strong>− ${fmtINR(loyalty)}</strong></div>` : ''}
       <div class="pf-calc-row"><span>Delivery</span><strong>${ship > 0 ? fmtINR(ship) : 'Free'}</strong></div>
       <div class="pf-calc-row total"><span>Total charged</span><strong>${fmtINR(o.total)}</strong></div>
-      <div class="pf-calc-note">Payment gateway not yet integrated — this order has no captured payment.</div>`;
+      ${o.display_currency ? `<div class="pf-calc-note">Customer browsed in ${escAttr(o.display_currency)};
+        charged in ${escAttr(o.currency || 'INR')}.</div>` : ''}
+      <div class="pf-calc-note">Payment: <strong>${escAttr(o.payment_status || 'no gateway configured')}</strong>.
+        No card details are stored by this system.</div>`;
 
     const allowed = ORDER_TRANSITIONS[o.status] || [];
     const sel = document.getElementById('odStatus');
@@ -1323,9 +1616,765 @@
     if(v && v.dataset.orderView) openOrderDetail(v.dataset.orderView);
   });
 
+
+  /* Copy the delivery address to the clipboard — for pasting into a courier's
+     booking form without retyping it and inverting two digits of a PIN. */
+  document.getElementById('odCopyAddress').addEventListener('click', async (e) => {
+    const order = liveOrders.find(x => x.id === currentOrderId);
+    if(!order || !order.shipping) return;
+    const s = order.shipping;
+    const text = [s.full_name, s.phone, s.line1, s.line2,
+                  [s.city, s.state, s.postal_code].filter(Boolean).join(', '),
+                  s.country].filter(Boolean).join(String.fromCharCode(10));
+    try{ await navigator.clipboard.writeText(text); e.target.textContent = 'Copied'; }
+    catch(_){ e.target.textContent = 'Select and copy'; }
+    setTimeout(() => { e.target.textContent = 'Copy address'; }, 1800);
+  });
+
+  /* ================= Content management =================
+     Edits /api/site-content, which is what the storefront renders. There is no
+     second copy of this text anywhere: saving here changes the live page on the
+     customer's next load.
+
+     Each block gets a form shaped to ITS payload rather than a generic
+     key/value grid — an owner editing their FAQ should see questions and
+     answers, not a JSON tree. `FIELD_SPECS` describes those shapes; a block
+     without a spec falls back to a plain field-per-key form, so a new block
+     added on the backend is still editable here on day one. */
+
+  let cmsBlocks = [];
+  let cmsCurrent = null;      // the key being edited
+  let cmsDraft = null;        // working copy; only written back on Save
+
+  // Field kinds: text | textarea | list (of strings) | group (list of objects)
+  const FIELD_SPECS = {
+    announcement: [
+      {key:'text', label:'Announcement text', kind:'textarea',
+       note:'Leave empty to hide the bar entirely.'}
+    ],
+    hero: [
+      {key:'eyebrow', label:'Eyebrow', kind:'text'},
+      {key:'heading_lines', label:'Headline (one line per row)', kind:'list'},
+      {key:'heading_emphasis', label:'Word to italicise', kind:'text',
+       note:'Must appear exactly in one of the headline lines.'},
+      {key:'body', label:'Supporting copy', kind:'textarea'},
+      {key:'primary_cta_label', label:'Primary button', kind:'text'},
+      {key:'primary_cta_href', label:'Primary button link', kind:'text'},
+      {key:'secondary_cta_label', label:'Secondary button', kind:'text'},
+      {key:'secondary_cta_href', label:'Secondary button link', kind:'text'},
+      {key:'chips', label:'Reassurance chips', kind:'list'},
+      {key:'image_url', label:'Hero image', kind:'image'},
+      {key:'image_tag', label:'Image caption', kind:'text'}
+    ],
+    trust: [
+      {key:'items', label:'Trust items', kind:'group',
+       fields:[{key:'icon', label:'Icon', kind:'icon'}, {key:'text', label:'Text', kind:'text'}]}
+    ],
+    collections: [
+      {key:'heading', label:'Heading', kind:'text'},
+      {key:'intro', label:'Intro', kind:'textarea'}
+    ],
+    promo: [
+      {key:'heading', label:'Heading', kind:'text'},
+      {key:'body', label:'Body', kind:'textarea'},
+      {key:'cta_label', label:'Button label', kind:'text'},
+      {key:'cta_href', label:'Button link', kind:'text'}
+    ],
+    bestsellers: [
+      {key:'heading', label:'Heading', kind:'text'},
+      {key:'intro', label:'Intro', kind:'textarea'}
+    ],
+    editorial: [
+      {key:'eyebrow', label:'Eyebrow', kind:'text'},
+      {key:'heading', label:'Heading', kind:'text'},
+      {key:'paragraphs', label:'Paragraphs', kind:'list', textarea:true},
+      {key:'cta_label', label:'Button label', kind:'text'},
+      {key:'cta_href', label:'Button link', kind:'text'},
+      {key:'image_url', label:'Image', kind:'image'},
+      {key:'image_tag', label:'Image caption', kind:'text'}
+    ],
+    before_after: [
+      {key:'heading', label:'Heading', kind:'text'},
+      {key:'intro', label:'Intro', kind:'textarea'},
+      {key:'before_image', label:'Before image', kind:'image',
+       note:'Your own photograph. The section stays hidden until both are uploaded.'},
+      {key:'after_image', label:'After image', kind:'image'},
+      {key:'before_label', label:'Left caption', kind:'text'},
+      {key:'after_label', label:'Right caption', kind:'text'}
+    ],
+    why_choose: [
+      {key:'heading', label:'Heading', kind:'text'},
+      {key:'items', label:'Reasons', kind:'group',
+       fields:[{key:'icon', label:'Icon', kind:'icon'},
+               {key:'title', label:'Title', kind:'text'},
+               {key:'body', label:'Body', kind:'textarea'}]}
+    ],
+    faq: [
+      {key:'heading', label:'Heading', kind:'text'},
+      {key:'items', label:'Questions', kind:'group',
+       fields:[{key:'q', label:'Question', kind:'text'},
+               {key:'a', label:'Answer', kind:'textarea'}]}
+    ],
+    newsletter: [
+      {key:'heading', label:'Heading', kind:'text'},
+      {key:'body', label:'Body', kind:'textarea'},
+      {key:'cta_label', label:'Button label', kind:'text'}
+    ],
+    navigation: [
+      {key:'items', label:'Menu links', kind:'group',
+       fields:[{key:'label', label:'Label', kind:'text'},
+               {key:'href', label:'Link', kind:'text'}]}
+    ],
+    footer: [
+      {key:'blurb', label:'Brand blurb', kind:'textarea'},
+      {key:'columns', label:'Link columns', kind:'group',
+       fields:[{key:'heading', label:'Column heading', kind:'text'},
+               {key:'links', label:'Links', kind:'grouplinks'}]},
+      {key:'legal_links', label:'Legal links', kind:'group',
+       fields:[{key:'label', label:'Label', kind:'text'},
+               {key:'href', label:'Link', kind:'text'}]},
+      {key:'copyright', label:'Copyright line', kind:'text'}
+    ],
+    social: [
+      {key:'instagram', label:'Instagram URL', kind:'text'},
+      {key:'facebook', label:'Facebook URL', kind:'text'},
+      {key:'whatsapp', label:'WhatsApp URL', kind:'text'},
+      {key:'youtube', label:'YouTube URL', kind:'text'},
+      {key:'tiktok', label:'TikTok URL', kind:'text'}
+    ],
+    business: [
+      {key:'legal_name', label:'Business name', kind:'text'},
+      {key:'email', label:'Contact email', kind:'text'},
+      {key:'phone', label:'Contact phone', kind:'text'},
+      {key:'whatsapp', label:'WhatsApp number', kind:'text'},
+      {key:'address', label:'Registered address', kind:'textarea'},
+      {key:'hours', label:'Opening hours', kind:'text'},
+      {key:'gstin', label:'GSTIN', kind:'text'}
+    ],
+    policies: [
+      {key:'shipping', label:'Shipping policy', kind:'textarea'},
+      {key:'returns', label:'Returns & exchanges', kind:'textarea'},
+      {key:'terms', label:'Terms of service', kind:'textarea'},
+      {key:'privacy', label:'Privacy policy', kind:'textarea'}
+    ]
+  };
+
+  const ICON_CHOICES = ['star','check','card','tick','arrow','layers','eye'];
+
+  async function loadContentBlocks(){
+    try{
+      cmsBlocks = await apiGet('/site-content/blocks');
+    }catch(err){
+      cmsBlocks = [];
+    }
+    renderCmsList();
+    if(cmsBlocks.length && !cmsCurrent) selectCmsBlock(cmsBlocks[0].key);
+  }
+
+  function renderCmsList(){
+    const list = document.getElementById('cmsList');
+    if(!list) return;
+    if(!cmsBlocks.length){
+      list.innerHTML = '<p class="empty-note" style="padding:14px;">No content blocks found.</p>';
+      return;
+    }
+    list.innerHTML = cmsBlocks.map(b => `
+      <button class="cms-item${b.key === cmsCurrent ? ' active' : ''}" data-cms="${escAttr(b.key)}">
+        <strong>${escAttr(b.label)}</strong>
+        <span>${escAttr((b.description || '').slice(0, 64))}</span>
+        ${b.is_active ? '' : '<span class="off">Hidden</span>'}
+      </button>`).join('');
+  }
+
+  function selectCmsBlock(key){
+    cmsCurrent = key;
+    const block = cmsBlocks.find(b => b.key === key);
+    if(!block) return;
+    // Deep copy: edits are a draft until Save, so navigating away without
+    // saving cannot leave half-applied changes in the list.
+    cmsDraft = JSON.parse(JSON.stringify(block.payload || {}));
+    renderCmsList();
+    renderCmsEditor(block);
+  }
+
+  function cmsInput(spec, value, path){
+    const id = 'cms_' + path.replace(/[^a-z0-9]/gi, '_');
+    const v = value == null ? '' : value;
+    if(spec.kind === 'textarea'){
+      return `<textarea id="${id}" data-cms-path="${escAttr(path)}">${escAttr(v)}</textarea>`;
+    }
+    if(spec.kind === 'icon'){
+      return `<select id="${id}" data-cms-path="${escAttr(path)}">${
+        ICON_CHOICES.map(c => `<option value="${c}"${c === v ? ' selected' : ''}>${c}</option>`).join('')
+      }</select>`;
+    }
+    return `<input id="${id}" type="text" value="${escAttr(v)}" data-cms-path="${escAttr(path)}">`;
+  }
+
+  function cmsField(spec, value, path){
+    return `
+      <div class="cms-field">
+        <label for="cms_${path.replace(/[^a-z0-9]/gi, '_')}">${escAttr(spec.label)}</label>
+        ${cmsInput(spec, value, path)}
+        ${spec.note ? `<span class="cms-note">${escAttr(spec.note)}</span>` : ''}
+      </div>`;
+  }
+
+  function cmsListField(spec, values, path){
+    const rows = (values || []).map((v, i) => `
+      <div class="cms-group">
+        <div class="cms-group-head"><span>${escAttr(spec.label)} ${i + 1}</span>
+          <button type="button" class="cms-mini danger" data-cms-remove="${escAttr(path)}" data-i="${i}">Remove</button>
+        </div>
+        ${spec.textarea
+          ? `<textarea data-cms-path="${escAttr(path + '.' + i)}">${escAttr(v)}</textarea>`
+          : `<input type="text" value="${escAttr(v)}" data-cms-path="${escAttr(path + '.' + i)}">`}
+      </div>`).join('');
+    return `
+      <div class="cms-field">
+        <label>${escAttr(spec.label)}</label>
+        ${rows || '<p class="cms-note">Nothing here yet — this part of the page will be hidden.</p>'}
+        <button type="button" class="cms-mini" data-cms-add="${escAttr(path)}" data-kind="string">+ Add</button>
+      </div>`;
+  }
+
+  function cmsGroupField(spec, values, path){
+    const rows = (values || []).map((item, i) => `
+      <div class="cms-group">
+        <div class="cms-group-head"><span>${escAttr(spec.label)} ${i + 1}</span>
+          <button type="button" class="cms-mini danger" data-cms-remove="${escAttr(path)}" data-i="${i}">Remove</button>
+        </div>
+        ${spec.fields.map(f => f.kind === 'grouplinks'
+          ? cmsLinksField(f, item[f.key], `${path}.${i}.${f.key}`)
+          : cmsField(f, item[f.key], `${path}.${i}.${f.key}`)).join('')}
+      </div>`).join('');
+    return `
+      <div class="cms-field">
+        <label>${escAttr(spec.label)}</label>
+        ${rows || '<p class="cms-note">Nothing here yet — this section will be hidden on the storefront.</p>'}
+        <button type="button" class="cms-mini" data-cms-add="${escAttr(path)}"
+                data-kind="object" data-fields="${escAttr(spec.fields.map(f => f.key).join(','))}">+ Add</button>
+      </div>`;
+  }
+
+  function cmsLinksField(spec, values, path){
+    const rows = (values || []).map((link, i) => `
+      <div class="cms-row" style="margin-bottom:8px;align-items:end;">
+        <div class="cms-field" style="margin:0;">
+          <label>Label</label>
+          <input type="text" value="${escAttr(link.label || '')}" data-cms-path="${escAttr(path + '.' + i + '.label')}">
+        </div>
+        <div class="cms-field" style="margin:0;">
+          <label>Link</label>
+          <div style="display:flex;gap:6px;">
+            <input type="text" value="${escAttr(link.href || '')}" data-cms-path="${escAttr(path + '.' + i + '.href')}">
+            <button type="button" class="cms-mini danger" data-cms-remove="${escAttr(path)}" data-i="${i}">×</button>
+          </div>
+        </div>
+      </div>`).join('');
+    return `
+      <div class="cms-field">
+        <label>${escAttr(spec.label)}</label>
+        ${rows}
+        <button type="button" class="cms-mini" data-cms-add="${escAttr(path)}"
+                data-kind="object" data-fields="label,href">+ Add link</button>
+      </div>`;
+  }
+
+  function cmsImageField(spec, value, path){
+    const url = value || '';
+    return `
+      <div class="cms-field">
+        <label>${escAttr(spec.label)}</label>
+        <div class="cms-img">
+          <div class="cms-img-thumb" style="${url ? `background-image:url('${cssUrl(resolveMediaUrl(url))}')` : ''}"></div>
+          <div class="cms-img-body">
+            ${url ? escAttr(url.split('/').pop()) : 'No image yet — the storefront shows the branded panel.'}
+            <div style="display:flex;gap:6px;margin-top:7px;">
+              <button type="button" class="cms-mini" data-cms-upload="${escAttr(path)}">Upload</button>
+              ${url ? `<button type="button" class="cms-mini danger" data-cms-clearimg="${escAttr(path)}">Remove</button>` : ''}
+            </div>
+          </div>
+        </div>
+      </div>`;
+  }
+
+  function renderCmsEditor(block){
+    const editor = document.getElementById('cmsEditor');
+    if(!editor) return;
+    const specs = FIELD_SPECS[block.key]
+      // No spec: fall back to one field per key, so a block added on the
+      // backend is editable here without a frontend release.
+      || Object.keys(cmsDraft || {}).map(k => ({key:k, label:k.replace(/_/g, ' '), kind:'textarea'}));
+
+    const body = specs.map(spec => {
+      const value = cmsDraft[spec.key];
+      if(spec.kind === 'group')  return cmsGroupField(spec, value, spec.key);
+      if(spec.kind === 'list')   return cmsListField(spec, value, spec.key);
+      if(spec.kind === 'image')  return cmsImageField(spec, value, spec.key);
+      return cmsField(spec, value, spec.key);
+    }).join('');
+
+    editor.innerHTML = `
+      <div class="cms-head">
+        <div>
+          <h3>${escAttr(block.label)}</h3>
+          <p>${escAttr(block.description || '')}</p>
+        </div>
+        <label class="ph-check" style="white-space:nowrap;">
+          <input type="checkbox" id="cmsActive" ${block.is_active ? 'checked' : ''}> Show on site
+        </label>
+      </div>
+      <div class="cms-msg" id="cmsMsg"></div>
+      ${body}
+      <div class="cms-actions">
+        <span class="spacer">${block.updated_by
+          ? 'Last edited by ' + escAttr(block.updated_by)
+          : 'Not edited yet'}</span>
+        <button class="btn btn-ghost" id="cmsReset">Restore default</button>
+        <button class="btn btn-primary" id="cmsSave">Save changes</button>
+      </div>`;
+  }
+
+  // Walk a dotted path into the draft and set the leaf.
+  function cmsSetPath(path, value){
+    const parts = path.split('.');
+    let node = cmsDraft;
+    for(let i = 0; i < parts.length - 1; i++){
+      const key = /^\d+$/.test(parts[i]) ? Number(parts[i]) : parts[i];
+      if(node[key] == null) node[key] = /^\d+$/.test(parts[i + 1]) ? [] : {};
+      node = node[key];
+    }
+    const last = parts[parts.length - 1];
+    node[/^\d+$/.test(last) ? Number(last) : last] = value;
+  }
+
+  function cmsGetPath(path){
+    return path.split('.').reduce((node, part) =>
+      node == null ? node : node[/^\d+$/.test(part) ? Number(part) : part], cmsDraft);
+  }
+
+  function cmsMessage(text, kind){
+    const box = document.getElementById('cmsMsg');
+    if(!box) return;
+    box.textContent = text;
+    box.className = 'cms-msg ' + (kind || 'ok');
+  }
+
+  // ---- events (delegated: the editor is re-rendered constantly) ----
+  document.addEventListener('click', async (e) => {
+    const pick = e.target.closest('[data-cms]');
+    if(pick){ selectCmsBlock(pick.dataset.cms); return; }
+
+    const tab = e.target.closest('#contentTabs button');
+    if(tab){
+      document.querySelectorAll('#contentTabs button').forEach(b =>
+        b.classList.toggle('active', b === tab));
+      document.getElementById('contentBlocksPane').hidden = tab.dataset.ctab !== 'blocks';
+      document.getElementById('contentCategoriesPane').hidden = tab.dataset.ctab !== 'categories';
+      if(tab.dataset.ctab === 'categories') renderCategoriesTable();
+      return;
+    }
+
+    const add = e.target.closest('[data-cms-add]');
+    if(add){
+      const path = add.dataset.cmsAdd;
+      const current = cmsGetPath(path) || [];
+      if(add.dataset.kind === 'object'){
+        const blank = {};
+        add.dataset.fields.split(',').forEach(f => { blank[f] = f === 'icon' ? 'check' : ''; });
+        current.push(blank);
+      } else {
+        current.push('');
+      }
+      cmsSetPath(path, current);
+      renderCmsEditor(cmsBlocks.find(b => b.key === cmsCurrent));
+      return;
+    }
+
+    const remove = e.target.closest('[data-cms-remove]');
+    if(remove){
+      const list = cmsGetPath(remove.dataset.cmsRemove) || [];
+      list.splice(Number(remove.dataset.i), 1);
+      cmsSetPath(remove.dataset.cmsRemove, list);
+      renderCmsEditor(cmsBlocks.find(b => b.key === cmsCurrent));
+      return;
+    }
+
+    const clear = e.target.closest('[data-cms-clearimg]');
+    if(clear){
+      cmsSetPath(clear.dataset.cmsClearimg, '');
+      renderCmsEditor(cmsBlocks.find(b => b.key === cmsCurrent));
+      return;
+    }
+
+    const upload = e.target.closest('[data-cms-upload]');
+    if(upload){ cmsPickImage(upload.dataset.cmsUpload); return; }
+
+    if(e.target.id === 'cmsSave') await saveCmsBlock();
+    if(e.target.id === 'cmsReset') await resetCmsBlock();
+  });
+
+  // Field edits go straight into the draft; nothing is sent until Save.
+  document.addEventListener('input', (e) => {
+    const path = e.target.dataset && e.target.dataset.cmsPath;
+    if(path && cmsDraft) cmsSetPath(path, e.target.value);
+  });
+  document.addEventListener('change', (e) => {
+    const path = e.target.dataset && e.target.dataset.cmsPath;
+    if(path && cmsDraft && e.target.tagName === 'SELECT') cmsSetPath(path, e.target.value);
+  });
+
+  /* Image upload reuses /api/site-content/media, which runs the same
+     extension + magic-byte validation as product media. */
+  function cmsPickImage(path){
+    const input = document.createElement('input');
+    input.type = 'file';
+    input.accept = 'image/jpeg,image/png,image/webp';
+    input.addEventListener('change', async () => {
+      const file = input.files[0];
+      if(!file) return;
+      cmsMessage('Uploading…', 'ok');
+      const fd = new FormData();
+      fd.append('file', file);
+      try{
+        const res = await fetch(API_BASE + '/site-content/media', {
+          method:'POST', headers:{'Authorization':'Bearer ' + authToken}, body: fd
+        });
+        if(!res.ok){
+          let detail = 'Upload failed';
+          try{ detail = (await res.json()).detail || detail; }catch(_){}
+          throw new Error(detail);
+        }
+        const created = await res.json();
+        cmsSetPath(path, created.url);
+        renderCmsEditor(cmsBlocks.find(b => b.key === cmsCurrent));
+        cmsMessage('Image uploaded. Save to publish it.', 'ok');
+      }catch(err){
+        cmsMessage(err.message, 'err');
+      }
+    });
+    input.click();
+  }
+
+  async function saveCmsBlock(){
+    const active = document.getElementById('cmsActive');
+    try{
+      const saved = await apiSend('PUT', '/site-content/blocks/' + cmsCurrent, {
+        payload: cmsDraft,
+        is_active: active ? active.checked : true
+      });
+      const index = cmsBlocks.findIndex(b => b.key === cmsCurrent);
+      if(index >= 0) cmsBlocks[index] = saved;
+      renderCmsList();
+      cmsMessage('Saved — live on the storefront now.', 'ok');
+    }catch(err){
+      cmsMessage(err.message, 'err');
+    }
+  }
+
+  async function resetCmsBlock(){
+    if(!confirm('Restore this section to the text it shipped with? Your edits to it will be lost.')) return;
+    try{
+      const saved = await apiSend('POST', '/site-content/blocks/' + cmsCurrent + '/reset');
+      const index = cmsBlocks.findIndex(b => b.key === cmsCurrent);
+      if(index >= 0) cmsBlocks[index] = saved;
+      selectCmsBlock(cmsCurrent);
+      cmsMessage('Restored to the original text.', 'ok');
+    }catch(err){
+      cmsMessage(err.message, 'err');
+    }
+  }
+
+  /* ---- Categories ---- */
+  function renderCategoriesTable(){
+    const body = document.getElementById('categoriesBody');
+    if(!body) return;
+    if(!categoriesCache.length){
+      body.innerHTML = '<tr><td colspan="6" class="empty-note">No categories yet. Add one to create a collection card on the homepage.</td></tr>';
+      return;
+    }
+    body.innerHTML = categoriesCache.map(c => `
+      <tr>
+        <td><div class="cat-thumb" style="${c.image_url
+          ? `background-image:url('${cssUrl(resolveMediaUrl(c.image_url))}')` : ''}"></div></td>
+        <td><strong>${escAttr(c.name)}</strong><br><span style="font-size:11px;color:var(--text-soft);">${escAttr(c.description || '—')}</span></td>
+        <td>${escAttr(c.tagline || '—')}</td>
+        <td>${c.product_count}</td>
+        <td>${c.is_active ? '<span class="badge ok">Shown</span>' : '<span class="badge neutral">Hidden</span>'}</td>
+        <td><button class="cms-mini" data-cat-edit="${escAttr(c.id)}">Edit</button></td>
+      </tr>`).join('');
+  }
+
+  function openCategoryEditor(category){
+    const editing = !!category;
+    const c = category || {name:'', description:'', tagline:'', image_url:'', sort_order:0, is_active:true};
+    const modal = document.getElementById('catModal');
+    document.getElementById('catModalTitle').textContent = editing ? 'Edit category' : 'New category';
+    document.getElementById('catId').value = editing ? c.id : '';
+    document.getElementById('catName').value = c.name || '';
+    document.getElementById('catTagline').value = c.tagline || '';
+    document.getElementById('catDesc').value = c.description || '';
+    document.getElementById('catSort').value = c.sort_order || 0;
+    document.getElementById('catActive').checked = c.is_active !== false;
+    document.getElementById('catImageUrl').value = c.image_url || '';
+    const thumb = document.getElementById('catThumb');
+    thumb.style.backgroundImage = c.image_url ? `url('${cssUrl(resolveMediaUrl(c.image_url))}')` : '';
+    document.getElementById('catMsg').className = 'cms-msg';
+    document.getElementById('catDelete').style.display = editing ? '' : 'none';
+    modal.classList.add('open');
+  }
+
+  async function saveCategory(){
+    const id = document.getElementById('catId').value;
+    const payload = {
+      name: document.getElementById('catName').value.trim(),
+      tagline: document.getElementById('catTagline').value.trim() || null,
+      description: document.getElementById('catDesc').value.trim(),
+      image_url: document.getElementById('catImageUrl').value || null,
+      sort_order: Number(document.getElementById('catSort').value) || 0,
+      is_active: document.getElementById('catActive').checked
+    };
+    const msg = document.getElementById('catMsg');
+    if(!payload.name){
+      msg.textContent = 'A category needs a name.'; msg.className = 'cms-msg err'; return;
+    }
+    try{
+      if(id) await apiSend('PUT', '/categories/' + id, payload);
+      else   await apiSend('POST', '/categories', payload);
+      await loadCategories();
+      renderCategoriesTable();
+      document.getElementById('catModal').classList.remove('open');
+    }catch(err){
+      msg.textContent = err.message; msg.className = 'cms-msg err';
+    }
+  }
+
+  async function deleteCategory(){
+    const id = document.getElementById('catId').value;
+    if(!id) return;
+    if(!confirm('Delete this category? Categories with products cannot be deleted — hide them instead.')) return;
+    const msg = document.getElementById('catMsg');
+    try{
+      await apiSend('DELETE', '/categories/' + id);
+      await loadCategories();
+      renderCategoriesTable();
+      document.getElementById('catModal').classList.remove('open');
+    }catch(err){
+      msg.textContent = err.message; msg.className = 'cms-msg err';
+    }
+  }
+
+  document.addEventListener('click', async (e) => {
+    if(e.target.id === 'catAddBtn') openCategoryEditor(null);
+    const edit = e.target.closest('[data-cat-edit]');
+    if(edit) openCategoryEditor(categoriesCache.find(c => c.id === edit.dataset.catEdit));
+    if(e.target.id === 'catSave') await saveCategory();
+    if(e.target.id === 'catDelete') await deleteCategory();
+    if(e.target.id === 'catCancel' || e.target.id === 'catModalClose')
+      document.getElementById('catModal').classList.remove('open');
+    if(e.target.id === 'catUpload'){
+      const input = document.createElement('input');
+      input.type = 'file';
+      input.accept = 'image/jpeg,image/png,image/webp';
+      input.addEventListener('change', async () => {
+        const file = input.files[0];
+        if(!file) return;
+        const fd = new FormData();
+        fd.append('file', file);
+        const msg = document.getElementById('catMsg');
+        try{
+          const res = await fetch(API_BASE + '/site-content/media', {
+            method:'POST', headers:{'Authorization':'Bearer ' + authToken}, body: fd
+          });
+          if(!res.ok){
+            let detail = 'Upload failed';
+            try{ detail = (await res.json()).detail || detail; }catch(_){}
+            throw new Error(detail);
+          }
+          const created = await res.json();
+          document.getElementById('catImageUrl').value = created.url;
+          document.getElementById('catThumb').style.backgroundImage =
+            `url('${cssUrl(resolveMediaUrl(created.url))}')`;
+          msg.textContent = 'Image uploaded. Save to apply it.'; msg.className = 'cms-msg ok';
+        }catch(err){
+          msg.textContent = err.message; msg.className = 'cms-msg err';
+        }
+      });
+      input.click();
+    }
+  });
+
+  /* ================= New-order alerts =================
+     The rule this respects: the unread count is a COUNT(*) in the database,
+     never a number this browser is keeping. So a refresh cannot reset it, a
+     second admin session cannot disagree with the first, and marking one read
+     is visible to everyone. Nothing here invents a badge.
+
+     One committed order produces one `admin.order_placed` row — the outbox's
+     UNIQUE event_key sees to that — so a retried request, a replayed webhook
+     or a double-clicked button cannot make the bell count the same order twice. */
+
+  let alertSummary = {unread: 0, unread_orders: 0};
+  let alertRows = [];
+  let alertTimer = null;
+
+  function renderBell(){
+    const badge = document.getElementById('bellBadge');
+    if(!badge) return;
+    const count = alertSummary.unread_orders || 0;
+    badge.textContent = count > 99 ? '99+' : count;
+    badge.hidden = count === 0;
+    // The sidebar badge tracks the same figure, so the two never disagree.
+    const navBadge = document.getElementById('notifBadge');
+    if(navBadge){
+      navBadge.textContent = count;
+      navBadge.style.display = count ? 'inline-flex' : 'none';
+    }
+  }
+
+  function alertWhen(iso){
+    const then = new Date(iso + (iso.endsWith('Z') ? '' : 'Z'));
+    const mins = Math.round((Date.now() - then.getTime()) / 60000);
+    if(mins < 1) return 'just now';
+    if(mins < 60) return mins + 'm ago';
+    if(mins < 1440) return Math.round(mins / 60) + 'h ago';
+    return then.toLocaleDateString();
+  }
+
+  /* Pull the order number and total out of the alert's stored subject. The
+     subject was rendered when the order committed, so it reflects that moment
+     even if the order has since been edited — which is the point of storing it. */
+  function alertParts(row){
+    const match = (row.subject || '').match(/New order (\S+)\s+—\s+(.+)$/);
+    return {
+      order: match ? match[1] : (row.reference_id || '').slice(0, 8),
+      amount: match ? match[2] : ''
+    };
+  }
+
+  function renderAlertList(){
+    const list = document.getElementById('bellList');
+    if(!list) return;
+    if(!alertRows.length){
+      list.innerHTML = '<p class="bell-empty">No new orders right now.</p>';
+      return;
+    }
+    list.innerHTML = alertRows.map(row => {
+      const p = alertParts(row);
+      return `
+        <button class="bell-row${row.is_read ? '' : ' unread'}"
+                data-alert="${escAttr(row.id)}" data-order-ref="${escAttr(row.reference_id || '')}">
+          <span class="bell-dot"></span>
+          <span class="bell-body">
+            <strong>Order ${escAttr(p.order)}</strong>
+            <span class="bell-amount">${escAttr(p.amount)}</span>
+            <span class="bell-when">${escAttr(alertWhen(row.created_at))}</span>
+          </span>
+        </button>`;
+    }).join('');
+  }
+
+  async function refreshAlerts({openPanel = false} = {}){
+    if(!authToken) return;
+    try{
+      const [summary, rows] = await Promise.all([
+        apiGet('/notifications/summary'),
+        apiGet('/notifications?event_type=admin.order_placed&limit=12')
+      ]);
+      alertSummary = summary;
+      alertRows = rows;
+    }catch(err){
+      return;   // a failed poll leaves the last known figure rather than zeroing it
+    }
+    renderBell();
+    if(openPanel || !document.getElementById('bellPanel').hidden) renderAlertList();
+  }
+
+  function toggleBell(force){
+    const panel = document.getElementById('bellPanel');
+    if(!panel) return;
+    const show = force !== undefined ? force : panel.hidden;
+    panel.hidden = !show;
+    if(show) refreshAlerts({openPanel: true});
+  }
+
+  document.addEventListener('click', async (e) => {
+    if(e.target.closest('#bellBtn')){ toggleBell(); return; }
+
+    // Clicking outside closes it.
+    if(!e.target.closest('#bellPanel') && !e.target.closest('#bellBtn')) toggleBell(false);
+
+    const row = e.target.closest('[data-alert]');
+    if(row){
+      const id = row.dataset.alert;
+      const orderId = row.dataset.orderRef;
+      try{
+        // Marked read server-side, so every admin session sees it acknowledged.
+        alertSummary = await apiSend('POST', '/notifications/read', {ids: [id]});
+        const local = alertRows.find(r => r.id === id);
+        if(local){ local.is_read = true; }
+        renderBell();
+        renderAlertList();
+      }catch(_){}
+      toggleBell(false);
+      if(orderId) await openOrderDetail(orderId);
+      return;
+    }
+
+    if(e.target.id === 'bellMarkAll'){
+      try{
+        alertSummary = await apiSend('POST', '/notifications/read',
+                                     {all: true, event_type: 'admin.order_placed'});
+        alertRows.forEach(r => { r.is_read = true; });
+        renderBell();
+        renderAlertList();
+      }catch(_){}
+    }
+  });
+
+  function startAlertPolling(){
+    refreshAlerts();
+    if(alertTimer) clearInterval(alertTimer);
+    // Every 45s. Frequent enough that a new order surfaces while someone is
+    // watching the panel, infrequent enough not to be a load problem.
+    alertTimer = setInterval(refreshAlerts, 45000);
+  }
+
   function renderCustomers(customers){
-    document.getElementById('customersBody').innerHTML = customers.map(c => `
-      <tr><td><strong>${c.name}</strong></td><td>${c.orders}</td><td>${c.spent}</td><td>${c.last}</td><td>${c.points} pts</td></tr>`).join('');
+    const body = document.getElementById('customersBody');
+    if(!customers.length){
+      body.innerHTML = '<tr><td colspan="5" class="empty-note">No customers yet. A customer row is created the first time someone checks out or registers.</td></tr>';
+    } else {
+      body.innerHTML = customers.map(c => `
+        <tr><td><strong>${escAttr(c.name)}</strong></td><td>${c.orders}</td><td>${c.spent}</td><td>${escAttr(c.last)}</td><td>${c.points} pts</td></tr>`).join('');
+    }
+    // The real counts, from the rows just rendered — not a number typed into
+    // the markup that stopped being true the day after it was written.
+    const summary = document.getElementById('custSummary');
+    if(summary){
+      const ordered = customers.filter(c => (c.orders || 0) > 0).length;
+      summary.textContent = customers.length
+        ? `${customers.length.toLocaleString('en-IN')} customer${customers.length === 1 ? '' : 's'} · ${ordered.toLocaleString('en-IN')} have ordered`
+        : 'No customers yet';
+    }
+  }
+
+  /* Where orders ship, from the delivery snapshots. Orders placed before
+     structured addresses existed carry no city and are not counted — the panel
+     says so rather than quietly reporting a share of a smaller number. */
+  function renderLocations(rows){
+    const box = document.getElementById('locationsList');
+    if(!box) return;
+    if(!rows || !rows.length){
+      box.innerHTML = '<p class="empty-note">No delivery cities recorded yet. This fills in as orders with a structured address arrive.</p>';
+      return;
+    }
+    box.innerHTML = rows.map(r => `
+      <div class="kpi-mini">
+        <span>${escAttr(r.city)}</span>
+        <strong>${r.share}% <span style="color:var(--text-soft);font-weight:400;">· ${r.orders}</span></strong>
+      </div>`).join('');
   }
 
   function renderAppointments(appts){
@@ -1451,7 +2500,11 @@
   }
 
   async function loadLiveDashboard(){
-    const [products, orders, customers, inventory, appts, summary, topProducts, revenueTrend] = await Promise.all([
+    // Kept in step with the data below it; the count itself always comes from
+    // the server, never from anything counted in this browser.
+    if(typeof refreshAlerts === 'function') refreshAlerts();
+    const [products, orders, customers, inventory, appts, summary, topProducts, revenueTrend,
+           locations] = await Promise.all([
       apiGet('/products?status=all&limit=200').catch(()=>apiGet('/products')),
       apiGet('/orders'),
       apiGet('/customers'),
@@ -1460,6 +2513,7 @@
       apiGet('/analytics/summary'),
       apiGet('/analytics/top-products'),
       apiGet('/analytics/revenue-trend?days=30'),
+      apiGet('/analytics/customer-locations').catch(() => []),
     ]);
 
     liveProducts = products;
@@ -1483,6 +2537,8 @@
       points:c.loyalty_points
     })));
 
+    renderLocations(locations);
+
     renderAppointments(appts.map(a => ({
       name:a.customer_name, type:a.appointment_type, stylist:a.stylist,
       when: new Date(a.scheduled_at).toLocaleString('en-IN', {day:'numeric', month:'short', hour:'numeric', minute:'2-digit'}),
@@ -1499,7 +2555,17 @@
     if(statValues[0]) statValues[0].textContent = fmtINR(summary.revenue_this_month);
     if(statValues[1]) statValues[1].textContent = summary.orders_this_month;
     if(statValues[2]) statValues[2].textContent = summary.active_customers;
-    if(statValues[3]) statValues[3].textContent = summary.conversion_rate + '%';
+    // Rendered only when the backend actually has one. Nothing here counts
+    // sessions yet, so it reports "—" and says why rather than printing a
+    // number a shop owner might act on.
+    if(statValues[3]){
+      const rate = summary.conversion_rate;
+      statValues[3].textContent = (rate === null || rate === undefined) ? '—' : rate + '%';
+      const label = document.getElementById('convLabel');
+      if(label) label.textContent = (rate === null || rate === undefined)
+        ? 'Conversion rate · needs traffic tracking'
+        : 'Conversion rate';
+    }
 
     // Real identity and date, instead of a hardcoded greeting.
     try{
@@ -2125,7 +3191,7 @@
     if(product.image_url){
       const probe = new Image();
       probe.onload = () => {
-        media.style.backgroundImage = `linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('${product.image_url}')`;
+        media.style.backgroundImage = `linear-gradient(160deg, rgba(43,27,20,.15), rgba(140,90,60,.05)), url('${cssUrl(product.image_url)}')`;
         media.style.backgroundSize = 'cover';
         media.style.backgroundPosition = 'center';
         media.querySelectorAll('span').forEach(s => s.style.display = 'none');
@@ -2221,6 +3287,18 @@
   let convertingId = null;
 
   const phEl = id => document.getElementById(id);
+
+  /* A URL going into a CSS url('...') context. HTML escaping is the wrong
+     tool here: inside a style value a stray quote or paren ends the string and
+     starts new CSS, so those characters are percent-encoded instead. The URLs
+     are admin-set, which limits who could abuse it — but "only an admin can do
+     it" is not a reason to leave an injection in a page every customer loads. */
+  function cssUrl(url){
+    return encodeURI(String(url || ''))
+      .replace(/'/g, '%27').replace(/"/g, '%22')
+      .replace(/\(/g, '%28').replace(/\)/g, '%29');
+  }
+
   const escAttr = s => String(s == null ? '' : s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
   async function apiSend(method, path, body){
@@ -2413,6 +3491,10 @@
       try{
         await loadLiveDashboard();
         setConnBadge(true);
+        // New-order alerts and the content library load after the dashboard:
+        // neither should delay the figures the admin came here to see.
+        startAlertPolling();
+        loadContentBlocks();
       }catch(err){
         console.log('Logged in, but live data failed to load — showing demo data.', err);
         renderMockDashboard();

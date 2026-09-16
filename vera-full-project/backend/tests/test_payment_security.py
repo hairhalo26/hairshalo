@@ -27,6 +27,7 @@ from sqlalchemy import text
 
 from app import loyalty, models, payments as gateway
 from app.config import settings
+from shipping import SHIPPING
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -81,7 +82,7 @@ def _order(extra_item_fields=None, **extra):
     payload = {
         "customer_name": "Attacker",
         "customer_email": f"{MARKER}-{uuid.uuid4().hex[:8]}@example.com",
-        "shipping_address": "12 MG Road",
+        "shipping": SHIPPING,
         "items": [item],
     }
     payload.update(extra)
@@ -161,6 +162,7 @@ def test_negative_and_absurd_quantities_are_refused():
     for quantity in (0, -1, -100, 101):
         product, variant = _sellable()
         r = requests.post(f"{API}/orders", timeout=15, json={
+            "shipping": SHIPPING,
             "customer_name": "Attacker", "customer_email": f"{MARKER}@example.com",
             "items": [{"product_id": product["id"], "variant_id": variant["id"],
                        "quantity": quantity}],
@@ -174,6 +176,7 @@ def test_an_injected_loyalty_redemption_cannot_exceed_the_balance():
     rather than discount the order."""
     product, variant = _sellable()
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "Attacker",
         "customer_email": f"{MARKER}-{uuid.uuid4().hex[:8]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],

@@ -12,6 +12,7 @@ import pytest
 import requests
 
 from app import currency as cur
+from shipping import SHIPPING
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -156,13 +157,29 @@ def test_detect_without_header_falls_back(live):
     assert d["currency"] is None or d["currency"] in cur.CURRENCIES
 
 
+def _sellable():
+    """A product and a variant that can actually be bought right now.
+
+    Skips rather than raising StopIteration when nothing is in stock: these
+    tests place real orders, so a long run of the suite can legitimately drain
+    the catalog, and that is not a currency regression. It also scans EVERY
+    variant instead of only `variants[0]` — checking just the first one made
+    these three tests fail whenever the first variant happened to be the one
+    that sold out.
+    """
+    for product in requests.get(f"{API}/products", timeout=10).json():
+        for variant in product.get("variants", []):
+            if variant.get("is_available") and (variant.get("stock") or 0) > 0:
+                return product, variant
+    pytest.skip("no variant in the catalog has stock")
+
+
 @api_only
 def test_client_cannot_supply_an_exchange_rate(live):
     """The headline security requirement for this phase."""
-    products = requests.get(f"{API}/products", timeout=10).json()
-    p = next(x for x in products if x["variants"] and x["variants"][0]["stock"] > 0)
-    v = p["variants"][0]
+    p, v = _sellable()
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "FX", "customer_email": f"fx{uuid.uuid4().hex[:6]}@example.com",
         "display_currency": "USD",
         # all of these are noise the server must ignore
@@ -183,12 +200,12 @@ def test_client_cannot_supply_an_exchange_rate(live):
 
 @api_only
 def test_unknown_display_currency_does_not_break_checkout(live):
-    products = requests.get(f"{API}/products", timeout=10).json()
-    p = next(x for x in products if x["variants"] and x["variants"][0]["stock"] > 0)
+    p, v = _sellable()
     r = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "FX", "customer_email": f"fx{uuid.uuid4().hex[:6]}@example.com",
         "display_currency": "ZZZ",
-        "items": [{"product_id": p["id"], "variant_id": p["variants"][0]["id"], "quantity": 1}],
+        "items": [{"product_id": p["id"], "variant_id": v["id"], "quantity": 1}],
     })
     assert r.status_code == 201
     assert r.json()["currency"] == "INR"
@@ -197,12 +214,12 @@ def test_unknown_display_currency_does_not_break_checkout(live):
 @api_only
 def test_historical_order_keeps_its_own_rate(live):
     """Old orders must not be re-converted at today's rate."""
-    products = requests.get(f"{API}/products", timeout=10).json()
-    p = next(x for x in products if x["variants"] and x["variants"][0]["stock"] > 0)
+    p, v = _sellable()
     order = requests.post(f"{API}/orders", timeout=15, json={
+        "shipping": SHIPPING,
         "customer_name": "FX", "customer_email": f"fx{uuid.uuid4().hex[:6]}@example.com",
         "display_currency": "GBP",
-        "items": [{"product_id": p["id"], "variant_id": p["variants"][0]["id"], "quantity": 1}],
+        "items": [{"product_id": p["id"], "variant_id": v["id"], "quantity": 1}],
     }).json()
     assert order["display_currency"] == "GBP"
     stored_rate = order["display_rate"]

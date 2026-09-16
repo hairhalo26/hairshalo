@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from sqlalchemy import func
 from sqlalchemy.orm import Session
 
 from app import models, notifications as notify, schemas
@@ -33,6 +34,7 @@ def _out(row: models.Notification, detail: bool = False):
         next_attempt_at=row.next_attempt_at, last_error=row.last_error,
         provider=row.provider, provider_message_id=row.provider_message_id,
         sent_at=row.sent_at, created_at=row.created_at,
+        read_at=row.read_at, is_read=row.is_read,
     )
     if detail:
         return schemas.NotificationDetailOut(
@@ -208,6 +210,72 @@ def remove_suppression(email: str, db: Session = Depends(get_db),
 # ---------------------------------------------------------------- queue
 
 
+@router.get("/summary", response_model=schemas.NotificationSummaryOut)
+def notification_summary(db: Session = Depends(get_db),
+                         _admin=Depends(get_current_admin)):
+    """Counts behind the admin panel's bell.
+
+    Every figure is a COUNT(*) against the table, so a browser refresh cannot
+    reset a badge and two admin sessions cannot disagree about it. Nothing is
+    cached client-side for the same reason.
+    """
+    base = db.query(func.count(models.Notification.id))
+    unread = base.filter(models.Notification.read_at.is_(None)).scalar() or 0
+    unread_orders = (
+        base.filter(models.Notification.read_at.is_(None),
+                    models.Notification.event_type == "admin.order_placed").scalar() or 0
+    )
+    queued = base.filter(
+        models.Notification.status == models.NotificationStatus.queued).scalar() or 0
+    failed = base.filter(
+        models.Notification.status == models.NotificationStatus.failed).scalar() or 0
+    total = base.scalar() or 0
+    return schemas.NotificationSummaryOut(
+        unread=unread, unread_orders=unread_orders,
+        queued=queued, failed=failed, total=total,
+    )
+
+
+@router.post("/read", response_model=schemas.NotificationSummaryOut)
+def mark_read(payload: schemas.NotificationMarkRead,
+              db: Session = Depends(get_db),
+              _admin=Depends(get_current_admin)):
+    """Acknowledge messages. Returns the refreshed counts.
+
+    Read state is stored on the row, not per admin session, which is the
+    honest model for a shared back office: once somebody has dealt with a new
+    order, it should stop shouting at everyone. Marking is idempotent —
+    re-marking an already-read row leaves its original timestamp, so "when was
+    this first seen?" survives a second click.
+    """
+    if not payload.ids and not payload.all:
+        raise HTTPException(status_code=400,
+                            detail="Give some ids, or set all=true.")
+    q = db.query(models.Notification).filter(models.Notification.read_at.is_(None))
+    if not payload.all:
+        q = q.filter(models.Notification.id.in_(payload.ids))
+    if payload.event_type:
+        q = q.filter(models.Notification.event_type == payload.event_type)
+    q.update({models.Notification.read_at: datetime.utcnow()},
+             synchronize_session=False)
+    db.commit()
+    return notification_summary(db=db, _admin=_admin)
+
+
+@router.post("/{notification_id}/unread", response_model=schemas.NotificationOut)
+def mark_unread(notification_id: str, db: Session = Depends(get_db),
+                _admin=Depends(get_current_admin)):
+    """Put one message back in the unread pile — for "I opened that by mistake"."""
+    row = db.query(models.Notification).filter(
+        models.Notification.id == notification_id).first()
+    if not row:
+        raise HTTPException(status_code=404, detail="Notification not found")
+    row.read_at = None
+    db.commit()
+    db.refresh(row)
+    return _out(row)
+
+
 @router.get("", response_model=List[schemas.NotificationOut])
 def list_notifications(
     status: Optional[str] = None,
@@ -215,6 +283,7 @@ def list_notifications(
     category: Optional[str] = None,
     recipient: Optional[str] = None,
     reference_id: Optional[str] = None,
+    unread: Optional[bool] = None,
     limit: int = Query(100, ge=1, le=500),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
@@ -239,6 +308,9 @@ def list_notifications(
         q = q.filter(models.Notification.recipient == recipient)
     if reference_id:
         q = q.filter(models.Notification.reference_id == reference_id)
+    if unread is not None:
+        q = (q.filter(models.Notification.read_at.is_(None)) if unread
+             else q.filter(models.Notification.read_at.isnot(None)))
     rows = (q.order_by(models.Notification.created_at.desc())
             .offset(offset).limit(limit).all())
     return [_out(r) for r in rows]
@@ -253,6 +325,10 @@ def get_notification(notification_id: str, db: Session = Depends(get_db),
         models.Notification.id == notification_id).first()
     if not row:
         raise HTTPException(status_code=404, detail="Notification not found")
+    # Deliberately does NOT mark the message read. A GET must be safe to
+    # repeat, and marking here made "mark unread" useless — the next read of
+    # the row silently flipped it back. The panel acknowledges a message with
+    # an explicit POST /read when the admin opens it.
     return _out(row, detail=True)
 
 

@@ -16,6 +16,7 @@ from sqlalchemy import text
 
 from app import currency as cur, models, reviews as review_service
 from app.config import settings
+from shipping import SHIPPING
 
 API = os.getenv("VERA_API", "http://127.0.0.1:8010/api")
 ADMIN = {"email": "admin@hairshalo.com", "password": "ChangeMe123!"}
@@ -77,7 +78,7 @@ def _stock(product_id, variant_id):
 
 def _place(product, variant, quantity=1, **extra):
     payload = {
-        "customer_name": "Readiness", "shipping_address": "12 MG Road",
+        "customer_name": "Readiness", "shipping": SHIPPING,
         "customer_email": f"{MARKER}-{uuid.uuid4().hex[:8]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"],
                    "quantity": quantity}],
