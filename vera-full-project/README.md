@@ -4,18 +4,19 @@ A complete wig & hairstyling e-commerce platform: FastAPI + PostgreSQL backend,
 a customer website with AI shopping tools, and an admin dashboard.
 
 ```
-vera-project/
-├── backend/          FastAPI + PostgreSQL API
-├── frontend/          Customer site, admin dashboard, landing page
-└── docker-compose.yml Spins up Postgres + backend together
+vera-full-project/
+├── backend/                  FastAPI + PostgreSQL API, Alembic migrations, tests
+├── frontend/                 Storefront, Admin Panel, account pages
+├── docker-compose.yml        Postgres + backend for local development
+├── docker-compose.prod.yml   Caddy + API + notifier + Postgres for production
+├── deploy/, docs/            AWS setup and the deployment guide
+└── scripts/                  Backup, restore, Caddy reload
 ```
 
-**Important — read this first:** this code was written but could not be run or
-tested in the environment it was generated in (no internet access, no Postgres
-available there). It follows standard, well-established FastAPI/SQLAlchemy
-patterns and should run correctly, but treat it as a strong first draft —
-run it locally, watch the terminal output, and fix anything Python's error
-messages point to. That's normal for a project this size.
+The shop runs in production at **https://hairshalo.com**. The backend test
+suite runs on every push through GitHub Actions
+(`.github/workflows/backend-tests.yml`) against a fresh, migrated and seeded
+Postgres, once with `PAYMENT_PROVIDER=manual` and once with payments disabled.
 
 ---
 
@@ -24,7 +25,7 @@ messages point to. That's normal for a project this size.
 Requires [Docker](https://www.docker.com/products/docker-desktop/) installed.
 
 ```bash
-cd vera-project
+cd vera-full-project
 docker compose up --build
 ```
 
@@ -159,7 +160,7 @@ the row, tops it up from `/api/product-placeholders`. That top-up is opt-in via
 | GET | `/api/customers` | Admin | List customers with order stats |
 | POST | `/api/appointments` | — | Book a fitting/consultation |
 | GET | `/api/appointments` | Admin | List appointments |
-| GET/POST | `/api/inventory` | Admin | Stock levels, add SKUs |
+| GET | `/api/inventory` | Admin | Stock levels per variant (`stock_status` filter) |
 | POST | `/api/inventory/adjust` | Admin | Adjust stock (`variant_id`, `delta`, `reason` in the body); writes a movement |
 | GET | `/api/inventory/movements/{variant_id}` | Admin | The ledger behind one variant's stock |
 | POST | `/api/coupons/validate` | — | Validate a coupon code |
@@ -606,8 +607,8 @@ Safeguards, each covered by a test:
 
 - `POST /api/orders` with a placeholder id returns **400** with an explicit
   message, not a generic 404.
-- `POST /api/inventory` with a placeholder id returns **400** — placeholders
-  cannot hold stock.
+- Placeholders cannot hold stock: they have no variants, and
+  `POST /api/inventory/adjust` only accepts a real `variant_id`.
 - `GET /api/products/{placeholder_id}` returns **404** — the domains never mix.
 - `display_price` on a placeholder is a **string** ("From ₹14,000"), not a
   number, so it can never be summed into revenue by accident.
@@ -983,7 +984,6 @@ real thing does not exist yet, the interface now says so.
 - The AI Wig Finder quiz, Virtual Try-On, and AI chat assistant on the
   frontend are still rule-based/local demos, not connected to a real model —
   wiring the chat assistant to the Claude API is a natural next step
-- File uploads for product images (currently just image URLs)
 - Traffic/conversion analytics. The conversion rate now reports **`null`**, and
   the dashboard renders "—  needs traffic tracking", because a conversion rate
   is orders over *sessions* and nothing here counts sessions. It was previously
