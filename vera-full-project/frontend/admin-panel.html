@@ -794,7 +794,7 @@
       <button class="btn btn-primary" type="submit" id="loginSubmit">Sign In</button>
     </form>
     <span class="login-demo" id="skipLogin">Continue in demo mode (no backend) →</span>
-    <p class="login-hint">Default seeded login: <strong>admin@hairshalo.com</strong> / <strong>ChangeMe123!</strong> — run <code>python -m app.seed</code> on the backend first.</p>
+    <p class="login-hint" id="loginHint" hidden>Local development login: <strong>admin@hairshalo.com</strong> / <strong>ChangeMe123!</strong> — run <code>python -m app.seed</code> on the backend first.</p>
   </div>
 </div>
 
@@ -3470,6 +3470,13 @@
   const loginScreen = document.getElementById('loginScreen');
   const loginError = document.getElementById('loginError');
 
+  // The seeded demo password only exists on a local dev database; production
+  // refuses to boot while it works. Showing it on the live site sends the real
+  // admin to a password that cannot succeed, and advertises it to everyone.
+  if(API_BASE.startsWith('http://localhost')){
+    document.getElementById('loginHint').hidden = false;
+  }
+
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
     const email = document.getElementById('loginEmail').value;
@@ -3479,12 +3486,28 @@
     submitBtn.textContent = 'Signing in...';
     loginError.style.display = 'none';
 
+    let res;
     try{
-      const res = await fetch(API_BASE + '/auth/login', {
+      res = await fetch(API_BASE + '/auth/login', {
         method:'POST', headers:{'Content-Type':'application/json'},
         body: JSON.stringify({email, password})
       });
-      if(!res.ok) throw new Error('bad credentials');
+    }catch(err){
+      loginError.textContent = 'Could not reach the server. Check your connection and try again.';
+      loginError.style.display = 'block';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Sign In';
+      return;
+    }
+
+    try{
+      if(!res.ok){
+        throw new Error(res.status === 429
+          ? 'Too many sign-in attempts. Wait 5 minutes, then try again.'
+          : res.status === 401 || res.status === 400 || res.status === 422
+            ? 'Incorrect email or password.'
+            : 'The server could not sign you in right now (error ' + res.status + ').');
+      }
       const data = await res.json();
       authToken = data.access_token;
       loginScreen.style.display = 'none';
@@ -3501,7 +3524,7 @@
         setConnBadge(false);
       }
     }catch(err){
-      loginError.textContent = 'Could not reach the backend, or the credentials are incorrect.';
+      loginError.textContent = err.message;
       loginError.style.display = 'block';
     }
     submitBtn.disabled = false;
