@@ -1,0 +1,102 @@
+# Runs the backend test suite against a fresh Postgres on every push and PR.
+#
+# The API-layer tests talk to a live server on port 8010 AND open their own
+# database session, so the job needs both: a running API and DATABASE_URL
+# pointing at the same database. Each matrix leg gets a brand-new database,
+# which also means the suite never inherits drained stock from a previous run.
+#
+# The suite runs twice because the payment lifecycle tests only execute when
+# the API was started with PAYMENT_PROVIDER=manual, and the "payments disabled"
+# behaviour only when it was started with none.
+
+name: Backend tests
+
+on:
+  push:
+    branches: [main, deploy/aws-production, "feature/**"]
+    paths:
+      - "vera-full-project/backend/**"
+      - ".github/workflows/backend-tests.yml"
+  pull_request:
+    paths:
+      - "vera-full-project/backend/**"
+      - ".github/workflows/backend-tests.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: backend-tests-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    name: pytest (PAYMENT_PROVIDER=${{ matrix.payment_provider }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    strategy:
+      fail-fast: false
+      matrix:
+        payment_provider: [manual, none]
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: vera_user
+          POSTGRES_PASSWORD: vera_pass
+          POSTGRES_DB: vera_hair_co
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U vera_user -d vera_hair_co"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    defaults:
+      run:
+        working-directory: vera-full-project/backend
+
+    env:
+      DATABASE_URL: postgresql+psycopg2://vera_user:vera_pass@localhost:5432/vera_hair_co
+      APP_ENV: development
+      PAYMENT_PROVIDER: ${{ matrix.payment_provider }}
+      NOTIFY_CHANNEL: console
+      VERA_API: http://127.0.0.1:8010/api
+      PYTHONIOENCODING: utf-8
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+          cache-dependency-path: vera-full-project/backend/requirements.txt
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Apply migrations
+        run: alembic upgrade head
+
+      - name: Seed demo data
+        run: SEED_DEMO_DATA=true python -m app.seed
+
+      - name: Start the API
+        run: |
+          nohup uvicorn app.main:app --host 127.0.0.1 --port 8010 > api.log 2>&1 &
+          for i in $(seq 1 30); do
+            if curl -fsS http://127.0.0.1:8010/api/health > /dev/null; then
+              echo "API is up"; exit 0
+            fi
+            sleep 1
+          done
+          echo "API did not start"; cat api.log; exit 1
+
+      - name: Run tests
+        run: python -m pytest tests -q -rs
+
+      - name: API log
+        if: always()
+        run: cat api.log || true
