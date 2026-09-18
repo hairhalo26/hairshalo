@@ -78,6 +78,21 @@
   }
   .od-addr dt{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-soft);white-space:nowrap;}
   .od-addr dd{margin:0;color:var(--text);}
+  .imp-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:4px 18px;}
+  .imp-map .ph-field{margin-bottom:8px;}
+  .imp-map .imp-sample{display:block;font-size:11px;color:var(--text-soft);margin-top:3px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .imp-level{font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-soft);margin:10px 0 6px;grid-column:1/-1;}
+  .imp-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:10px 0 14px;}
+  .imp-issues{margin:4px 0 0;padding-left:16px;font-size:11.5px;}
+  .imp-issues li.err{color:var(--danger);}
+  .imp-issues li.warn{color:var(--text-soft);}
+  .imp-diff{font-size:11.5px;margin-top:6px;border-left:2px solid var(--line);padding-left:8px;}
+  .imp-diff div{margin:2px 0;}
+  .imp-price{width:100px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:12px;}
+  .imp-note{font-size:12px;color:var(--text-soft);line-height:1.6;}
+  .imp-check{display:flex;gap:8px;align-items:flex-start;font-size:13px;margin:8px 0;}
+  .imp-check input{margin-top:3px;}
+  tr.imp-invalid td{opacity:.75;}
   .od-timeline{list-style:none;margin:0;padding:0;font-size:13px;}
   .od-timeline li{padding:6px 0 6px 16px;border-left:2px solid var(--line);position:relative;}
   .od-timeline li::before{content:'';position:absolute;left:-5px;top:11px;width:8px;height:8px;border-radius:50%;background:var(--wine);}
@@ -564,6 +579,28 @@
 </div>
 
 <!-- Add / Edit coupon -->
+<!-- Add / edit a supplier -->
+<div class="ph-modal" id="supplierModal">
+  <div class="ph-modal-card">
+    <h3 id="supTitle">New supplier</h3>
+    <p class="ph-sub">Suppliers are kept internal — customers never see them.</p>
+    <div class="ph-field"><label for="supName">Supplier name</label><input id="supName" maxlength="120"></div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="supRef">Account / agreement reference</label><input id="supRef" maxlength="120"></div>
+      <div class="ph-field"><label for="supCurrency">Price currency</label><input id="supCurrency" maxlength="3" value="INR" style="text-transform:uppercase;"></div>
+    </div>
+    <div class="ph-field"><label for="supHosts">Image hosts allowed for downloads (one per line)</label>
+      <textarea id="supHosts" rows="3" placeholder="images.supplier.example"></textarea></div>
+    <p class="imp-note">Image links are only ever downloaded from these hosts, over HTTPS, and only when you confirm the image rights for an import.</p>
+    <div class="ph-field"><label for="supNotes">Notes</label><textarea id="supNotes" rows="2" maxlength="2000"></textarea></div>
+    <div class="ph-error" id="supError"></div>
+    <div class="ph-actions">
+      <button class="btn" id="supCancel" type="button">Cancel</button>
+      <button class="btn btn-primary" id="supSave" type="button">Save supplier</button>
+    </div>
+  </div>
+</div>
+
 <!-- Pick one of the shop's own product photographs -->
 <div class="ph-modal" id="photoPicker">
   <div class="ph-modal-card" style="max-width:760px;">
@@ -626,16 +663,34 @@
       <div class="ph-field"><label for="pfShort">Short description</label><input id="pfShort" placeholder="Shown on product cards"></div>
       <div class="ph-field"><label for="pfDesc">Full description</label><textarea id="pfDesc" placeholder="Shown on the product detail page"></textarea></div>
       <div class="pf-row-3">
+        <!-- Free text with suggestions: an imported "Human Hair Blend" or
+             "Deep Wave" must survive being opened and saved here. These were
+             fixed dropdowns, which silently blanked any other value. -->
         <div class="ph-field"><label for="pfHairType">Hair type</label>
-          <select id="pfHairType"><option value="">—</option><option>Human Hair</option><option>Synthetic</option><option>Blend</option></select>
+          <input id="pfHairType" list="pfHairTypeList" placeholder="Human Hair">
+          <datalist id="pfHairTypeList"><option>Human Hair</option><option>Synthetic</option><option>Human Hair Blend</option></datalist>
         </div>
         <div class="ph-field"><label for="pfTexture">Texture</label>
-          <select id="pfTexture"><option value="">—</option><option>Straight</option><option>Body Wave</option><option>Wavy</option><option>Curly</option><option>Kinky Straight</option></select>
+          <input id="pfTexture" list="pfTextureList" placeholder="Body Wave">
+          <datalist id="pfTextureList"><option>Straight</option><option>Body Wave</option><option>Wavy</option><option>Curly</option><option>Kinky Straight</option><option>Deep Wave</option><option>Afro</option></datalist>
         </div>
         <div class="ph-field"><label for="pfConstruction">Construction</label>
-          <select id="pfConstruction"><option value="">—</option><option>Lace Frontal</option><option>360 Lace</option><option>Closure</option><option>Glueless Cap</option><option>Silk Base Topper</option><option>Extensions</option></select>
+          <input id="pfConstruction" list="pfConstructionList" placeholder="Lace Front">
+          <datalist id="pfConstructionList"><option>Lace Frontal</option><option>Lace Front</option><option>Full Lace</option><option>360 Lace</option><option>Closure</option><option>Glueless Cap</option><option>Headband</option><option>Silk Base Topper</option><option>Clip-in</option><option>Tape-in</option><option>Extensions</option></datalist>
         </div>
       </div>
+      <div class="pf-row-3">
+        <div class="ph-field"><label for="pfProductType">Product type</label><input id="pfProductType" maxlength="120" placeholder="Wig, Clip-in Extensions, Ponytail…"></div>
+        <div class="ph-field"><label for="pfWeight">Weight</label><input id="pfWeight" maxlength="60" placeholder="e.g. 120g"></div>
+        <div class="ph-field"><label for="pfHeat">Heat resistance</label><input id="pfHeat" maxlength="120" placeholder="e.g. Up to 180°C"></div>
+      </div>
+      <div class="ph-row">
+        <div class="ph-field"><label for="pfFeatures">Features <span class="pf-hint" style="display:inline;">one per line</span></label><textarea id="pfFeatures" rows="3"></textarea></div>
+        <div class="ph-field"><label for="pfBenefits">Benefits <span class="pf-hint" style="display:inline;">one per line</span></label><textarea id="pfBenefits" rows="3"></textarea></div>
+      </div>
+      <div class="ph-field"><label for="pfCare">Care instructions</label><textarea id="pfCare" rows="3"></textarea></div>
+      <!-- Internal only: where an imported product came from. Never shown to customers. -->
+      <div id="pfSource" class="pf-calc" hidden style="margin-top:10px;"></div>
     </div>
 
     <!-- 2. PRICING -->
@@ -899,6 +954,7 @@
     <div class="nav-group">
       <div class="nav-label">Catalog</div>
       <button class="nav-link" data-view="products"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14L12 11m0 0L4 7m8 4v10M4 7v10l8 4"/></svg>Products</button>
+      <button class="nav-link" data-view="import"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Product Import</button>
       <button class="nav-link" data-view="inventory"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>Inventory<span class="nav-badge" id="invBadge" style="display:none;"></span></button>
       <button class="nav-link" data-view="placeholders"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="2.5" stroke-dasharray="4 3"/><path d="M8 14l2.5-3 2 2.4L15 10l3 4"/></svg>Product Placeholders</button>
     </div>
@@ -1250,6 +1306,116 @@
           <div class="panel-head"><h3>Active coupons</h3><button class="btn" data-goto="coupons">Manage</button></div>
           <div id="couponList"><div class="kpi-mini"><span>Loading…</span><strong>—</strong></div></div>
         </div>
+      </div>
+    </section>
+
+    <!-- PRODUCT IMPORT — supplier CSV/JSON files Hairshalo is authorised to use.
+         Everything imported arrives as Draft; publishing stays a manual step. -->
+    <section class="view" id="view-import">
+      <div class="topbar">
+        <div><h1>Product Import</h1><p>Bring in a supplier's catalogue file. Products arrive as Draft for you to review, price, photograph and publish.</p></div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>1. Supplier and file</h3>
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            <button class="btn" id="impEditSupplier" type="button" hidden>Edit supplier</button>
+            <button class="btn" id="impNewSupplier" type="button">New supplier</button>
+          </div>
+        </div>
+        <div class="ph-row">
+          <div class="ph-field"><label for="impSupplier">Supplier</label><select id="impSupplier"></select></div>
+          <div class="ph-field"><label for="impFile">Catalogue file (CSV or JSON, up to 5 MB)</label>
+            <input id="impFile" type="file" accept=".csv,.json,.txt,.tsv,text/csv,application/json"></div>
+        </div>
+        <p class="imp-note" id="impSupplierInfo"></p>
+        <p class="imp-note">Only upload files Hairshalo is authorised to use — a supplier's own export or
+          a catalogue they have given you permission to sell from. Nothing is imported until you review it.</p>
+        <button class="btn btn-primary" id="impUpload" type="button">Upload and read file</button>
+        <div class="ph-error" id="impError"></div>
+      </div>
+
+      <div id="impWork" hidden>
+        <div class="panel">
+          <div class="panel-head"><h3>2. Match the supplier's columns</h3><span class="pf-hint" id="impFileInfo" style="margin:0;"></span></div>
+          <p class="imp-note">Each Hairshalo field takes one column from the file. Suggestions are filled in;
+            anything you change is remembered for this supplier's next file.</p>
+          <div class="imp-map" id="impMapping"></div>
+        </div>
+
+        <div class="panel">
+          <div class="panel-head"><h3>3. Pricing</h3><span class="pf-hint" id="impPriceExample" style="margin:0;"></span></div>
+          <div class="pf-row-3">
+            <div class="ph-field"><label for="impRate" id="impRateLabel">Exchange rate</label><input id="impRate" type="number" min="0" step="0.0001"></div>
+            <div class="ph-field"><label for="impMarkup">Markup %</label><input id="impMarkup" type="number" min="0" max="1000" step="0.1" value="0"></div>
+            <div class="ph-field"><label for="impFixed">Fixed markup (₹)</label><input id="impFixed" type="number" min="0" step="1" value="0"></div>
+          </div>
+          <div class="ph-row">
+            <div class="ph-field"><label for="impRounding">Rounding</label>
+              <select id="impRounding">
+                <option value="nearest_1">Nearest ₹1</option><option value="nearest_10">Nearest ₹10</option>
+                <option value="nearest_100">Nearest ₹100</option><option value="end_99">Up to …99 (e.g. ₹4,899)</option>
+                <option value="none">No rounding</option></select></div>
+            <div class="ph-field"><label for="impImages">Image files named in the file (optional)</label>
+              <input id="impImages" type="file" multiple accept="image/jpeg,image/png,image/webp"></div>
+          </div>
+          <p class="imp-note">Supplier price → × exchange rate → + markup % → + fixed markup → rounding = Hairshalo price in ₹.
+            You can override any product's price below. Supplier prices are stored separately and never become a selling price on their own.</p>
+          <p class="imp-note" id="impImageList"></p>
+          <button class="btn btn-primary" id="impPreview" type="button">Preview products</button>
+        </div>
+
+        <div id="impPreviewWrap" hidden>
+          <div class="panel">
+            <div class="panel-head"><h3>4. Categories</h3></div>
+            <p class="imp-note">Supplier categories are matched to Hairshalo categories by name where one exists.
+              Choose one for anything unmapped, or create it. Nothing is created without you.</p>
+            <div style="overflow-x:auto;"><table>
+              <thead><tr><th>Supplier category</th><th>Products</th><th>Hairshalo category</th><th></th></tr></thead>
+              <tbody id="impCats"></tbody>
+            </table></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-head"><h3>5. Review and choose</h3><span class="pf-hint" id="impSummary" style="margin:0;"></span></div>
+            <div class="imp-actions">
+              <button class="btn" type="button" id="impSelectValid">Select all valid</button>
+              <button class="btn" type="button" id="impDeselect">Deselect all</button>
+              <button class="btn" type="button" id="impSkipDupes">Skip duplicates</button>
+              <button class="btn" type="button" id="impErrorsCsv">Download error report</button>
+            </div>
+            <div style="overflow-x:auto;"><table>
+              <thead><tr><th></th><th>Product</th><th>Category</th><th>Variants</th><th>Supplier price</th><th>Hairshalo price (₹)</th><th>Availability</th><th>Images</th><th>Status</th></tr></thead>
+              <tbody id="impRows"></tbody>
+            </table></div>
+            <label class="imp-check"><input type="checkbox" id="impImagesAuth">
+              <span>I confirm Hairshalo has the right to use the images linked in this file. Without this, image links are
+                not downloaded — products import without them and you add your own photos. Files you uploaded above are always used.</span></label>
+            <label class="imp-check"><input type="checkbox" id="impStockFromSupplier">
+              <span>Use the supplier's quantity as opening stock for <em>new</em> variants. Otherwise stock starts at 0 and you set it.</span></label>
+            <label class="imp-check"><input type="checkbox" id="impUpdatePrices">
+              <span>For products being <em>updated</em>, recalculate the selling price from the new supplier price. Otherwise existing prices are kept.</span></label>
+            <button class="btn btn-primary" id="impCommit" type="button">Import selected as Draft</button>
+            <div class="ph-error" id="impCommitError"></div>
+          </div>
+        </div>
+
+        <div class="panel" id="impResultWrap" hidden>
+          <div class="panel-head"><h3>Import result</h3><span class="pf-hint" id="impResultSummary" style="margin:0;"></span></div>
+          <p class="imp-note">Imported products are Drafts. Open each one to check its details, add photos, set stock, then publish it.</p>
+          <div style="overflow-x:auto;"><table>
+            <thead><tr><th>Product</th><th>Outcome</th><th>Details</th><th></th></tr></thead>
+            <tbody id="impResults"></tbody>
+          </table></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="panel-head"><h3>Import history</h3></div>
+        <div style="overflow-x:auto;"><table>
+          <thead><tr><th>When</th><th>Supplier</th><th>File</th><th>Rows</th><th>Valid</th><th>Imported</th><th>Updated</th><th>Skipped</th><th>Duplicates</th><th>Errors</th><th>Status</th></tr></thead>
+          <tbody id="impHistory"><tr><td colspan="11">Loading…</td></tr></tbody>
+        </table></div>
       </div>
     </section>
 
@@ -3273,6 +3439,13 @@
     el('pfHairType').value = product ? (product.hair_type || '') : '';
     el('pfTexture').value = product ? (product.texture || '') : '';
     el('pfConstruction').value = product ? (product.construction || '') : '';
+    el('pfProductType').value = product ? (product.product_type || '') : '';
+    el('pfWeight').value = product ? (product.weight || '') : '';
+    el('pfHeat').value = product ? (product.heat_resistance || '') : '';
+    el('pfFeatures').value = product ? (product.features || '') : '';
+    el('pfBenefits').value = product ? (product.benefits || '') : '';
+    el('pfCare').value = product ? (product.care_instructions || '') : '';
+    pfShowSource(product ? product.id : null);
     el('pfOriginal').value = product ? (product.original_price != null ? product.original_price : '') : '';
     el('pfDiscType').value = product ? (product.discount_type || 'none') : 'none';
     el('pfDiscValue').value = product ? (product.discount_value || 0) : 0;
@@ -3299,6 +3472,25 @@
 
   el('pfCancel').addEventListener('click', () => el('pfModal').classList.remove('open'));
 
+  /* Supplier facts for an imported product — staff-only, read-only. The
+     supplier price here is a cost, never the selling price above. */
+  async function pfShowSource(productId){
+    const box = el('pfSource');
+    box.hidden = true; box.innerHTML = '';
+    if(!productId) return;
+    let links = [];
+    try{ links = await apiGet('/supplier-import/products/' + productId + '/source'); }catch(_){ return; }
+    if(!links.length || pfEditingId !== productId) return;
+    box.innerHTML = links.map(l => `
+      <div class="pf-calc-row"><span>Supplier (internal)</span><strong>${escAttr(l.supplier || '—')}</strong></div>
+      <div class="pf-calc-row"><span>Supplier product / SKU</span><strong>${escAttr(l.source_product_id)}${l.source_sku ? ' · ' + escAttr(l.source_sku) : ''}</strong></div>
+      <div class="pf-calc-row"><span>Supplier price</span><strong>${l.source_price ? escAttr(l.source_price + ' ' + (l.source_currency || '')) : '—'}</strong></div>
+      <div class="pf-calc-row"><span>Supplier availability</span><strong>${escAttr(l.source_availability || '—')}</strong></div>
+      <div class="pf-calc-note">From ${escAttr(l.source_file || 'an import')}, last synced ${l.last_synced_at ? apiDate(l.last_synced_at).toLocaleDateString('en-IN') : '—'}.
+        ${l.source_url && /^https?:\/\//i.test(l.source_url) ? `<a href="${escAttr(l.source_url)}" target="_blank" rel="noopener noreferrer">Supplier page</a>` : ''}</div>`).join('');
+    box.hidden = false;
+  }
+
   function pfCollectPayload(){
     return {
       name: el('pfName').value.trim(),
@@ -3306,9 +3498,15 @@
       brand: el('pfBrand').value.trim() || null,
       short_description: el('pfShort').value.trim(),
       description: el('pfDesc').value.trim(),
-      hair_type: el('pfHairType').value || null,
-      texture: el('pfTexture').value || null,
-      construction: el('pfConstruction').value || null,
+      hair_type: el('pfHairType').value.trim() || null,
+      texture: el('pfTexture').value.trim() || null,
+      construction: el('pfConstruction').value.trim() || null,
+      product_type: el('pfProductType').value.trim() || null,
+      weight: el('pfWeight').value.trim() || null,
+      heat_resistance: el('pfHeat').value.trim() || null,
+      features: el('pfFeatures').value.trim() || null,
+      benefits: el('pfBenefits').value.trim() || null,
+      care_instructions: el('pfCare').value.trim() || null,
       // Only original + discount are sent. The selling price is never client-supplied.
       original_price: el('pfOriginal').value === '' ? null : parseFloat(el('pfOriginal').value),
       discount_type: el('pfDiscType').value,
@@ -4208,6 +4406,404 @@
       }
     }catch(err){ /* not signed in — the panels keep their placeholder text */ }
   }
+
+  /* ---- Product Import ------------------------------------------------------
+     The server does all parsing, pricing, validation and duplicate detection;
+     this screen only collects the admin's choices and shows the answers. */
+  let impFields = [], impSuppliers = [], impBatch = null;
+  let impSel = {};                 // product key -> {checked, action, price_override}
+  let impCatMap = {};              // supplier category -> Hairshalo category id
+  let impSupplierEditing = null;
+  let impFormFor = null;           // batch id the mapping/pricing inputs were filled for
+
+  const impSupplier = () => impSuppliers.find(s => s.id === el('impSupplier').value) || null;
+  function impFail(id, msg){ const box = el(id); box.textContent = msg; box.style.display = msg ? 'block' : 'none'; }
+  function impWhen(iso){ return iso ? apiDate(iso).toLocaleString('en-IN', {day:'numeric', month:'short', year:'numeric', hour:'numeric', minute:'2-digit'}) : '—'; }
+  function impDetailText(d){
+    if(!d) return 'Request failed';
+    if(typeof d === 'string') return d;
+    if(Array.isArray(d)) return d.map(x => x.msg || String(x)).join('; ');
+    return [d.message, ...(d.rejected || [])].filter(Boolean).join(' — ');
+  }
+  async function impRequest(method, path, body, isForm){
+    const res = await fetch(API_BASE + path, {
+      method, body: isForm ? body : (body === undefined ? undefined : JSON.stringify(body)),
+      headers: Object.assign({'Authorization': 'Bearer ' + authToken}, isForm ? {} : {'Content-Type': 'application/json'})
+    });
+    let data = null;
+    try{ data = await res.json(); }catch(_){}
+    if(!res.ok) { const err = new Error(impDetailText(data && data.detail)); err.data = data; throw err; }
+    return data;
+  }
+
+  async function loadImportView(){
+    try{
+      if(!impFields.length) impFields = (await apiGet('/supplier-import/fields')).filter(f => f.level !== 'meta');
+      impSuppliers = await apiGet('/supplier-import/suppliers');
+      if(categoriesCache.length === 0) await loadCategories();
+    }catch(err){ impFail('impError', err.message); return; }
+    renderImpSuppliers();
+    loadImportHistory();
+  }
+
+  function renderImpSuppliers(selected){
+    const sel = el('impSupplier');
+    const keep = selected || sel.value;
+    sel.innerHTML = impSuppliers.length
+      ? impSuppliers.map(s => `<option value="${escAttr(s.id)}">${escAttr(s.name)} · ${escAttr(s.currency)}</option>`).join('')
+      : '<option value="">— add a supplier first —</option>';
+    if(keep && impSuppliers.some(s => s.id === keep)) sel.value = keep;
+    renderImpSupplierInfo();
+  }
+  function renderImpSupplierInfo(){
+    const s = impSupplier();
+    el('impEditSupplier').hidden = !s;
+    el('impSupplierInfo').textContent = s
+      ? `Prices in ${s.currency}. ${s.product_count} product${s.product_count === 1 ? '' : 's'} imported so far. Image hosts: ${
+          (s.allowed_image_hosts || []).join(', ') || 'none — image links will not be downloaded'}.`
+      : '';
+  }
+  el('impSupplier').addEventListener('change', renderImpSupplierInfo);
+
+  function openSupplierModal(s){
+    impSupplierEditing = s || null;
+    el('supTitle').textContent = s ? 'Edit supplier' : 'New supplier';
+    el('supName').value = s ? s.name : '';
+    el('supRef').value = s ? (s.reference || '') : '';
+    el('supCurrency').value = s ? s.currency : 'INR';
+    el('supHosts').value = s ? (s.allowed_image_hosts || []).join('\n') : '';
+    el('supNotes').value = s ? (s.notes || '') : '';
+    impFail('supError', '');
+    el('supplierModal').classList.add('open');
+  }
+  el('impNewSupplier').addEventListener('click', () => openSupplierModal(null));
+  el('impEditSupplier').addEventListener('click', () => openSupplierModal(impSupplier()));
+  el('supCancel').addEventListener('click', () => el('supplierModal').classList.remove('open'));
+  el('supSave').addEventListener('click', async () => {
+    const body = {
+      name: el('supName').value.trim(), reference: el('supRef').value.trim() || null,
+      currency: el('supCurrency').value.trim().toUpperCase(),
+      allowed_image_hosts: el('supHosts').value.split(/\s*\n\s*/).map(x => x.trim()).filter(Boolean),
+      notes: el('supNotes').value.trim() || null
+    };
+    try{
+      const saved = impSupplierEditing
+        ? await impRequest('PUT', '/supplier-import/suppliers/' + impSupplierEditing.id, body)
+        : await impRequest('POST', '/supplier-import/suppliers', body);
+      impSuppliers = await apiGet('/supplier-import/suppliers');
+      renderImpSuppliers(saved.id);
+      el('supplierModal').classList.remove('open');
+    }catch(err){ impFail('supError', err.message); }
+  });
+
+  el('impUpload').addEventListener('click', async () => {
+    impFail('impError', '');
+    const s = impSupplier(), file = el('impFile').files[0];
+    if(!s){ impFail('impError', 'Add or choose a supplier first.'); return; }
+    if(!file){ impFail('impError', 'Choose a CSV or JSON file.'); return; }
+    const fd = new FormData();
+    fd.append('supplier_id', s.id);
+    fd.append('file', file);
+    el('impUpload').disabled = true;
+    try{
+      impBatch = await impRequest('POST', '/supplier-import/imports', fd, true);
+      impSel = {}; impCatMap = Object.assign({}, s.category_mapping || {});
+      renderImpBatch();
+      loadImportHistory();
+    }catch(err){ impFail('impError', err.message); }
+    el('impUpload').disabled = false;
+  });
+
+  function renderImpBatch(){
+    const b = impBatch;
+    el('impWork').hidden = !b;
+    if(!b) return;
+    const s = impSuppliers.find(x => x.id === b.supplier_id) || {};
+    el('impFileInfo').textContent = `${b.file_name} · ${b.file_format.toUpperCase()} · ${b.total_rows} row${b.total_rows === 1 ? '' : 's'} · ${b.columns.length} columns`;
+    // Inputs are filled once per import. Re-rendering after an image upload or
+    // a preview must not throw away mapping and pricing the admin just typed.
+    const fresh = impFormFor !== b.id;
+    impFormFor = b.id;
+    const mapping = fresh ? ((b.settings && b.settings.mapping) || b.suggested_mapping || {}) : impMappingNow();
+    const sample = b.sample_rows[0] || {};
+    const options = col => '<option value="">— not in file —</option>' +
+      b.columns.map(c => `<option value="${escAttr(c)}"${c === col ? ' selected' : ''}>${escAttr(c)}</option>`).join('');
+    const block = level => impFields.filter(f => f.level === level).map(f => `
+      <div class="ph-field"><label for="impMap_${f.key}">${escAttr(f.label)}${f.key === 'name' ? ' *' : ''}</label>
+        <select id="impMap_${f.key}" data-imp-field="${f.key}">${options(mapping[f.key])}</select>
+        <span class="imp-sample" data-imp-sample="${f.key}">${mapping[f.key] && sample[mapping[f.key]] != null
+          ? 'e.g. ' + escAttr(String(sample[mapping[f.key]]).slice(0, 80)) : ''}</span></div>`).join('');
+    el('impMapping').innerHTML = '<div class="imp-level">Product</div>' + block('product') +
+      '<div class="imp-level">Variant (one row per colour / length / size)</div>' + block('variant');
+
+    const pricing = (b.settings && b.settings.pricing) || s.pricing || {};
+    el('impRateLabel').textContent = `Exchange rate — ₹ per 1 ${s.currency || 'unit'}`;
+    if(fresh){
+      el('impRate').value = pricing.exchange_rate || s.suggested_exchange_rate || (s.currency === 'INR' ? 1 : '');
+      el('impMarkup').value = pricing.markup_percent || 0;
+      el('impFixed').value = pricing.markup_fixed || 0;
+      el('impRounding').value = pricing.rounding || 'nearest_1';
+    }
+    impPriceExample();
+    const imgs = b.image_files || [];
+    el('impImageList').textContent = imgs.length ? `Uploaded images: ${imgs.join(', ')}` : '';
+    const committed = b.status === 'committed';
+    ['impPreview', 'impImages'].forEach(id => el(id).disabled = committed);
+    renderImpPreview();
+    renderImpResults();
+  }
+
+  el('impMapping').addEventListener('change', e => {
+    const f = e.target.dataset.impField;
+    if(!f || !impBatch) return;
+    const sample = impBatch.sample_rows[0] || {};
+    const v = sample[e.target.value];
+    document.querySelector(`[data-imp-sample="${f}"]`).textContent = e.target.value && v != null ? 'e.g. ' + String(v).slice(0, 80) : '';
+  });
+
+  function impPriceExample(){
+    const s = impSuppliers.find(x => impBatch && x.id === impBatch.supplier_id) || {};
+    const rate = parseFloat(el('impRate').value), pct = parseFloat(el('impMarkup').value || 0), fixed = parseFloat(el('impFixed').value || 0);
+    if(!(rate > 0)){ el('impPriceExample').textContent = 'Enter an exchange rate.'; return; }
+    el('impPriceExample').textContent = `Example: 100 ${s.currency || ''} → about ₹${Math.round(100 * rate * (1 + pct / 100) + fixed).toLocaleString('en-IN')} before rounding (the server calculates the real figure).`;
+  }
+  ['impRate', 'impMarkup', 'impFixed'].forEach(id => el(id).addEventListener('input', impPriceExample));
+
+  el('impImages').addEventListener('change', async () => {
+    const files = [...el('impImages').files];
+    if(!files.length || !impBatch) return;
+    const fd = new FormData();
+    files.forEach(f => fd.append('files', f));
+    try{
+      impBatch = await impRequest('POST', `/supplier-import/imports/${impBatch.id}/images`, fd, true);
+    }catch(err){
+      alert(err.message);
+      try{ impBatch = await apiGet('/supplier-import/imports/' + impBatch.id); }catch(_){}
+    }
+    el('impImages').value = '';
+    renderImpBatch();
+  });
+
+  function impMappingNow(){
+    const m = {};
+    document.querySelectorAll('[data-imp-field]').forEach(sel => { if(sel.value) m[sel.dataset.impField] = sel.value; });
+    return m;
+  }
+
+  async function runImpPreview(){
+    if(!impBatch) return;
+    impFail('impCommitError', '');
+    el('impPreview').disabled = true;
+    try{
+      impBatch = await impRequest('POST', `/supplier-import/imports/${impBatch.id}/preview`, {
+        mapping: impMappingNow(), category_mapping: impCatMap,
+        pricing: { exchange_rate: el('impRate').value || null, markup_percent: el('impMarkup').value || 0,
+                   markup_fixed: el('impFixed').value || 0, rounding: el('impRounding').value }
+      });
+      // Keep what the admin already ticked; default the rest from the server.
+      const fresh = {};
+      (impBatch.preview.products || []).forEach(p => {
+        const was = impSel[p.key];
+        fresh[p.key] = was && p.valid ? was : {
+          checked: p.valid && p.action !== 'skip',
+          action: p.duplicate.status === 'existing' ? 'update' : 'import', price_override: ''
+        };
+        if(!p.valid) fresh[p.key].checked = false;
+      });
+      impSel = fresh;
+      impSuppliers = await apiGet('/supplier-import/suppliers');
+      renderImpBatch();
+      el('impPreviewWrap').scrollIntoView({behavior:'smooth', block:'start'});
+    }catch(err){ alert(err.message); }
+    el('impPreview').disabled = false;
+  }
+  el('impPreview').addEventListener('click', runImpPreview);
+
+  function impCatName(id){
+    const c = categoriesCache.find(x => x.id === id);
+    return c ? categoryPath(c) : '';
+  }
+
+  function renderImpPreview(){
+    const pv = impBatch && impBatch.preview;
+    el('impPreviewWrap').hidden = !pv || !pv.products || impBatch.status === 'committed';
+    if(!pv || !pv.products) return;
+    const catOptions = sel => '<option value="">— unmapped —</option>' + categoriesCache.map(c =>
+      `<option value="${escAttr(c.id)}"${c.id === sel ? ' selected' : ''}>${escAttr(categoryPath(c))}</option>`).join('');
+    el('impCats').innerHTML = (pv.categories || []).length ? pv.categories.map(c => `
+      <tr><td>${escAttr(c.supplier_category)}</td><td>${c.products}</td>
+        <td><select data-imp-cat="${escAttr(c.supplier_category)}">${catOptions(c.category_id)}</select>
+          ${statusBadge(c.status === 'unmapped' ? 'Pending' : 'Active').replace(/>(Pending|Active)</, '>' + (c.status === 'auto' ? 'Matched by name' : c.status === 'mapped' ? 'Mapped' : 'Unmapped') + '<')}</td>
+        <td>${c.category_id ? '' : `<button class="btn" type="button" data-imp-newcat="${escAttr(c.supplier_category)}">Create category</button>`}</td></tr>`).join('')
+      : '<tr><td colspan="4" class="empty-note">No category column mapped — choose each product\'s category in the product editor after importing.</td></tr>';
+
+    const sm = pv.summary || {};
+    el('impSummary').textContent = `${sm.products} products · ${sm.valid} valid · ${sm.invalid} with errors · ${sm.duplicates} possible duplicates`;
+    el('impRows').innerHTML = pv.products.map(p => {
+      const sel = impSel[p.key] || {};
+      const dup = p.duplicate || {};
+      const dupCell = dup.status === 'existing'
+        ? `<span class="badge warn">Already in Hairshalo</span><div class="imp-note">${escAttr(dup.reason)} — “${escAttr(dup.product.name)}” (${escAttr(dup.product.status)})</div>
+           <select data-imp-action="${escAttr(p.key)}"><option value="update"${sel.action === 'update' ? ' selected' : ''}>Update it</option>
+             <option value="new"${sel.action === 'new' ? ' selected' : ''}>Import as a new product</option></select>
+           <details class="imp-diff"><summary>What would change</summary>
+             <div>Price: ${dup.price_now ? '₹' + escAttr(dup.price_now) : '—'} now → ${dup.price_new ? '₹' + escAttr(dup.price_new) + ' calculated (kept unless you tick “recalculate”)' : '—'}</div>
+             <div>Variants now: ${escAttr((dup.product.variants || []).map(v => v.label || v.sku).join(', ') || 'none')}</div>
+             <div>New variants: ${escAttr((dup.new_variants || []).join(', ') || 'none')}</div>
+             ${(dup.changes || []).map(c => `<div><strong>${escAttr(c.field)}</strong>: “${escAttr(c.current || '—')}” → “${escAttr(c.new)}”</div>`).join('') || '<div>No text changes.</div>'}
+           </details>`
+        : dup.status === 'in_file' ? `<span class="badge warn">Repeated in file</span><div class="imp-note">${escAttr(dup.reason)}</div>`
+        : '<span class="badge ok">New</span>';
+      const imgBad = (p.images || []).concat(...(p.variants || []).map(v => v.images || [])).filter(i => i.status !== 'url' && i.status !== 'uploaded');
+      const issues = (p.errors || []).map(e => `<li class="err">${escAttr(e)}</li>`).join('') +
+        (p.warnings || []).map(w => `<li class="warn">${escAttr(w)}</li>`).join('') +
+        imgBad.map(i => `<li class="warn">Image ${escAttr(i.ref.slice(0, 60))}: ${escAttr(i.status)}</li>`).join('');
+      return `<tr class="${p.valid ? '' : 'imp-invalid'}">
+        <td><input type="checkbox" data-imp-check="${escAttr(p.key)}"${sel.checked ? ' checked' : ''}${p.valid ? '' : ' disabled'}></td>
+        <td><strong>${escAttr(p.name || '(no name)')}</strong>
+          <div class="imp-note">${escAttr([p.brand, p.source_product_id].filter(Boolean).join(' · '))} · line ${escAttr(p.lines.join(', '))}</div>
+          ${issues ? `<ul class="imp-issues">${issues}</ul>` : ''}</td>
+        <td>${escAttr(impCatName(p.category_id) || (p.supplier_category ? 'Unmapped: ' + p.supplier_category : '—'))}</td>
+        <td title="${escAttr(p.variants.map(v => [v.color, v.length, v.density, v.cap_size].filter(Boolean).join(' / ') || v.sku).join('\n'))}">${p.variants.length}</td>
+        <td>${p.source_price ? escAttr(p.source_price + ' ' + p.source_currency) : '—'}</td>
+        <td>${p.calculated_price ? '₹' + Number(p.calculated_price).toLocaleString('en-IN') : '—'}<br>
+          <input class="imp-price" type="number" min="1" step="1" placeholder="Override" data-imp-price="${escAttr(p.key)}" value="${escAttr(sel.price_override || '')}"></td>
+        <td>${escAttr(p.availability || '—')}</td>
+        <td>${p.image_count}</td>
+        <td>${dupCell}</td></tr>`;
+    }).join('');
+  }
+
+  el('impCats').addEventListener('change', e => {
+    const key = e.target.dataset.impCat;
+    if(key === undefined) return;
+    impCatMap[key] = e.target.value || null;
+    runImpPreview();
+  });
+  el('impCats').addEventListener('click', async e => {
+    const key = e.target.dataset.impNewcat;
+    if(!key) return;
+    const parts = key.split('>').map(x => x.trim()).filter(Boolean);
+    const name = prompt('Name for the new Hairshalo category:', parts[parts.length - 1]);
+    if(!name) return;
+    // "Wigs > Lace Front Wigs" becomes a subcategory when "Wigs" is a top-level category.
+    const parent = parts.length > 1 ? categoriesCache.find(c => !c.parent_id && c.name.toLowerCase() === parts[0].toLowerCase()) : null;
+    try{
+      const created = await impRequest('POST', '/categories', {name: name.trim(), parent_id: parent ? parent.id : null});
+      await loadCategories();
+      impCatMap[key] = created.id;
+      runImpPreview();
+    }catch(err){ alert(err.message); }
+  });
+  el('impRows').addEventListener('change', e => {
+    const t = e.target;
+    const key = t.dataset.impCheck || t.dataset.impAction || t.dataset.impPrice;
+    if(!key) return;
+    const sel = impSel[key] = impSel[key] || {checked:false, action:'import', price_override:''};
+    if(t.dataset.impCheck) sel.checked = t.checked;
+    if(t.dataset.impAction) sel.action = t.value;
+    if(t.dataset.impPrice) sel.price_override = t.value;
+  });
+  function impSetAll(pred){
+    (impBatch.preview.products || []).forEach(p => { if(impSel[p.key] && p.valid) impSel[p.key].checked = pred(p); });
+    renderImpPreview();
+  }
+  el('impSelectValid').addEventListener('click', () => impSetAll(() => true));
+  el('impDeselect').addEventListener('click', () => impSetAll(() => false));
+  el('impSkipDupes').addEventListener('click', () => impSetAll(p => p.duplicate.status === 'new' && impSel[p.key].checked));
+  el('impErrorsCsv').addEventListener('click', async () => {
+    if(!impBatch) return;
+    try{
+      const res = await fetch(`${API_BASE}/supplier-import/imports/${impBatch.id}/errors.csv`, {headers:{'Authorization':'Bearer ' + authToken}});
+      if(!res.ok) throw new Error('Could not build the report');
+      const url = URL.createObjectURL(await res.blob());
+      const a = document.createElement('a');
+      a.href = url; a.download = impBatch.file_name.replace(/\.[^.]+$/, '') + '-errors.csv';
+      document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+    }catch(err){ alert(err.message); }
+  });
+
+  el('impCommit').addEventListener('click', async () => {
+    const products = impBatch.preview.products || [];
+    const chosen = products.filter(p => impSel[p.key] && impSel[p.key].checked && p.valid);
+    if(!chosen.length){ impFail('impCommitError', 'Select at least one valid product.'); return; }
+    const updates = chosen.filter(p => p.duplicate.status === 'existing' && impSel[p.key].action === 'update').length;
+    if(!confirm(`Import ${chosen.length} product${chosen.length === 1 ? '' : 's'} as Draft` +
+                (updates ? ` (${updates} updating existing products)` : '') + '? Nothing is published.')) return;
+    const selections = products.map(p => {
+      const s = impSel[p.key] || {};
+      const picked = s.checked && p.valid;
+      return {key: p.key, action: !picked ? 'skip' : (p.duplicate.status === 'existing' ? s.action : 'import'),
+              price_override: s.price_override ? s.price_override : null};
+    });
+    el('impCommit').disabled = true;
+    impFail('impCommitError', '');
+    try{
+      impBatch = await impRequest('POST', `/supplier-import/imports/${impBatch.id}/commit`, {
+        selections, images_authorized: el('impImagesAuth').checked,
+        stock_from_supplier: el('impStockFromSupplier').checked, update_prices: el('impUpdatePrices').checked
+      });
+      renderImpBatch();
+      loadImportHistory();
+      loadLiveDashboard();
+      el('impResultWrap').scrollIntoView({behavior:'smooth', block:'start'});
+    }catch(err){ impFail('impCommitError', err.message); }
+    el('impCommit').disabled = false;
+  });
+
+  function renderImpResults(){
+    const b = impBatch;
+    const show = b && b.status === 'committed';
+    el('impResultWrap').hidden = !show;
+    if(!show) return;
+    el('impResultSummary').textContent = `${b.imported} imported · ${b.updated} updated · ${b.skipped} skipped · ${b.errors} errors · ${b.failed_images} images not added`;
+    el('impResults').innerHTML = (b.results || []).filter(r => r.outcome !== 'skipped').map(r => {
+      const bits = [];
+      if(r.variants_created) bits.push(`${r.variants_created.length} variant(s)`);
+      if(r.price) bits.push(`price ₹${Number(r.price).toLocaleString('en-IN')}${r.price_source === 'override' ? ' (your override)' : ''}`);
+      if(r.fields_changed && r.fields_changed.length) bits.push('changed: ' + r.fields_changed.join(', '));
+      if(r.variants_added && r.variants_added.length) bits.push(`added ${r.variants_added.length} variant(s)`);
+      if(r.price_change) bits.push(`price ₹${r.price_change.from || '—'} → ₹${r.price_change.to}`);
+      else if(r.price_kept) bits.push('price kept');
+      if(r.images) bits.push(`${r.images.attached} image(s) added` + (r.images.failed.length ? `, ${r.images.failed.length} not: ` + r.images.failed.map(f => f.reason).join('; ') : ''));
+      if(r.message) bits.push(r.message);
+      const badge = r.outcome === 'created' ? '<span class="badge ok">Created as Draft</span>'
+        : r.outcome === 'updated' ? '<span class="badge ok">Updated</span>' : '<span class="badge danger">Error</span>';
+      return `<tr><td><strong>${escAttr(r.name || '')}</strong></td><td>${badge}</td><td class="imp-note">${escAttr(bits.join(' · '))}</td>
+        <td>${r.product_id ? `<button class="btn" type="button" data-prod-edit="${escAttr(r.product_id)}">Open</button>` : ''}</td></tr>`;
+    }).join('') || '<tr><td colspan="4" class="empty-note">Nothing was selected, so nothing changed.</td></tr>';
+  }
+
+  async function loadImportHistory(){
+    let rows = [];
+    try{ rows = await apiGet('/supplier-import/imports'); }catch(err){ el('impHistory').innerHTML = `<tr><td colspan="11">${escAttr(err.message)}</td></tr>`; return; }
+    const label = {uploaded:'Uploaded', previewed:'Previewed', committed:'Imported', failed:'Failed'};
+    el('impHistory').innerHTML = rows.length ? rows.map(r => `
+      <tr data-imp-open="${escAttr(r.id)}" style="cursor:pointer;" title="Open this import">
+        <td>${impWhen(r.committed_at || r.created_at)}</td><td>${escAttr(r.supplier_name || '')}</td><td>${escAttr(r.file_name)}</td>
+        <td>${r.total_rows}</td><td>${r.valid_rows}</td><td>${r.imported}</td><td>${r.updated}</td><td>${r.skipped}</td>
+        <td>${r.duplicates}</td><td>${r.errors}</td>
+        <td>${statusBadge(r.status === 'committed' ? 'Delivered' : r.status === 'failed' ? 'Cancelled' : 'Pending').replace(/>(Delivered|Cancelled|Pending)</, '>' + (label[r.status] || r.status) + '<')}</td></tr>`).join('')
+      : '<tr><td colspan="11" class="empty-note">No imports yet.</td></tr>';
+  }
+  el('impHistory').addEventListener('click', async e => {
+    const row = e.target.closest('[data-imp-open]');
+    if(!row) return;
+    try{
+      impBatch = await apiGet('/supplier-import/imports/' + row.dataset.impOpen);
+      renderImpSuppliers(impBatch.supplier_id);
+      impCatMap = Object.assign({}, (impBatch.settings || {}).category_mapping || {});
+      impSel = {};
+      (impBatch.preview && impBatch.preview.products || []).forEach(p => {
+        impSel[p.key] = {checked: p.valid && p.action !== 'skip',
+                         action: p.duplicate.status === 'existing' ? 'update' : 'import', price_override: ''};
+      });
+      renderImpBatch();
+      el('impWork').scrollIntoView({behavior:'smooth', block:'start'});
+    }catch(err){ alert(err.message); }
+  });
+  document.querySelectorAll('[data-view="import"]').forEach(b => b.addEventListener('click', loadImportView));
 
   /* ---- Product photo picker ----------------------------------------------
      Lists every image on every product (drafts included — this is the admin

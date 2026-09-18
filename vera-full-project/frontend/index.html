@@ -553,6 +553,11 @@
   .pdp-chip.active{background:var(--ink);color:var(--cream);border-color:var(--ink);}
   .pdp-chip.disabled{opacity:.4;cursor:not-allowed;text-decoration:line-through;}
   .pdp-meta{font-size:12px;color:var(--text-soft);margin-top:14px;line-height:1.9;}
+  .pdp-details{margin-top:14px;border-top:1px solid var(--line);}
+  .pdp-details details{border-bottom:1px solid var(--line);padding:10px 0;}
+  .pdp-details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--ink);}
+  .pdp-details ul{margin:8px 0 2px;padding-left:18px;font-size:13px;color:var(--text-soft);line-height:1.7;}
+  .pdp-details p{margin:8px 0 2px;font-size:13px;color:var(--text-soft);line-height:1.7;white-space:pre-line;}
   .pdp-stock{font-size:12px;font-weight:700;margin-top:12px;letter-spacing:.03em;}
   .pdp-stock.ok{color:#4C8C5C;} .pdp-stock.low{color:var(--gold);} .pdp-stock.out{color:var(--wine);}
   .pdp-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
@@ -2560,6 +2565,8 @@
       <div id="pdpOptions"></div>
       <div class="pdp-stock" id="pdpStock"></div>
       <div class="pdp-meta" id="pdpMeta"></div>
+      <!-- Features, benefits and care — filled from the product's own fields. -->
+      <div class="pdp-details" id="pdpDetails" hidden></div>
       <div class="pdp-actions">
         <button class="btn btn-primary" id="pdpAdd">Add to Bag</button>
       </div>
@@ -2882,7 +2889,10 @@
       pdpProduct.brand ? `<div><strong>Brand:</strong> ${esc(pdpProduct.brand)}</div>` : '',
       pdpProduct.hair_type ? `<div><strong>Hair type:</strong> ${esc(pdpProduct.hair_type)}</div>` : '',
       pdpProduct.texture ? `<div><strong>Texture:</strong> ${esc(pdpProduct.texture)}</div>` : '',
-      pdpProduct.construction ? `<div><strong>Construction:</strong> ${esc(pdpProduct.construction)}</div>` : ''
+      pdpProduct.construction ? `<div><strong>Construction:</strong> ${esc(pdpProduct.construction)}</div>` : '',
+      pdpProduct.product_type ? `<div><strong>Type:</strong> ${esc(pdpProduct.product_type)}</div>` : '',
+      pdpProduct.weight ? `<div><strong>Weight:</strong> ${esc(pdpProduct.weight)}</div>` : '',
+      pdpProduct.heat_resistance ? `<div><strong>Heat resistance:</strong> ${esc(pdpProduct.heat_resistance)}</div>` : ''
     ].filter(Boolean).join('');
   }
 
@@ -2946,6 +2956,15 @@
     pdpRenderGallery();
     pdpRenderOptions();
     pdpRenderPricing();
+    const lines = t => String(t || '').split('\n').map(x => x.trim()).filter(Boolean);
+    const list = t => `<ul>${lines(t).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
+    const sections = [
+      product.features ? `<details open><summary>Features</summary>${list(product.features)}</details>` : '',
+      product.benefits ? `<details><summary>Benefits</summary>${list(product.benefits)}</details>` : '',
+      product.care_instructions ? `<details><summary>Care</summary><p>${esc(product.care_instructions)}</p></details>` : ''
+    ].join('');
+    pdpEl('pdpDetails').innerHTML = sections;
+    pdpEl('pdpDetails').hidden = !sections;
 
     pdpEl('pdp').classList.add('active');
     pdpEl('pdpOverlay').classList.add('active');

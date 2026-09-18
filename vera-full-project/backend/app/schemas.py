@@ -1,6 +1,6 @@
 from datetime import datetime
 from decimal import Decimal
-from typing import List, Optional
+from typing import Dict, List, Optional
 from pydantic import BaseModel, EmailStr, ConfigDict, Field
 
 
@@ -204,6 +204,12 @@ class ProductBase(BaseModel):
     hair_type: Optional[str] = None
     texture: Optional[str] = None
     construction: Optional[str] = None
+    product_type: Optional[str] = None
+    weight: Optional[str] = None
+    heat_resistance: Optional[str] = None
+    features: Optional[str] = None           # one point per line
+    benefits: Optional[str] = None           # one point per line
+    care_instructions: Optional[str] = None
     badge: Optional[str] = None          # admin-chosen only, never derived
     featured: bool = False
     bestseller: bool = False
@@ -225,6 +231,12 @@ class ProductCreate(ProductBase):
 
 class ProductUpdate(BaseModel):
     name: Optional[str] = None
+    product_type: Optional[str] = None
+    weight: Optional[str] = None
+    heat_resistance: Optional[str] = None
+    features: Optional[str] = None
+    benefits: Optional[str] = None
+    care_instructions: Optional[str] = None
     category_id: Optional[str] = None
     short_description: Optional[str] = None
     description: Optional[str] = None
@@ -1226,3 +1238,101 @@ class NotificationMarkRead(BaseModel):
     # Restrict a bulk mark-read to one event type, so "clear new-order alerts"
     # does not also silence a failed-payment alert nobody has looked at.
     event_type: Optional[str] = None
+
+
+# ---------- Supplier import (generic, admin-only) ----------
+class SupplierIn(BaseModel):
+    name: str = Field(..., min_length=2, max_length=120)
+    code: Optional[str] = Field(None, max_length=12)
+    reference: Optional[str] = Field(None, max_length=120)
+    currency: str = Field("INR", min_length=3, max_length=3)
+    # Hosts image downloads may come from, e.g. ["cdn.supplier.example"].
+    allowed_image_hosts: List[str] = []
+    notes: Optional[str] = Field(None, max_length=2000)
+
+
+class SupplierUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=2, max_length=120)
+    reference: Optional[str] = Field(None, max_length=120)
+    currency: Optional[str] = Field(None, min_length=3, max_length=3)
+    allowed_image_hosts: Optional[List[str]] = None
+    notes: Optional[str] = Field(None, max_length=2000)
+
+
+class SupplierOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    name: str
+    code: str
+    reference: Optional[str] = None
+    currency: str
+    allowed_image_hosts: List[str] = []
+    field_mapping: dict = {}
+    category_mapping: dict = {}
+    pricing: dict = {}
+    notes: Optional[str] = None
+    created_at: Optional[datetime] = None
+    product_count: int = 0
+    suggested_exchange_rate: Optional[Decimal] = None
+
+
+class ImportPricingIn(BaseModel):
+    exchange_rate: Optional[Decimal] = Field(None, gt=0)
+    markup_percent: Decimal = Field(0, ge=0, le=1000)
+    markup_fixed: Decimal = Field(0, ge=0)
+    rounding: str = "nearest_1"
+
+
+class ImportPreviewRequest(BaseModel):
+    mapping: Dict[str, str]
+    category_mapping: Dict[str, Optional[str]] = {}
+    pricing: ImportPricingIn = ImportPricingIn()
+
+
+class ImportSelection(BaseModel):
+    key: str
+    action: str = "import"                 # import | update | new | skip
+    price_override: Optional[Decimal] = Field(None, gt=0)
+    category_id: Optional[str] = None
+
+
+class ImportCommitRequest(BaseModel):
+    selections: List[ImportSelection]
+    # The admin confirms Hairshalo may use the images in THIS file. Without it
+    # no URL is ever fetched (uploaded files are the admin's own act).
+    images_authorized: bool = False
+    # Opening stock for NEW variants from the supplier quantity column.
+    stock_from_supplier: bool = False
+    # Recalculate the selling price of products being UPDATED.
+    update_prices: bool = False
+
+
+class ImportSummaryOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    supplier_id: str
+    supplier_name: Optional[str] = None
+    file_name: str
+    file_format: str
+    status: str
+    total_rows: int
+    valid_rows: int
+    imported: int
+    updated: int
+    skipped: int
+    duplicates: int
+    errors: int
+    failed_images: int
+    created_by: Optional[str] = None
+    created_at: Optional[datetime] = None
+    committed_at: Optional[datetime] = None
+
+
+class ImportDetailOut(ImportSummaryOut):
+    columns: List[str] = []
+    sample_rows: List[dict] = []
+    suggested_mapping: Dict[str, str] = {}
+    settings: dict = {}
+    preview: dict = {}
+    results: List[dict] = []
+    image_files: List[str] = []

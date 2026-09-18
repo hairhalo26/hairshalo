@@ -282,6 +282,14 @@ class Product(Base):
     hair_type = Column(String, nullable=True)     # Human Hair | Synthetic | Blend
     texture = Column(String, nullable=True)       # Straight | Wavy | Curly | Body Wave ...
     construction = Column(String, nullable=True)  # Lace Front | Full Lace | Closure ...
+    # Descriptive fields supplier catalogues carry (migration 0014). Customer-
+    # facing, admin-editable; features/benefits are one point per line.
+    product_type = Column(String, nullable=True)      # Wig | Clip-in Extensions | Ponytail ...
+    weight = Column(String, nullable=True)            # "120g", kept as the supplier wrote it
+    heat_resistance = Column(String, nullable=True)   # "Up to 180°C"
+    features = Column(Text, nullable=True)
+    benefits = Column(Text, nullable=True)
+    care_instructions = Column(Text, nullable=True)
 
     # DERIVED, never set by hand: app/reviews.py:recalculate() is the only thing
     # that writes these, and only from published reviews. They are stored rather
@@ -1193,3 +1201,112 @@ class SiteContent(Base):
     updated_by = Column(String, nullable=True)      # admin email, for the audit line
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+
+# ---------------------------------------------------------------- suppliers
+# Generic, supplier-agnostic catalogue import (migration 0014). Nothing here is
+# customer-facing: supplier identifiers, prices and availability are internal,
+# and a supplier price is never the Hairshalo selling price.
+
+
+class Supplier(Base):
+    """An authorised supplier, and what its last import used."""
+    __tablename__ = "suppliers"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    name = Column(String, nullable=False, unique=True)
+    code = Column(String, nullable=False, unique=True)   # short, used in generated SKUs
+    reference = Column(String, nullable=True)            # account / agreement number
+    currency = Column(String, nullable=False, default="INR")
+    # Image downloads are only ever made from these hosts, and only when an
+    # admin confirms the rights for that import.
+    allowed_image_hosts = Column(JSON, nullable=True)
+    field_mapping = Column(JSON, nullable=True)          # remembered between imports
+    category_mapping = Column(JSON, nullable=True)
+    pricing = Column(JSON, nullable=True)
+    notes = Column(Text, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+
+    imports = relationship("SupplierImport", back_populates="supplier",
+                           cascade="all, delete-orphan")
+
+
+class SupplierImport(Base):
+    """One uploaded supplier file: the import log entry."""
+    __tablename__ = "supplier_imports"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    supplier_id = Column(String, ForeignKey("suppliers.id", ondelete="CASCADE"),
+                         nullable=False, index=True)
+    file_name = Column(String, nullable=False)
+    file_format = Column(String, nullable=False)       # csv | json
+    status = Column(String, nullable=False, default="uploaded")  # uploaded|previewed|committed|failed
+    columns = Column(JSON, nullable=True)
+    raw_rows = Column(JSON, nullable=True)
+    settings = Column(JSON, nullable=True)             # mapping, pricing, options used
+    preview = Column(JSON, nullable=True)
+    results = Column(JSON, nullable=True)
+    image_files = Column(JSON, nullable=True)          # {filename: storage_key}
+    total_rows = Column(Integer, default=0, nullable=False)
+    valid_rows = Column(Integer, default=0, nullable=False)
+    imported = Column(Integer, default=0, nullable=False)
+    updated = Column(Integer, default=0, nullable=False)
+    skipped = Column(Integer, default=0, nullable=False)
+    duplicates = Column(Integer, default=0, nullable=False)
+    errors = Column(Integer, default=0, nullable=False)
+    failed_images = Column(Integer, default=0, nullable=False)
+    created_by = Column(String, nullable=True)
+    created_at = Column(DateTime, default=datetime.utcnow)
+    committed_at = Column(DateTime, nullable=True)
+
+    supplier = relationship("Supplier", back_populates="imports")
+
+
+class SupplierProduct(Base):
+    """A supplier's item, linked to the Hairshalo product it became."""
+    __tablename__ = "supplier_products"
+    __table_args__ = (UniqueConstraint("supplier_id", "source_product_id",
+                                       name="uq_supplier_products_source"),)
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    supplier_id = Column(String, ForeignKey("suppliers.id", ondelete="CASCADE"), nullable=False)
+    product_id = Column(String, ForeignKey("products.id", ondelete="SET NULL"),
+                        nullable=True, index=True)
+    source_product_id = Column(String, nullable=False)
+    source_sku = Column(String, nullable=True)
+    source_url = Column(String, nullable=True)
+    source_name = Column(String, nullable=True)
+    source_price = Column(Money, nullable=True)
+    source_currency = Column(String, nullable=True)
+    source_availability = Column(String, nullable=True)
+    source_file = Column(String, nullable=True)
+    source_data = Column(JSON, nullable=True)
+    last_import_id = Column(String, nullable=True)
+    first_imported_at = Column(DateTime, default=datetime.utcnow)
+    last_synced_at = Column(DateTime, default=datetime.utcnow)
+
+    supplier = relationship("Supplier")
+    product = relationship("Product")
+    variants = relationship("SupplierVariant", back_populates="supplier_product",
+                            cascade="all, delete-orphan")
+
+
+class SupplierVariant(Base):
+    """A supplier's variant, linked to the Hairshalo variant it became."""
+    __tablename__ = "supplier_variants"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    supplier_product_id = Column(String, ForeignKey("supplier_products.id", ondelete="CASCADE"),
+                                 nullable=False, index=True)
+    variant_id = Column(String, ForeignKey("product_variants.id", ondelete="SET NULL"),
+                        nullable=True)
+    source_variant_id = Column(String, nullable=True)
+    source_sku = Column(String, nullable=True, index=True)
+    source_price = Column(Money, nullable=True)
+    source_availability = Column(String, nullable=True)
+    source_quantity = Column(Integer, nullable=True)
+    last_synced_at = Column(DateTime, default=datetime.utcnow)
+
+    supplier_product = relationship("SupplierProduct", back_populates="variants")
+    variant = relationship("ProductVariant")
