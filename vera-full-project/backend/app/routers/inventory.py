@@ -15,13 +15,13 @@ from app import models, schemas, inventory as inventory_service
 
 router = APIRouter(prefix="/api/inventory", tags=["inventory"])
 
-LOW_STOCK_THRESHOLD = 15
-
-
 def _row(variant: models.ProductVariant) -> schemas.InventoryRowOut:
     warehouse = variant.inventory[0].warehouse if variant.inventory else None
     stock = variant.stock or 0
-    level = "crit" if stock <= 5 else "low" if stock <= LOW_STOCK_THRESHOLD else "ok"
+    # One threshold per variant, the same number the low-stock email uses.
+    # This screen used to hardcode 15 while the alert used 5.
+    threshold = variant.effective_low_stock_threshold
+    level = "crit" if stock == 0 else "low" if stock <= threshold else "ok"
     return schemas.InventoryRowOut(
         variant_id=variant.id,
         product_id=variant.product_id,
@@ -33,7 +33,7 @@ def _row(variant: models.ProductVariant) -> schemas.InventoryRowOut:
         stock=stock,
         is_available=bool(variant.is_available),
         stock_level=level,
-        low_stock_threshold=LOW_STOCK_THRESHOLD,
+        low_stock_threshold=threshold,
     )
 
 
@@ -58,7 +58,7 @@ def list_inventory(
     if stock_status == "in_stock":
         rows = [r for r in rows if r.stock > 0]
     elif stock_status == "low_stock":
-        rows = [r for r in rows if 0 < r.stock <= LOW_STOCK_THRESHOLD]
+        rows = [r for r in rows if 0 < r.stock <= r.low_stock_threshold]
     elif stock_status == "out_of_stock":
         rows = [r for r in rows if r.stock == 0]
     rows.sort(key=lambda r: (r.stock, r.product_name))

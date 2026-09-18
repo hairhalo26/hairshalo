@@ -50,6 +50,10 @@
   function friendly(status, detail) {
     if (status >= 500 || status === 0) return SERVER_MESSAGE;
     if (typeof detail === 'string' && detail.trim()) return detail.trim();
+    // {message, fields}: the address validator's per-field answer.
+    if (detail && typeof detail === 'object' && typeof detail.message === 'string') {
+      return detail.message;
+    }
     if (Array.isArray(detail) && detail.length) {
       var first = detail[0];
       if (first && typeof first.msg === 'string') return first.msg;
@@ -79,6 +83,9 @@
         if (!res.ok) {
           var err = new Error(friendly(res.status, data && data.detail));
           err.status = res.status;
+          if (data && data.detail && typeof data.detail === 'object' && data.detail.fields) {
+            err.fields = data.detail.fields;
+          }
           // A token that is gone or expired should not leave the page half
           // signed-in; drop it so the next load starts clean.
           if (res.status === 401 && options.auth) setToken(null);

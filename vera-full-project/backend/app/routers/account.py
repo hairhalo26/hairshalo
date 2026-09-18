@@ -214,15 +214,31 @@ def update_me(payload: schemas.ProfileUpdate,
 # ---------------------------------------------------------------- orders
 
 
+def _visible_orders(db: Session, current: models.Customer):
+    """The orders this signed-in customer may see.
+
+    Verified: every order under their customer record. Not yet verified:
+    only the orders they placed WHILE SIGNED IN to this account. Guest orders
+    that merely carry the same email stay hidden until the mailbox is proved —
+    anyone can register with someone else's address, but only the account
+    holder can have placed an order from inside the account.
+    """
+    q = (db.query(models.Order)
+         .options(joinedload(models.Order.items), joinedload(models.Order.events),
+                  joinedload(models.Order.payments))
+         .filter(models.Order.customer_id == current.id))
+    if not current.email_verified:
+        q = q.filter(models.Order.placed_signed_in == True)  # noqa: E712
+    return q
+
+
 @router.get("/orders", response_model=List[schemas.OrderOut])
 def my_orders(limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0),
-              current: models.Customer = Depends(get_verified_customer),
+              current: models.Customer = Depends(get_current_customer),
               db: Session = Depends(get_db)):
     """This customer's orders. Scoped by the token, not by anything sent."""
     return (
-        db.query(models.Order)
-        .options(joinedload(models.Order.items))
-        .filter(models.Order.customer_id == current.id)
+        _visible_orders(db, current)
         .order_by(models.Order.created_at.desc())
         .offset(offset).limit(limit).all()
     )
@@ -230,20 +246,14 @@ def my_orders(limit: int = Query(50, ge=1, le=200), offset: int = Query(0, ge=0)
 
 @router.get("/orders/{order_id}", response_model=schemas.OrderOut)
 def my_order(order_id: str,
-             current: models.Customer = Depends(get_verified_customer),
+             current: models.Customer = Depends(get_current_customer),
              db: Session = Depends(get_db)):
     """One order — 404 when it is not this customer's.
 
     404, not 403: "you may not see this" confirms the order exists. The filter
     is part of the query, so someone else's id simply matches nothing.
     """
-    order = (
-        db.query(models.Order)
-        .options(joinedload(models.Order.items))
-        .filter(models.Order.id == order_id,
-                models.Order.customer_id == current.id)
-        .first()
-    )
+    order = _visible_orders(db, current).filter(models.Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
     return order

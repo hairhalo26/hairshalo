@@ -78,6 +78,15 @@
   }
   .od-addr dt{font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-soft);white-space:nowrap;}
   .od-addr dd{margin:0;color:var(--text);}
+  .od-timeline{list-style:none;margin:0;padding:0;font-size:13px;}
+  .od-timeline li{padding:6px 0 6px 16px;border-left:2px solid var(--line);position:relative;}
+  .od-timeline li::before{content:'';position:absolute;left:-5px;top:11px;width:8px;height:8px;border-radius:50%;background:var(--wine);}
+  .od-timeline small{color:var(--text-soft);display:block;font-size:11.5px;}
+  .od-pay{border:1px solid var(--line);border-radius:12px;padding:12px 14px;font-size:13px;line-height:1.7;}
+  .od-pay.pending{background:#FFF8EC;border-color:#EBD3A6;}
+  .od-pay.paid{background:#EEF7F1;border-color:#C5E2CF;}
+  .orders-search{display:flex;align-items:center;gap:8px;margin-bottom:12px;}
+  .orders-search input{flex:1;max-width:380px;padding:9px 12px;border:1px solid var(--line);border-radius:10px;font:inherit;font-size:13px;}
   .od-legacy{white-space:pre-wrap;font-size:13.5px;color:var(--text-soft);margin:0 0 6px;}
 
   /* ---- Content management ---- */
@@ -265,6 +274,9 @@
 
   @media (max-width:1080px){
     .app{grid-template-columns:1fr;}
+    /* A grid item's minimum width is its content by default, so the scrolling
+       nav bar widened the whole page instead of scrolling inside itself. */
+    .app > *{min-width:0;}
     .sidebar{position:relative;height:auto;flex-direction:row;align-items:center;overflow-x:auto;}
     .nav-group{display:flex;gap:4px;margin-bottom:0;}
     .nav-label{display:none;}
@@ -273,6 +285,12 @@
     .stat-grid{grid-template-columns:repeat(2,1fr);}
     .two-col{grid-template-columns:1fr;}
     .main{padding:20px 16px 50px;}
+    /* Wide tables scroll inside their panel instead of widening the page. */
+    .panel{overflow-x:auto;}
+    .two-col > *,.stat-grid > *{min-width:0;}
+    .topbar{flex-wrap:wrap;gap:10px;}
+    .topbar-actions{flex-wrap:wrap;min-width:0;max-width:100%;}
+    .topbar-actions .search-box{flex:1 1 180px;min-width:0;}
   }
 
   /* ---- Placeholder editor modal (reuses the existing card idiom) ---- */
@@ -509,17 +527,85 @@
       <div class="pf-calc" id="odTotals"></div>
     </div>
     <div class="pf-section">
+      <h4>Payment</h4>
+      <div id="odPayment"></div>
+    </div>
+    <div class="pf-section">
       <h4>Status</h4>
       <div class="ph-row">
         <div class="ph-field"><label for="odStatus">Move to</label><select id="odStatus"></select></div>
-        <div class="ph-field" style="display:flex;align-items:flex-end;">
-          <button class="btn btn-primary" id="odStatusSave" style="margin-bottom:0;">Update Status</button>
-        </div>
+        <div class="ph-field"><label for="odStatusNote">Note for the customer (optional)</label>
+          <input id="odStatusNote" type="text" maxlength="300" placeholder="e.g. Handed to Delhivery this morning"></div>
       </div>
+      <button class="btn btn-primary" id="odStatusSave">Update Status</button>
       <div class="pf-hint" id="odStatusHint"></div>
+    </div>
+    <div class="pf-section">
+      <h4>Shipping &amp; tracking <span class="pf-hint" style="display:inline;">shown to the customer</span></h4>
+      <div class="ph-row">
+        <div class="ph-field"><label for="odCarrier">Courier</label><input id="odCarrier" type="text" maxlength="120" placeholder="Delhivery, Blue Dart, India Post…"></div>
+        <div class="ph-field"><label for="odTracking">Tracking number</label><input id="odTracking" type="text" maxlength="120"></div>
+      </div>
+      <div class="ph-field"><label for="odTrackingUrl">Tracking link</label><input id="odTrackingUrl" type="url" maxlength="500" placeholder="https://"></div>
+    </div>
+    <div class="pf-section">
+      <h4>Internal notes <span class="pf-hint" style="display:inline;">staff only — never shown to the customer</span></h4>
+      <div class="ph-field"><textarea id="odNotes" rows="3" maxlength="5000"></textarea></div>
+      <button class="btn" id="odFulfilmentSave">Save tracking &amp; notes</button>
+      <span class="pf-hint" id="odFulfilmentMsg" style="display:inline;margin-left:8px;"></span>
+    </div>
+    <div class="pf-section">
+      <h4>Timeline</h4>
+      <ul class="od-timeline" id="odTimeline"></ul>
     </div>
     <div class="ph-error" id="odError"></div>
     <div class="ph-actions"><button class="btn" id="odClose">Close</button></div>
+  </div>
+</div>
+
+<!-- Add / Edit coupon -->
+<!-- Pick one of the shop's own product photographs -->
+<div class="ph-modal" id="photoPicker">
+  <div class="ph-modal-card" style="max-width:760px;">
+    <h3>Choose a product photo</h3>
+    <p class="ph-sub">Photos already uploaded to your products. Nothing is copied — the page uses the same file.</p>
+    <input type="search" id="photoPickerSearch" placeholder="Filter by product name" style="width:100%;padding:9px 12px;border:1px solid var(--line);border-radius:10px;margin-bottom:12px;font:inherit;">
+    <div id="photoPickerGrid" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px;max-height:56vh;overflow:auto;"></div>
+    <div class="ph-actions"><button class="btn" id="photoPickerClose">Cancel</button></div>
+  </div>
+</div>
+
+<div class="ph-modal" id="couponModal">
+  <div class="ph-modal-card">
+    <h3 id="cpTitle">New coupon</h3>
+    <p class="ph-sub">Leave a rule empty for "no limit". Checkout checks every rule again on the server.</p>
+    <div class="ph-row">
+      <div class="ph-field"><label for="cpCode">Code</label><input id="cpCode" type="text" maxlength="40" style="text-transform:uppercase;"></div>
+      <div class="ph-field"><label for="cpActive">Status</label><select id="cpActive"><option value="1">Active</option><option value="0">Inactive</option></select></div>
+    </div>
+    <div class="ph-field"><label for="cpDesc">Description (internal)</label><input id="cpDesc" type="text" maxlength="200"></div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="cpType">Discount type</label>
+        <select id="cpType"><option value="percent">Percentage off</option><option value="flat">Fixed amount off (₹)</option><option value="free_shipping">Free delivery</option></select></div>
+      <div class="ph-field"><label for="cpValue">Amount</label><input id="cpValue" type="number" min="0" step="0.01"></div>
+    </div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="cpMin">Minimum order (₹)</label><input id="cpMin" type="number" min="0" step="1"></div>
+      <div class="ph-field"><label for="cpMax">Maximum discount (₹) — % coupons</label><input id="cpMax" type="number" min="1" step="1"></div>
+    </div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="cpStart">Starts</label><input id="cpStart" type="datetime-local"></div>
+      <div class="ph-field"><label for="cpEnd">Expires</label><input id="cpEnd" type="datetime-local"></div>
+    </div>
+    <div class="ph-row">
+      <div class="ph-field"><label for="cpLimit">Total uses allowed</label><input id="cpLimit" type="number" min="1" step="1"></div>
+      <div class="ph-field"><label for="cpPerCustomer">Uses per customer</label><input id="cpPerCustomer" type="number" min="1" step="1"></div>
+    </div>
+    <div class="ph-error" id="cpError"></div>
+    <div class="ph-actions">
+      <button class="btn" id="cpCancel">Cancel</button>
+      <button class="btn btn-primary" id="cpSave">Save coupon</button>
+    </div>
   </div>
 </div>
 
@@ -838,6 +924,7 @@
     <div class="nav-group">
       <div class="nav-label">Growth</div>
       <button class="nav-link" data-view="marketing"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M4 4l16 8-16 8V4z"/></svg>Marketing</button>
+      <button class="nav-link" data-view="coupons"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 8a2 2 0 002-2h14a2 2 0 002 2v2a2 2 0 000 4v2a2 2 0 00-2 2H5a2 2 0 00-2-2v-2a2 2 0 000-4V8z"/><path d="M9 15l6-6"/></svg>Coupons</button>
       <button class="nav-link" data-view="analytics"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M4 19V9M12 19V4M20 19v-6"/></svg>Analytics</button>
     </div>
 
@@ -879,15 +966,15 @@
       <div class="stat-grid">
         <div class="stat-card">
           <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 2v20M17 6H9.5a2.5 2.5 0 000 5h5a2.5 2.5 0 010 5H6"/></svg></div><span class="stat-delta" data-delta></span></div>
-          <div class="stat-value">₹8,42,600</div><div class="stat-label">Revenue this month</div>
+          <div class="stat-value">—</div><div class="stat-label">Revenue this month</div>
         </div>
         <div class="stat-card">
           <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg></div><span class="stat-delta" data-delta></span></div>
-          <div class="stat-value">312</div><div class="stat-label">Orders this month</div>
+          <div class="stat-value">—</div><div class="stat-label">Orders this month</div>
         </div>
         <div class="stat-card">
           <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c0-3.6 2.9-6 6.5-6s6.5 2.4 6.5 6"/></svg></div><span class="stat-delta" data-delta></span></div>
-          <div class="stat-value">1,284</div><div class="stat-label">Active customers</div>
+          <div class="stat-value">—</div><div class="stat-label">Active customers</div>
         </div>
         <div class="stat-card">
           <div class="stat-top"><div class="stat-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M20 6L9 17l-5-5"/></svg></div><span class="stat-delta" data-delta></span></div>
@@ -918,13 +1005,16 @@
           </table>
         </div>
         <div class="panel">
-          <div class="panel-head"><h3>Quick stats</h3></div>
-          <div class="kpi-mini"><span>AI Quiz completions</span><strong>142</strong></div>
-          <div class="kpi-mini"><span>Virtual try-ons started</span><strong>96</strong></div>
-          <div class="kpi-mini"><span>AI chat conversations</span><strong>218</strong></div>
-          <div class="kpi-mini"><span>Fittings booked this week</span><strong>27</strong></div>
-          <div class="kpi-mini"><span>Avg. order value</span><strong>₹14,220</strong></div>
-          <div class="kpi-mini"><span>Cart abandonment</span><strong>38%</strong></div>
+          <div class="panel-head"><h3>Needs attention</h3></div>
+          <!-- Every figure here is counted from live data. The quiz, try-on,
+               chat and cart-abandonment numbers that used to sit here were
+               typed into the page; nothing measures them. -->
+          <div class="kpi-mini"><span>Orders awaiting payment</span><strong id="kpiAwaitingPay">—</strong></div>
+          <div class="kpi-mini"><span>Paid orders to dispatch</span><strong id="kpiToShip">—</strong></div>
+          <div class="kpi-mini"><span>Variants at low stock</span><strong id="kpiLowStock">—</strong></div>
+          <div class="kpi-mini"><span>Draft products</span><strong id="kpiDrafts">—</strong></div>
+          <div class="kpi-mini"><span>Fittings booked (next 7 days)</span><strong id="kpiFittings">—</strong></div>
+          <div class="kpi-mini"><span>Avg. order value</span><strong id="kpiAov">—</strong></div>
         </div>
       </div>
     </section>
@@ -1014,10 +1104,14 @@
       <div class="topbar">
         <div><h1>Orders</h1><p>Track, fulfill, and manage every order</p></div>
         <div class="topbar-actions">
-          <div class="panel-head tabs" style="margin:0;"><button class="active">All</button><button>Processing</button><button>Shipped</button><button>Out for Delivery</button><button>Delivered</button><button>Cancelled</button></div>
+          <div class="panel-head tabs" style="margin:0;flex-wrap:wrap;"><button class="active">All</button><button>Pending Payment</button><button>Paid</button><button>Processing</button><button>Shipped</button><button>Out for Delivery</button><button>Delivered</button><button>Cancelled</button><button>Refunded</button></div>
         </div>
       </div>
-      <div class="panel">
+      <div class="orders-search">
+        <input type="search" id="ordersSearch" placeholder="Search order number, name, email, phone or tracking number" aria-label="Search orders">
+        <span class="pf-hint" id="ordersCount" style="margin:0;"></span>
+      </div>
+      <div class="panel" style="overflow-x:auto;">
         <table>
           <thead><tr><th>Order</th><th>Customer</th><th>Item</th><th>Date</th><th>Total</th><th>Status</th><th></th></tr></thead>
           <tbody id="ordersBody"></tbody>
@@ -1153,9 +1247,24 @@
           </table>
         </div>
         <div class="panel">
-          <div class="panel-head"><h3>Active coupons</h3></div>
+          <div class="panel-head"><h3>Active coupons</h3><button class="btn" data-goto="coupons">Manage</button></div>
           <div id="couponList"><div class="kpi-mini"><span>Loading…</span><strong>—</strong></div></div>
         </div>
+      </div>
+    </section>
+
+    <!-- COUPONS — every rule is enforced by the server at checkout; this
+         screen only edits them. -->
+    <section class="view" id="view-coupons">
+      <div class="topbar">
+        <div><h1>Coupons</h1><p>Discount codes customers enter at checkout</p></div>
+        <div class="topbar-actions"><button class="btn btn-primary" id="couponNewBtn">New coupon</button></div>
+      </div>
+      <div class="panel" style="overflow-x:auto;">
+        <table>
+          <thead><tr><th>Code</th><th>Discount</th><th>Rules</th><th>Valid</th><th>Used</th><th>Status</th><th></th></tr></thead>
+          <tbody id="couponRows"><tr><td colspan="7">Loading…</td></tr></tbody>
+        </table>
       </div>
     </section>
 
@@ -1238,6 +1347,12 @@
       <input type="text" id="catName" placeholder="e.g. Glueless Wigs">
     </div>
     <div class="cms-field">
+      <label for="catParent">Parent category</label>
+      <select id="catParent"></select>
+      <span class="cms-note">Top-level categories are the homepage collection cards. A subcategory
+        appears as a filter inside its parent in the shop (e.g. Crochet → Curly).</span>
+    </div>
+    <div class="cms-field">
       <label for="catTagline">Card tagline</label>
       <input type="text" id="catTagline" placeholder="e.g. Best for beginners">
       <span class="cms-note">The small badge shown on the card image.</span>
@@ -1252,7 +1367,8 @@
         <div class="cms-img-thumb" id="catThumb"></div>
         <div class="cms-img-body">
           JPG, PNG or WEBP. Uploaded at full quality and never resized or cropped by us.
-          <div style="margin-top:7px;"><button type="button" class="cms-mini" id="catUpload">Upload image</button></div>
+          <div style="margin-top:7px;display:flex;gap:6px;flex-wrap:wrap;"><button type="button" class="cms-mini" id="catUpload">Upload image</button>
+            <button type="button" class="cms-mini" id="catPickProduct">Choose product photo</button></div>
         </div>
       </div>
     </div>
@@ -1301,7 +1417,8 @@
       'Out for Delivery':'warn', 'Shipped':'warn', 'Processing':'warn', 'Pending':'warn',
       'Review':'warn', 'Low Stock':'warn', 'Out of Stock':'warn',
       'Draft':'neutral', 'Archived':'neutral',
-      'Cancelled':'danger', 'Critical':'danger'
+      'Cancelled':'danger', 'Critical':'danger',
+      'Pending Payment':'warn', 'Paid':'ok', 'Refunded':'danger'
     };
     return `<span class="badge ${map[status]||'neutral'}">${status}</span>`;
   }
@@ -1340,11 +1457,19 @@
       </div>`;
   }
 
+  /* Each variant's effective low-stock threshold, as the inventory API
+     resolved it (its own setting, or the shop default). One source for this
+     screen, the inventory screen and the low-stock email. */
+  let variantThresholds = {};
+  function productIsLow(p){
+    return (p.variants || []).some(v => v.stock > 0 && v.stock <= (variantThresholds[v.id] ?? 5));
+  }
+
   /* Renders straight from API product objects (used by the filter bar). */
   function renderProductRows(products){
     document.getElementById('productsBody').innerHTML = products.length ? products.map(p => {
       const stock = p.total_stock;
-      const level = stock === 0 ? 'crit' : stock <= 15 ? 'low' : 'ok';
+      const level = stock === 0 ? 'crit' : productIsLow(p) ? 'low' : 'ok';
       return `
       <tr>
         <td><div class="cell-prod">
@@ -1413,7 +1538,7 @@
     const low = rows.filter(r => r.stock <= r.low_stock_threshold).length;
     const note = document.getElementById('invNote');
     if(note) note.textContent = low
-      ? `${low} SKU${low===1?'':'s'} at or below the low-stock threshold (${rows[0]?.low_stock_threshold ?? 15} units). Every stock change is recorded as an auditable movement.`
+      ? `${low} SKU${low===1?'':'s'} at or below their low-stock threshold (set per variant in the product editor). Every stock change is recorded as an auditable movement.`
       : 'All SKUs are above the low-stock threshold. Every stock change is recorded as an auditable movement.';
   }
 
@@ -1438,7 +1563,7 @@
     try{
       const moves = await apiGet('/inventory/movements/' + variantId);
       document.getElementById('adjHistory').innerHTML = moves.length ? moves.map(m => `
-        <div>${new Date(m.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}
+        <div>${apiDate(m.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'})}
         · <strong>${m.delta > 0 ? '+' : ''}${m.delta}</strong> → ${m.stock_after}
         · ${escAttr(m.reason)}${m.actor ? ' · ' + escAttr(m.actor) : ''}${m.note ? ' · ' + escAttr(m.note) : ''}</div>`).join('')
         : 'No movements recorded yet.';
@@ -1479,9 +1604,13 @@
   let orderStatusFilter = 'All';
 
   function renderOrders(orders){
-    const view = orderStatusFilter === 'All'
-      ? orders
-      : orders.filter(o => (o.statusRaw || o.status) === orderStatusFilter);
+    const needle = (document.getElementById('ordersSearch') || {}).value;
+    const q = (needle || '').trim().toLowerCase();
+    const view = orders.filter(o =>
+      (orderStatusFilter === 'All' || (o.statusRaw || o.status) === orderStatusFilter)
+      && (!q || (o.search || '').includes(q)));
+    const count = document.getElementById('ordersCount');
+    if(count) count.textContent = `${view.length} of ${orders.length} orders`;
     document.getElementById('ordersBody').innerHTML = view.length ? view.map(o => `
       <tr><td><strong>${o.id}</strong></td><td>${escAttr(o.customer)}</td><td>${escAttr(o.item)}</td><td>${o.date||''}</td><td>${o.total}</td><td>${statusBadge(o.status)}</td>
       <td><div class="row-actions"><button class="icon-mini" title="View order" data-order-view="${o.rawId||''}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button></div></td></tr>`).join('')
@@ -1489,6 +1618,8 @@
     document.getElementById('recentOrdersBody').innerHTML = orders.slice(0,5).map(o => `
       <tr><td><strong>${o.id}</strong></td><td>${escAttr(o.customer)}</td><td>${escAttr(o.item)}</td><td>${o.total}</td><td>${statusBadge(o.status)}</td></tr>`).join('');
   }
+
+  document.getElementById('ordersSearch').addEventListener('input', () => renderOrders(ordersForTable));
 
   // Status tabs now actually filter. Labels map to real OrderStatus values.
   document.querySelectorAll('#view-orders .tabs button').forEach(btn => {
@@ -1546,17 +1677,22 @@
       `<dt>${escAttr(label)}</dt><dd>${escAttr(value)}</dd>`).join('')}</dl>`;
   }
 
-  async function openOrderDetail(orderId){
-    const o = liveOrders.find(x => x.id === orderId);
+  async function openOrderDetail(orderId, fresh){
+    let o = fresh || liveOrders.find(x => x.id === orderId);
     if(!o) return;
+    if(!fresh){
+      // The list may be minutes old; the modal shows the order as it is now.
+      try{ o = await apiGet('/orders/' + encodeURIComponent(orderId)); }catch(_){}
+    }
     currentOrderId = orderId;
     document.getElementById('odNumber').textContent = 'Order #' + o.order_number;
     document.getElementById('odMeta').textContent =
-      new Date(o.created_at).toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'});
+      apiDate(o.created_at).toLocaleString('en-IN',{day:'numeric',month:'long',year:'numeric',hour:'numeric',minute:'2-digit'});
     document.getElementById('odCustomer').innerHTML = `
       <div><strong>${escAttr(o.customer_name)}</strong></div>
-      <div>${escAttr(o.customer_email)}</div>
-      ${(o.shipping && o.shipping.phone) ? `<div>${escAttr(o.shipping.phone)}</div>` : ''}`;
+      <div><a href="mailto:${escAttr(o.customer_email)}">${escAttr(o.customer_email)}</a></div>
+      ${o.customer_phone ? `<div><a href="tel:${escAttr(String(o.customer_phone).replace(/\s+/g,''))}">${escAttr(o.customer_phone)}</a></div>` : ''}
+      <div class="pf-hint" style="margin:4px 0 0;">${o.placed_signed_in ? 'Placed from their account' : 'Guest checkout'}</div>`;
     document.getElementById('odShipping').innerHTML = renderShippingPanel(o);
     document.getElementById('odCopyAddress').style.display =
       (o.shipping && o.shipping.structured) ? '' : 'none';
@@ -1582,7 +1718,7 @@
       <div class="pf-calc-note">Payment: <strong>${escAttr(o.payment_status || 'no gateway configured')}</strong>.
         No card details are stored by this system.</div>`;
 
-    const allowed = ORDER_TRANSITIONS[o.status] || [];
+    let allowed = ORDER_TRANSITIONS[o.status] || [];
     const sel = document.getElementById('odStatus');
     sel.innerHTML = allowed.length
       ? allowed.map(s => `<option>${s}</option>`).join('')
@@ -1590,12 +1726,111 @@
     sel.disabled = allowed.length === 0;
     document.getElementById('odStatusSave').disabled = allowed.length === 0;
     document.getElementById('odStatusHint').textContent = allowed.length
-      ? `Currently ${o.status}. Cancelling returns stock to inventory.`
+      ? (o.status === 'Pending Payment'
+          ? 'Waiting for payment. Confirm the payment above to move it to Paid; cancelling returns the stock.'
+          : `Currently ${o.status}. Cancelling returns stock to inventory.`)
       : `${o.status} is a final state.`;
     document.getElementById('odError').style.display = 'none';
     document.getElementById('odStatusSave').dataset.orderId = o.id;
+    document.getElementById('odStatusNote').value = '';
+    document.getElementById('odCarrier').value = o.carrier || '';
+    document.getElementById('odTracking').value = o.tracking_number || '';
+    document.getElementById('odTrackingUrl').value = o.tracking_url || '';
+    document.getElementById('odNotes').value = o.internal_notes || '';
+    document.getElementById('odFulfilmentMsg').textContent = '';
+    document.getElementById('odTimeline').innerHTML = (o.timeline || []).map(t =>
+      `<li><strong>${escAttr(t.status === 'Placed' ? 'Order placed' : t.status)}</strong>${t.note ? ' — ' + escAttr(t.note) : ''}
+        <small>${t.at ? new Date(String(t.at).match(/[zZ]|[+-]\d\d:?\d\d$/) ? t.at : t.at + 'Z')
+          .toLocaleString('en-IN',{day:'numeric',month:'short',year:'numeric',hour:'numeric',minute:'2-digit'}) : 'time not recorded'}</small></li>`).join('');
+    renderPaymentPanel(o);
     document.getElementById('orderModal').classList.add('open');
   }
+
+  /* Payment actions for the order. Manual (bank transfer / UPI) payments are
+     confirmed here by staff once the money has arrived — the order moves from
+     Pending Payment to Paid. Gateway payments are confirmed by the gateway and
+     cannot be marked paid by hand; the server refuses it either way. */
+  function renderPaymentPanel(o){
+    const box = document.getElementById('odPayment');
+    const open = !['Cancelled','Refunded'].includes(o.status);
+    if(!o.payment_id){
+      box.innerHTML = `<div class="od-pay">No payment is recorded for this order${
+        o.status === 'Processing' ? ' (payments were not enabled when it was placed).' : '.'}</div>`;
+      return;
+    }
+    const state = o.is_paid ? 'paid' : (o.payment_status === 'Pending' ? 'pending' : '');
+    let actions = '';
+    if(o.payment_status === 'Pending' && o.payment_provider === 'manual' && open){
+      actions = `
+        <div class="ph-row" style="margin-top:10px;">
+          <div class="ph-field"><label for="odPayRef">Payment reference (UTR / txn id)</label><input id="odPayRef" type="text" maxlength="120"></div>
+          <div class="ph-field"><label for="odPayNote">Note</label><input id="odPayNote" type="text" maxlength="200" placeholder="e.g. UPI, checked in bank app"></div>
+        </div>
+        <button class="btn btn-primary" data-pay-confirm="${escAttr(o.payment_id)}">Confirm payment received · ${fmtINR(o.total)}</button>`;
+    } else if(o.is_paid && o.status !== 'Refunded'){
+      actions = `<div style="margin-top:10px;"><button class="btn" data-pay-refund="${escAttr(o.payment_id)}">Record full refund</button>
+        <span class="pf-hint" style="display:inline;margin-left:6px;">${o.payment_provider === 'manual'
+          ? 'Send the money back first; this records it and returns the stock.'
+          : 'Refunds the payment through the gateway and returns the stock.'}</span></div>`;
+    }
+    box.innerHTML = `<div class="od-pay ${state}">
+        <strong>${escAttr(o.is_paid ? 'Paid' : (o.payment_status || '—'))}</strong>
+        · ${escAttr(o.payment_provider === 'manual' ? 'Bank transfer / UPI' : (o.payment_provider || ''))}
+        ${o.payment_reference ? ` · ref <code>${escAttr(o.payment_reference)}</code>` : ''}
+        ${o.payment_status === 'Pending' && open ? '<br>Check your bank or UPI app for this amount and the order number, then confirm it here.' : ''}
+      </div>${actions}`;
+  }
+
+  async function refreshOrderModal(orderId){
+    const fresh = await apiGet('/orders/' + encodeURIComponent(orderId));
+    await loadLiveDashboard();
+    openOrderDetail(orderId, fresh);
+  }
+
+  document.addEventListener('click', async (e) => {
+    const confirmBtn = e.target.closest('[data-pay-confirm]');
+    const refundBtn = e.target.closest('[data-pay-refund]');
+    if(!confirmBtn && !refundBtn) return;
+    const err = document.getElementById('odError');
+    err.style.display = 'none';
+    try{
+      if(confirmBtn){
+        if(!confirm('Confirm that this payment has reached your account? The order moves to Paid and the customer is notified.')) return;
+        confirmBtn.disabled = true;
+        await apiSend('POST', `/payments/${confirmBtn.dataset.payConfirm}/mark-paid`, {
+          reference: document.getElementById('odPayRef').value.trim() || null,
+          note: document.getElementById('odPayNote').value.trim() || null
+        });
+      } else {
+        if(!confirm('Record a FULL refund for this order? Stock is returned and the order becomes Refunded. This cannot be undone.')) return;
+        refundBtn.disabled = true;
+        await apiSend('POST', `/payments/${refundBtn.dataset.payRefund}/refund`, {});
+      }
+      await refreshOrderModal(currentOrderId);
+    }catch(ex){
+      err.textContent = ex.message; err.style.display = 'block';
+      if(confirmBtn) confirmBtn.disabled = false;
+      if(refundBtn) refundBtn.disabled = false;
+    }
+  });
+
+  document.getElementById('odFulfilmentSave').addEventListener('click', async () => {
+    const msg = document.getElementById('odFulfilmentMsg');
+    const err = document.getElementById('odError');
+    err.style.display = 'none';
+    try{
+      await apiSend('PATCH', `/orders/${currentOrderId}/fulfilment`, {
+        carrier: document.getElementById('odCarrier').value,
+        tracking_number: document.getElementById('odTracking').value,
+        tracking_url: document.getElementById('odTrackingUrl').value,
+        internal_notes: document.getElementById('odNotes').value
+      });
+      msg.textContent = 'Saved.';
+      const fresh = await apiGet('/orders/' + encodeURIComponent(currentOrderId));
+      const i = liveOrders.findIndex(x => x.id === currentOrderId);
+      if(i >= 0) liveOrders[i] = fresh;
+    }catch(ex){ err.textContent = ex.message; err.style.display = 'block'; }
+  });
 
   document.getElementById('odClose').addEventListener('click',
     () => document.getElementById('orderModal').classList.remove('open'));
@@ -1605,9 +1840,15 @@
     const status = document.getElementById('odStatus').value;
     if(!status) return;
     try{
-      await apiSend('PUT', `/orders/${e.target.dataset.orderId}/status`, {status});
-      document.getElementById('orderModal').classList.remove('open');
-      await loadLiveDashboard();
+      await apiSend('PUT', `/orders/${e.target.dataset.orderId}/status`, {
+        status,
+        note: document.getElementById('odStatusNote').value.trim() || null,
+        // Tracking typed above goes with a Shipped update in the same request.
+        carrier: document.getElementById('odCarrier').value,
+        tracking_number: document.getElementById('odTracking').value,
+        tracking_url: document.getElementById('odTrackingUrl').value
+      });
+      await refreshOrderModal(e.target.dataset.orderId);
     }catch(ex){ err.textContent = ex.message; err.style.display = 'block'; }
   });
 
@@ -1751,6 +1992,21 @@
       {key:'hours', label:'Opening hours', kind:'text'},
       {key:'gstin', label:'GSTIN', kind:'text'}
     ],
+    shop: [
+      {key:'heading', label:'Heading', kind:'text'},
+      {key:'intro', label:'Intro', kind:'textarea'}
+    ],
+    payment: [
+      {key:'instructions', label:'What customers are told after ordering', kind:'textarea',
+       note:'The account details below are listed under this text. Customers see it only when they have an order to pay.'},
+      {key:'upi_id', label:'UPI ID', kind:'text', note:'e.g. hairshalo@okaxis'},
+      {key:'upi_name', label:'Name on UPI', kind:'text'},
+      {key:'account_name', label:'Bank account name', kind:'text'},
+      {key:'bank_name', label:'Bank', kind:'text'},
+      {key:'account_number', label:'Account number', kind:'text'},
+      {key:'ifsc', label:'IFSC', kind:'text'},
+      {key:'whatsapp_for_receipts', label:'WhatsApp number for payment receipts', kind:'text'}
+    ],
     policies: [
       {key:'shipping', label:'Shipping policy', kind:'textarea'},
       {key:'returns', label:'Returns & exchanges', kind:'textarea'},
@@ -1889,9 +2145,10 @@
         <div class="cms-img">
           <div class="cms-img-thumb" style="${url ? `background-image:url('${cssUrl(resolveMediaUrl(url))}')` : ''}"></div>
           <div class="cms-img-body">
-            ${url ? escAttr(url.split('/').pop()) : 'No image yet — the storefront shows the branded panel.'}
+            ${url ? escAttr(url.split('/').pop()) : 'No image chosen — the storefront shows one of your published product photos here, or the branded panel if there are none.'}
             <div style="display:flex;gap:6px;margin-top:7px;">
               <button type="button" class="cms-mini" data-cms-upload="${escAttr(path)}">Upload</button>
+              <button type="button" class="cms-mini" data-cms-pickproduct="${escAttr(path)}">Choose product photo</button>
               ${url ? `<button type="button" class="cms-mini danger" data-cms-clearimg="${escAttr(path)}">Remove</button>` : ''}
             </div>
           </div>
@@ -2011,6 +2268,17 @@
     const upload = e.target.closest('[data-cms-upload]');
     if(upload){ cmsPickImage(upload.dataset.cmsUpload); return; }
 
+    const pickProduct = e.target.closest('[data-cms-pickproduct]');
+    if(pickProduct){
+      const path = pickProduct.dataset.cmsPickproduct;
+      openPhotoPicker(url => {
+        cmsSetPath(path, url);
+        renderCmsEditor(cmsBlocks.find(b => b.key === cmsCurrent));
+        cmsMessage('Photo chosen. Save to publish it.', 'ok');
+      });
+      return;
+    }
+
     if(e.target.id === 'cmsSave') await saveCmsBlock();
     if(e.target.id === 'cmsReset') await resetCmsBlock();
   });
@@ -2098,7 +2366,7 @@
       <tr>
         <td><div class="cat-thumb" style="${c.image_url
           ? `background-image:url('${cssUrl(resolveMediaUrl(c.image_url))}')` : ''}"></div></td>
-        <td><strong>${escAttr(c.name)}</strong><br><span style="font-size:11px;color:var(--text-soft);">${escAttr(c.description || '—')}</span></td>
+        <td><strong>${escAttr(categoryPath(c))}</strong><br><span style="font-size:11px;color:var(--text-soft);">${escAttr(c.description || '—')}</span></td>
         <td>${escAttr(c.tagline || '—')}</td>
         <td>${c.product_count}</td>
         <td>${c.is_active ? '<span class="badge ok">Shown</span>' : '<span class="badge neutral">Hidden</span>'}</td>
@@ -2118,6 +2386,11 @@
     document.getElementById('catSort').value = c.sort_order || 0;
     document.getElementById('catActive').checked = c.is_active !== false;
     document.getElementById('catImageUrl').value = c.image_url || '';
+    // Only top-level categories can be parents (one level of nesting), and a
+    // category cannot be its own parent.
+    const parents = categoriesCache.filter(x => !x.parent_id && x.id !== c.id);
+    document.getElementById('catParent').innerHTML = '<option value="">— None (top level) —</option>' +
+      parents.map(x => `<option value="${escAttr(x.id)}"${x.id === c.parent_id ? ' selected' : ''}>${escAttr(x.name)}</option>`).join('');
     const thumb = document.getElementById('catThumb');
     thumb.style.backgroundImage = c.image_url ? `url('${cssUrl(resolveMediaUrl(c.image_url))}')` : '';
     document.getElementById('catMsg').className = 'cms-msg';
@@ -2133,7 +2406,8 @@
       description: document.getElementById('catDesc').value.trim(),
       image_url: document.getElementById('catImageUrl').value || null,
       sort_order: Number(document.getElementById('catSort').value) || 0,
-      is_active: document.getElementById('catActive').checked
+      is_active: document.getElementById('catActive').checked,
+      parent_id: document.getElementById('catParent').value || null
     };
     const msg = document.getElementById('catMsg');
     if(!payload.name){
@@ -2173,6 +2447,14 @@
     if(e.target.id === 'catDelete') await deleteCategory();
     if(e.target.id === 'catCancel' || e.target.id === 'catModalClose')
       document.getElementById('catModal').classList.remove('open');
+    if(e.target.id === 'catPickProduct'){
+      openPhotoPicker(url => {
+        document.getElementById('catImageUrl').value = url;
+        document.getElementById('catThumb').style.backgroundImage = `url('${cssUrl(resolveMediaUrl(url))}')`;
+        const msg = document.getElementById('catMsg');
+        msg.textContent = 'Photo chosen. Save to apply it.'; msg.className = 'cms-msg ok';
+      });
+    }
     if(e.target.id === 'catUpload'){
       const input = document.createElement('input');
       input.type = 'file';
@@ -2493,6 +2775,15 @@
 
   function fmtINR(n){ return '₹' + Math.round(n).toLocaleString('en-IN'); }
 
+  /* The API stores and sends UTC without a zone suffix. `new Date()` reads
+     such a string as LOCAL time, which put every admin timestamp 5h30m early
+     in India. This marks it as UTC first. */
+  function apiDate(value){
+    if(!value) return new Date(NaN);
+    const s = String(value);
+    return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(s) ? s : s + 'Z');
+  }
+
   async function apiGet(path){
     const res = await fetch(API_BASE + path, { headers: { 'Authorization': 'Bearer ' + authToken } });
     if(!res.ok) throw new Error('Request failed: ' + path);
@@ -2516,6 +2807,8 @@
       apiGet('/analytics/customer-locations').catch(() => []),
     ]);
 
+    variantThresholds = {};
+    (inventory || []).forEach(r => { variantThresholds[r.variant_id] = r.low_stock_threshold; });
     liveProducts = products;
     if(categoriesCache.length === 0) await loadCategories();
     applyProductFilters();   // renders the table honouring the current filters
@@ -2526,14 +2819,16 @@
     ordersForTable = orders.map(o => ({
       id:'#'+o.order_number, rawId:o.id, customer:o.customer_name,
       item: o.items && o.items[0] ? o.items[0].product_name + (o.items.length>1?` +${o.items.length-1} more`:'') : '—',
-      date: new Date(o.created_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}),
-      total: fmtINR(o.total), status:o.status, statusRaw:o.status
+      date: apiDate(o.created_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}),
+      total: fmtINR(o.total), status:o.status, statusRaw:o.status,
+      search: [o.order_number, o.customer_name, o.customer_email, o.customer_phone,
+               o.tracking_number, (o.shipping || {}).city].filter(Boolean).join(' ').toLowerCase()
     }));
     renderOrders(ordersForTable);
 
     renderCustomers(customers.map(c => ({
       name:c.name, orders:c.order_count, spent:fmtINR(c.total_spent),
-      last: c.created_at ? new Date(c.created_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : '—',
+      last: c.created_at ? apiDate(c.created_at).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : '—',
       points:c.loyalty_points
     })));
 
@@ -2549,6 +2844,19 @@
       revenueTrend.map(r => r.date.slice(-2)), revenueTrend.map(r => r.total),
       topProducts.map(p => p.name), topProducts.map(p => p.units_sold)
     );
+
+    // "Needs attention" — all counted here from what was just loaded.
+    const setKpi = (id, v) => { const n = document.getElementById(id); if(n) n.textContent = v; };
+    setKpi('kpiAwaitingPay', orders.filter(o => o.status === 'Pending Payment').length);
+    setKpi('kpiToShip', orders.filter(o => o.status === 'Paid' || o.status === 'Processing').length);
+    setKpi('kpiLowStock', inventory.filter(r => r.stock > 0 && r.stock <= r.low_stock_threshold).length);
+    setKpi('kpiDrafts', products.filter(p => p.status === 'Draft').length);
+    const weekAhead = Date.now() + 7 * 864e5;
+    setKpi('kpiFittings', appts.filter(a => {
+      const t = new Date(a.scheduled_at).getTime();
+      return t >= Date.now() - 864e5 && t <= weekAhead && a.status !== 'Cancelled';
+    }).length);
+    setKpi('kpiAov', summary.avg_order_value ? fmtINR(summary.avg_order_value) : '—');
 
     // update top stat cards with real numbers
     const statValues = document.querySelectorAll('.stat-value');
@@ -2607,13 +2915,19 @@
   const esc = s => String(s == null ? '' : s)
     .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 
+  // "Crochet › Curly" for a subcategory, so a product is filed in the right place.
+  function categoryPath(c){
+    const parent = c.parent_id && categoriesCache.find(x => x.id === c.parent_id);
+    return parent ? parent.name + ' › ' + c.name : c.name;
+  }
+
   async function loadCategories(){
     try{
       categoriesCache = await apiGet('/categories?include_inactive=true');
     }catch(err){ categoriesCache = []; }
     const sel = el('pfCategory');
     sel.innerHTML = '<option value="">— Select a category —</option>' +
-      categoriesCache.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join('');
+      categoriesCache.map(c => `<option value="${c.id}">${esc(categoryPath(c))}</option>`).join('');
     const filt = el('prodCategoryFilter');
     if(filt) filt.innerHTML = '<option value="">All categories</option>' +
       categoriesCache.map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
@@ -2677,6 +2991,7 @@
         </div>
         <div class="ph-row">
           <div class="ph-field"><label>Discount value</label><input type="number" min="0" step="0.01" data-vfield="discount_value" data-vi="${i}" value="${v.discount_value != null ? v.discount_value : 0}"></div>
+          <div class="ph-field"><label>Low-stock alert at</label><input type="number" min="0" step="1" data-vfield="low_stock_threshold" data-vi="${i}" value="${v.low_stock_threshold != null ? v.low_stock_threshold : ''}" placeholder="shop default"></div>
           <div class="ph-field" style="display:flex;align-items:flex-end;">
             <label class="ph-check" style="margin-bottom:10px;"><input type="checkbox" data-vfield="is_available" data-vi="${i}" ${v.is_available !== false ? 'checked' : ''}> Available</label>
           </div>
@@ -2703,7 +3018,8 @@
   });
   el('pfAddVariant').addEventListener('click', () => {
     pfVariantRows.push({sku:'', length:'', density:'', color:'', lace_type:'', cap_size:'',
-      stock:0, original_price:null, discount_type:'none', discount_value:0, is_available:true});
+      stock:0, original_price:null, discount_type:'none', discount_value:0, is_available:true,
+      low_stock_threshold:null});
     pfRenderVariants();
   });
 
@@ -2967,13 +3283,7 @@
     el('pfNewArrival').checked = product ? !!product.new_arrival : false;
     el('pfStatus').value = product ? product.status : 'Draft';
 
-    pfVariantRows = product ? (product.variants || []).map(v => ({
-      id: v.id, sku: v.sku, length: v.length, density: v.density, color: v.color,
-      lace_type: v.lace_type, cap_size: v.cap_size, stock: v.stock,
-      original_price: v.compare_at_price != null ? v.compare_at_price : v.price,
-      discount_type: v.discount_type || 'none', discount_value: v.discount_value || 0,
-      is_available: v.is_available
-    })) : [];
+    pfVariantRows = product ? (product.variants || []).map(pfRowFromVariant) : [];
     pfMedia = product ? (product.media || []) : [];
 
     el('pfError').style.display = 'none';
@@ -3011,17 +3321,43 @@
     };
   }
 
+  /* An editor row from an API variant. Only a variant with its OWN price gets
+     one in the price box: an inherited price used to be pre-filled here, and
+     saving wrote it back as an override, so the variant stopped following the
+     product's price for good. */
+  function pfRowFromVariant(v){
+    const own = !!v.has_price_override;
+    return {
+      id: v.id, sku: v.sku, length: v.length, density: v.density, color: v.color,
+      lace_type: v.lace_type, cap_size: v.cap_size, stock: v.stock,
+      original_price: own ? (v.compare_at_price != null ? v.compare_at_price : v.price) : null,
+      discount_type: own ? (v.discount_type || 'none') : 'none',
+      discount_value: own ? (v.discount_value || 0) : 0,
+      is_available: v.is_available,
+      low_stock_threshold: v.low_stock_threshold,
+      had_override: own
+    };
+  }
+
   function pfVariantPayload(v){
     const p = {
       sku: (v.sku || '').trim(), length: v.length || null, density: v.density || null,
       color: v.color || null, lace_type: v.lace_type || null, cap_size: v.cap_size || null,
       stock: parseInt(v.stock || 0, 10),
       is_available: v.is_available !== false,
-      discount_type: v.discount_type || 'none',
-      discount_value: parseFloat(v.discount_value || 0)
+      // Blank = the shop-wide default threshold.
+      low_stock_threshold: (v.low_stock_threshold === null || v.low_stock_threshold === '' || v.low_stock_threshold === undefined)
+        ? null : parseInt(v.low_stock_threshold, 10)
     };
+    // Discount fields belong to a price override; without one the variant
+    // follows the product's price AND its discount.
     if(v.original_price !== null && v.original_price !== '' && v.original_price !== undefined){
       p.original_price = parseFloat(v.original_price);
+      p.discount_type = v.discount_type || 'none';
+      p.discount_value = parseFloat(v.discount_value || 0);
+    } else if(v.id && v.had_override){
+      // The box was emptied: go back to following the product's price.
+      p.clear_price_override = true;
     }
     return p;
   }
@@ -3079,13 +3415,7 @@
       // Refresh so media upload becomes available immediately after creation.
       const fresh = await apiGet('/products/' + pfEditingId + '/preview');
       pfMedia = fresh.media || [];
-      pfVariantRows = (fresh.variants || []).map(v => ({
-        id: v.id, sku: v.sku, length: v.length, density: v.density, color: v.color,
-        lace_type: v.lace_type, cap_size: v.cap_size, stock: v.stock,
-        original_price: v.compare_at_price != null ? v.compare_at_price : v.price,
-        discount_type: v.discount_type || 'none', discount_value: v.discount_value || 0,
-        is_available: v.is_available
-      }));
+      pfVariantRows = (fresh.variants || []).map(pfRowFromVariant);
       el('pfTitle').textContent = 'Edit Product';
       pfRenderMedia();
       pfRenderVariants();
@@ -3130,7 +3460,7 @@
     if(cat) rows = rows.filter(p => p.category === cat);
     if(status) rows = rows.filter(p => p.status === status);
     if(stock === 'in_stock') rows = rows.filter(p => p.total_stock > 0);
-    if(stock === 'low_stock') rows = rows.filter(p => p.total_stock > 0 && p.total_stock <= 15);
+    if(stock === 'low_stock') rows = rows.filter(p => p.total_stock > 0 && productIsLow(p));
     if(stock === 'out_of_stock') rows = rows.filter(p => p.total_stock === 0);
     if(disc === 'on_sale') rows = rows.filter(p => p.on_sale);
     if(disc === 'full_price') rows = rows.filter(p => !p.on_sale);
@@ -3138,7 +3468,7 @@
 
     const sorters = {
       curated: (a,b) => (a.sort_order||0)-(b.sort_order||0),
-      newest: (a,b) => new Date(b.created_at)-new Date(a.created_at),
+      newest: (a,b) => apiDate(b.created_at)-apiDate(a.created_at),
       price_asc: (a,b) => (a.price||0)-(b.price||0),
       price_desc: (a,b) => (b.price||0)-(a.price||0),
       name: (a,b) => a.name.localeCompare(b.name)
@@ -3310,6 +3640,10 @@
     if(!res.ok){
       let detail = 'Request failed';
       try{ detail = (await res.json()).detail || detail; }catch(e){}
+      // FastAPI validation errors are a list; the address validator sends
+      // {message, fields}. Either way the admin sees a sentence.
+      if(Array.isArray(detail)) detail = detail.map(d => d.msg || String(d)).join('; ');
+      else if(detail && typeof detail === 'object') detail = detail.message || JSON.stringify(detail);
       throw new Error(detail);
     }
     return res.status === 204 ? null : res.json();
@@ -3473,8 +3807,14 @@
   // The seeded demo password only exists on a local dev database; production
   // refuses to boot while it works. Showing it on the live site sends the real
   // admin to a password that cannot succeed, and advertises it to everyone.
-  if(API_BASE.startsWith('http://localhost')){
+  const IS_LOCAL_DEV = API_BASE.startsWith('http://localhost');
+  if(IS_LOCAL_DEV){
     document.getElementById('loginHint').hidden = false;
+  } else {
+    // Demo mode fills the panel with invented products and orders. On the
+    // live shop that is indistinguishable from real business data, so it is
+    // offered on a developer's machine only.
+    document.getElementById('skipLogin').hidden = true;
   }
 
   document.getElementById('loginForm').addEventListener('submit', async (e) => {
@@ -3519,9 +3859,18 @@
         startAlertPolling();
         loadContentBlocks();
       }catch(err){
-        console.log('Logged in, but live data failed to load — showing demo data.', err);
-        renderMockDashboard();
-        setConnBadge(false);
+        if(IS_LOCAL_DEV){
+          console.log('Logged in, but live data failed to load — showing demo data.', err);
+          renderMockDashboard();
+          setConnBadge(false);
+        } else {
+          // Never substitute invented figures on the live shop.
+          console.error('Live data failed to load', err);
+          loginScreen.style.display = '';
+          loginError.textContent = 'Signed in, but the shop data could not be loaded (' + err.message +
+            '). Please refresh; if it keeps happening the server needs attention.';
+          loginError.style.display = 'block';
+        }
       }
     }catch(err){
       loginError.textContent = err.message;
@@ -3532,6 +3881,7 @@
   });
 
   document.getElementById('skipLogin').addEventListener('click', () => {
+    if(!IS_LOCAL_DEV) return;
     loginScreen.style.display = 'none';
     renderMockDashboard();
     setConnBadge(false);
@@ -3566,7 +3916,7 @@
     }
     body.innerHTML = notifRows.map(n => `
       <tr>
-        <td>${n.created_at ? new Date(n.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}) : '—'}</td>
+        <td>${n.created_at ? apiDate(n.created_at).toLocaleString('en-IN',{day:'numeric',month:'short',hour:'numeric',minute:'2-digit'}) : '—'}</td>
         <td>${escAttr(NOTIF_EVENT_LABELS[n.event_type] || n.event_type)}</td>
         <td>${escAttr(n.recipient)}</td>
         <td>${escAttr(n.subject)}</td>
@@ -3644,7 +3994,7 @@
     document.getElementById('notifDetailSubject').textContent = n.subject;
     document.getElementById('notifDetailMeta').innerHTML =
       `<span>${escAttr(n.recipient)} · ${escAttr(n.event_type)} · ${escAttr(n.status)}` +
-      `${n.sent_at ? ' · sent ' + new Date(n.sent_at).toLocaleString('en-IN') : ''}</span>` +
+      `${n.sent_at ? ' · sent ' + apiDate(n.sent_at).toLocaleString('en-IN') : ''}</span>` +
       `<strong>${n.provider ? escAttr(n.provider) : '—'}</strong>`;
     // srcdoc into an empty sandbox: the stored email is previewed exactly as it
     // was sent, but cannot run scripts or reach the dashboard's session.
@@ -3828,7 +4178,7 @@
       const body = document.getElementById('campaignRows');
       body.innerHTML = campaigns.length ? campaigns.map(c => `
         <tr>
-          <td><strong>${escAttr(c.name)}</strong><br><span style="font-size:12px;color:var(--text-soft);">${c.created_at ? new Date(c.created_at).toLocaleDateString('en-IN') : ''}</span></td>
+          <td><strong>${escAttr(c.name)}</strong><br><span style="font-size:12px;color:var(--text-soft);">${c.created_at ? apiDate(c.created_at).toLocaleDateString('en-IN') : ''}</span></td>
           <td>${escAttr(c.subject)}</td>
           <td>${c.status === 'Sent' ? '<span class="badge ok">Sent</span>'
                : c.status === 'Cancelled' ? '<span class="badge neutral">Cancelled</span>'
@@ -3851,13 +4201,169 @@
 
       const couponList = document.getElementById('couponList');
       if(couponList){
-        couponList.innerHTML = coupons.length ? coupons.map(c => `
+        couponList.innerHTML = coupons.filter(c => c.active).length ? coupons.filter(c => c.active).map(c => `
           <div class="kpi-mini"><span>${escAttr(c.code)} — ${escAttr(c.description || '')}</span>
             <strong>${c.usage_count || 0} uses</strong></div>`).join('')
           : '<div class="kpi-mini"><span>No coupons configured.</span><strong>—</strong></div>';
       }
     }catch(err){ /* not signed in — the panels keep their placeholder text */ }
   }
+
+  /* ---- Product photo picker ----------------------------------------------
+     Lists every image on every product (drafts included — this is the admin
+     side), so a hero or collection image can be one of the shop's own
+     photographs without uploading it a second time. */
+  let photoPickerDone = null;
+  function openPhotoPicker(onPick){
+    photoPickerDone = onPick;
+    document.getElementById('photoPickerSearch').value = '';
+    renderPhotoPicker();
+    document.getElementById('photoPicker').classList.add('open');
+  }
+  function renderPhotoPicker(){
+    const q = document.getElementById('photoPickerSearch').value.trim().toLowerCase();
+    const tiles = [];
+    (liveProducts || []).forEach(p => {
+      if(q && !String(p.name).toLowerCase().includes(q)) return;
+      (p.media || []).filter(m => m.media_type === 'image').forEach(m => tiles.push({p, m}));
+    });
+    document.getElementById('photoPickerGrid').innerHTML = tiles.length ? tiles.slice(0, 300).map(t => `
+      <button type="button" data-photo-url="${escAttr(t.m.url)}" title="${escAttr(t.p.name)}"
+        style="border:1px solid var(--line);border-radius:10px;padding:0;background:#fff url('${cssUrl(resolveMediaUrl(t.m.url))}') center/contain no-repeat;aspect-ratio:1;cursor:pointer;"></button>`).join('')
+      : '<p class="empty-note">No product photos yet. Upload images to a product first.</p>';
+  }
+  document.getElementById('photoPickerSearch').addEventListener('input', renderPhotoPicker);
+  document.getElementById('photoPickerClose').addEventListener('click', () =>
+    document.getElementById('photoPicker').classList.remove('open'));
+  document.getElementById('photoPickerGrid').addEventListener('click', e => {
+    const tile = e.target.closest('[data-photo-url]');
+    if(!tile) return;
+    document.getElementById('photoPicker').classList.remove('open');
+    if(photoPickerDone) photoPickerDone(tile.dataset.photoUrl);
+  });
+
+  /* ---- Coupons ---------------------------------------------------------
+     Datetimes: the API stores naive UTC. <input type=datetime-local> is local
+     time, so values are converted both ways here — a coupon set to start at
+     midnight in Mumbai starts at midnight in Mumbai. */
+  let couponCache = [];
+  let couponEditing = null;
+
+  function toLocalInput(iso){
+    if(!iso) return '';
+    const d = apiDate(iso);
+    const pad = n => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+  }
+  function fromLocalInput(value){
+    return value ? new Date(value).toISOString() : null;
+  }
+  function couponDiscount(c){
+    const v = Number(c.discount_value || 0);
+    if(c.discount_type === 'percent') return `${v}% off` + (c.max_discount_amount ? ` (max ${fmtINR(c.max_discount_amount)})` : '');
+    if(c.discount_type === 'flat') return `${fmtINR(v)} off`;
+    return 'Free delivery';
+  }
+  function couponState(c){
+    const now = new Date();
+    if(!c.active) return ['Inactive', 'Draft'];
+    if(c.expires_at && apiDate(c.expires_at) < now) return ['Expired', 'Cancelled'];
+    if(c.starts_at && apiDate(c.starts_at) > now) return ['Scheduled', 'Pending'];
+    if(c.usage_limit && c.usage_count >= c.usage_limit) return ['Used up', 'Cancelled'];
+    return ['Live', 'Delivered'];
+  }
+  const shortDate = iso => iso ? apiDate(iso).toLocaleDateString('en-IN', {day:'numeric', month:'short', year:'numeric'}) : '';
+
+  async function loadCoupons(){
+    const body = document.getElementById('couponRows');
+    try{ couponCache = await apiGet('/coupons'); }
+    catch(err){ body.innerHTML = `<tr><td colspan="7">${escAttr(err.message)}</td></tr>`; return; }
+    body.innerHTML = couponCache.length ? couponCache.map(c => {
+      const [label, badge] = couponState(c);
+      const rules = [c.min_order_amount ? `min ${fmtINR(c.min_order_amount)}` : '',
+                     c.per_customer_limit ? `${c.per_customer_limit}× per customer` : ''].filter(Boolean).join(' · ') || '—';
+      const valid = [c.starts_at ? 'from ' + shortDate(c.starts_at) : '', c.expires_at ? 'until ' + shortDate(c.expires_at) : '']
+        .filter(Boolean).join(' ') || 'Always';
+      return `<tr>
+        <td><strong style="font-family:monospace;">${escAttr(c.code)}</strong><br><span style="font-size:12px;color:var(--text-soft);">${escAttr(c.description || '')}</span></td>
+        <td>${escAttr(couponDiscount(c))}</td><td>${escAttr(rules)}</td><td>${escAttr(valid)}</td>
+        <td>${c.usage_count || 0}${c.usage_limit ? ' / ' + c.usage_limit : ''}</td>
+        <td>${statusBadge(badge).replace(badge, label)}</td>
+        <td><div class="row-actions">
+          <button class="btn" data-coupon-edit="${escAttr(c.id)}">Edit</button>
+          <button class="btn" data-coupon-toggle="${escAttr(c.id)}">${c.active ? 'Deactivate' : 'Activate'}</button>
+          <button class="btn" data-coupon-delete="${escAttr(c.id)}" title="Delete">×</button>
+        </div></td></tr>`;
+    }).join('') : '<tr><td colspan="7" style="color:var(--text-soft);">No coupons yet. Create one with “New coupon”.</td></tr>';
+  }
+
+  function openCoupon(c){
+    couponEditing = c || null;
+    document.getElementById('cpTitle').textContent = c ? 'Edit ' + c.code : 'New coupon';
+    const code = document.getElementById('cpCode');
+    code.value = c ? c.code : ''; code.disabled = !!c;   // orders refer to the code
+    document.getElementById('cpActive').value = !c || c.active ? '1' : '0';
+    document.getElementById('cpDesc').value = c ? (c.description || '') : '';
+    document.getElementById('cpType').value = c ? c.discount_type : 'percent';
+    document.getElementById('cpValue').value = c ? c.discount_value : '';
+    document.getElementById('cpMin').value = c && c.min_order_amount != null ? Number(c.min_order_amount) : '';
+    document.getElementById('cpMax').value = c && c.max_discount_amount != null ? Number(c.max_discount_amount) : '';
+    document.getElementById('cpStart').value = c ? toLocalInput(c.starts_at) : '';
+    document.getElementById('cpEnd').value = c ? toLocalInput(c.expires_at) : '';
+    document.getElementById('cpLimit').value = c && c.usage_limit ? c.usage_limit : '';
+    document.getElementById('cpPerCustomer').value = c && c.per_customer_limit ? c.per_customer_limit : '';
+    document.getElementById('cpError').style.display = 'none';
+    document.getElementById('couponModal').classList.add('open');
+  }
+
+  async function saveCoupon(){
+    const num = id => { const v = document.getElementById(id).value; return v === '' ? null : Number(v); };
+    const body = {
+      description: document.getElementById('cpDesc').value.trim(),
+      discount_type: document.getElementById('cpType').value,
+      discount_value: num('cpValue') || 0,
+      active: document.getElementById('cpActive').value === '1',
+      min_order_amount: num('cpMin'),
+      max_discount_amount: num('cpMax'),
+      starts_at: fromLocalInput(document.getElementById('cpStart').value),
+      expires_at: fromLocalInput(document.getElementById('cpEnd').value),
+      usage_limit: num('cpLimit'),
+      per_customer_limit: num('cpPerCustomer')
+    };
+    const err = document.getElementById('cpError');
+    try{
+      if(couponEditing) await apiSend('PUT', '/coupons/' + couponEditing.id, body);
+      else await apiSend('POST', '/coupons', Object.assign({code: document.getElementById('cpCode').value.trim().toUpperCase()}, body));
+      document.getElementById('couponModal').classList.remove('open');
+      await loadCoupons();
+    }catch(ex){ err.textContent = ex.message; err.style.display = 'block'; }
+  }
+
+  document.getElementById('couponNewBtn').addEventListener('click', () => openCoupon(null));
+  document.getElementById('cpCancel').addEventListener('click', () => document.getElementById('couponModal').classList.remove('open'));
+  document.getElementById('cpSave').addEventListener('click', saveCoupon);
+  document.getElementById('couponRows').addEventListener('click', async (e) => {
+    const edit = e.target.closest('[data-coupon-edit]');
+    const toggle = e.target.closest('[data-coupon-toggle]');
+    const del = e.target.closest('[data-coupon-delete]');
+    const find = id => couponCache.find(c => c.id === id);
+    try{
+      if(edit) openCoupon(find(edit.dataset.couponEdit));
+      if(toggle){
+        const c = find(toggle.dataset.couponToggle);
+        await apiSend('PUT', '/coupons/' + c.id, {active: !c.active});
+        await loadCoupons();
+      }
+      if(del){
+        const c = find(del.dataset.couponDelete);
+        if(!confirm(`Delete ${c.code}? Past orders keep their record of it. To stop it working but keep it on file, deactivate it instead.`)) return;
+        await apiSend('DELETE', '/coupons/' + c.id);
+        await loadCoupons();
+      }
+    }catch(ex){ alert(ex.message); }
+  });
+  document.querySelectorAll('[data-view="coupons"], [data-goto="coupons"]').forEach(b =>
+    b.addEventListener('click', loadCoupons));
 
   document.getElementById('campaignRows').addEventListener('click', async (e) => {
     const send = e.target.closest('[data-campaign-send]');

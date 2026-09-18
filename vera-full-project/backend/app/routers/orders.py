@@ -5,7 +5,9 @@ from datetime import datetime
 from decimal import Decimal
 from typing import List, Optional
 
-from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
+from sqlalchemy import or_
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
@@ -13,6 +15,7 @@ from app.deps import get_current_admin, get_optional_customer
 from app import (
     models, schemas, addresses, inventory, coupons, currency,
     payments as gateway, notifications as notify, loyalty,
+    order_timeline, site_content,
 )
 from app.pricing import money
 
@@ -114,6 +117,30 @@ def _resolve_shipping(db: Session, payload: schemas.OrderCreate, customer) -> di
         )
 
 
+def _existing_for_key(db: Session, key: str, email: str):
+    """The order a previous attempt with this idempotency key created, if any.
+
+    The email must match as well: a key is only a retry of the SAME checkout.
+    """
+    if not key:
+        return None
+    order = db.query(models.Order).filter(models.Order.idempotency_key == key).first()
+    if order is None:
+        return None
+    if (order.customer_email or "").lower() != (email or "").lower():
+        raise HTTPException(status_code=409,
+                            detail="This checkout was already used for a different order.")
+    return order
+
+
+def payment_instructions(db: Session) -> str:
+    """What the customer is told about paying, for the provider in use."""
+    provider = gateway.get_provider()
+    if provider.name == "manual":
+        return site_content.manual_payment(db)["instructions"]
+    return provider.checkout_instructions
+
+
 @router.post("", response_model=schemas.OrderOut, status_code=201)
 def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
                  db: Session = Depends(get_db),
@@ -121,18 +148,30 @@ def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
     if not payload.items:
         raise HTTPException(status_code=400, detail="Order must contain at least one item")
 
+    # A retry of a checkout that already succeeded gets that order back —
+    # before any validation, so a retry after the stock sold out still
+    # returns the order the customer actually has.
+    existing = _existing_for_key(db, payload.idempotency_key, payload.customer_email)
+    if existing is not None:
+        return existing
+
     # Resolved before anything is written: an unshippable address should cost
     # nothing, and must not take stock locks on its way to being refused.
     shipping = _resolve_shipping(db, payload, customer_token)
 
-    # find or create the customer record
-    customer = db.query(models.Customer).filter(
-        models.Customer.email == payload.customer_email
-    ).first()
-    if not customer:
-        customer = models.Customer(name=payload.customer_name, email=payload.customer_email)
-        db.add(customer)
-        db.flush()
+    # Whose order is this? A signed-in shopper's order belongs to their
+    # ACCOUNT, whatever email they typed as the contact address — otherwise a
+    # typo would file it under a stranger, or nowhere they can see it.
+    if customer_token is not None:
+        customer = customer_token
+    else:
+        customer = db.query(models.Customer).filter(
+            models.Customer.email == payload.customer_email
+        ).first()
+        if not customer:
+            customer = models.Customer(name=payload.customer_name, email=payload.customer_email)
+            db.add(customer)
+            db.flush()
 
     order_items = []
     pending_movements = []
@@ -269,7 +308,8 @@ def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
     if payload.coupon_code:
         try:
             coupon, goods_off, ship_off, _msg = coupons.evaluate(
-                db, payload.coupon_code, subtotal, shipping_fee
+                db, payload.coupon_code, subtotal, shipping_fee,
+                customer_id=customer.id, lock=True,
             )
         except coupons.CouponError as exc:
             raise HTTPException(status_code=400, detail=str(exc))
@@ -331,6 +371,8 @@ def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
         display_rate=display_rate if display_code != currency.BASE else None,
         display_total=currency.convert(total, display_code) if display_code != currency.BASE else None,
         items=order_items,
+        idempotency_key=payload.idempotency_key or None,
+        placed_signed_in=customer_token is not None,
     )
     # The immutable delivery snapshot. Written once, here, and never updated:
     # where an order was sent is a historical fact, and a customer editing
@@ -339,6 +381,18 @@ def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
     # — the admin table, the confirmation email — keeps working unchanged.
     addresses.snapshot_onto_order(order, shipping)
     db.add(order)
+    order_timeline.record(db, order, order.status.value, note="Order placed",
+                          actor="customer")
+    # A manual (offline) payment is recorded with the order itself. It used to
+    # be created only when the browser called /payments/intent afterwards, so
+    # a closed tab left an order that staff had no payment to confirm.
+    if gateway.get_provider().name == "manual":
+        db.add(models.Payment(
+            order=order, provider="manual",
+            provider_order_id=f"manual_{order.order_number}",
+            status=models.PaymentStatus.pending,
+            amount=money(order.total), currency=order.currency or "INR",
+        ))
     db.flush()
     # Back-fill the movement rows with the order they belong to, now that the
     # order has an id. Same transaction, so the audit trail is atomic with it.
@@ -367,7 +421,7 @@ def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
     # because queueing flushes the session.
     notify.notify_order_placed(
         db, order,
-        payment_instructions=gateway.get_provider().checkout_instructions,
+        payment_instructions=payment_instructions(db),
     )
     for touched_product, touched_variant in stock_touched:
         notify.check_low_stock(db, touched_variant, touched_product)
@@ -375,7 +429,17 @@ def create_order(payload: schemas.OrderCreate, background: BackgroundTasks,
     # Single commit: stock decrements, the order, its items and its queued
     # notifications all land together, or none of them do. Any raise above
     # rolls the whole thing back and releases the row locks.
-    db.commit()
+    try:
+        db.commit()
+    except IntegrityError:
+        # Two requests with the same idempotency key raced past the check at
+        # the top; the unique index let exactly one commit. This one rolls
+        # back — stock included — and returns the winner.
+        db.rollback()
+        existing = _existing_for_key(db, payload.idempotency_key, payload.customer_email)
+        if existing is None:
+            raise
+        return existing
     db.refresh(order)
 
     # Offer to remember the address — AFTER the order has committed, and in its
@@ -439,33 +503,100 @@ def shipping_countries():
     return addresses.known_countries()
 
 
-@router.get("", response_model=List[schemas.OrderOut])
+def admin_out(order: models.Order) -> schemas.OrderAdminOut:
+    """The staff view of an order: the customer view plus internal fields."""
+    base = schemas.OrderOut.model_validate(order).model_dump()
+    payment = order.payment
+    return schemas.OrderAdminOut(
+        **base,
+        customer_id=order.customer_id,
+        internal_notes=order.internal_notes,
+        placed_signed_in=bool(order.placed_signed_in),
+        customer_phone=order.shipping_phone or (order.customer.phone if order.customer else None),
+        payment_id=payment.id if payment else None,
+        payment_provider=payment.provider if payment else None,
+        payment_reference=payment.reference if payment else None,
+    )
+
+
+def _admin_query(db: Session):
+    return db.query(models.Order).options(
+        joinedload(models.Order.items),
+        joinedload(models.Order.payments),
+        joinedload(models.Order.events),
+    )
+
+
+@router.get("", response_model=List[schemas.OrderAdminOut])
 def list_orders(
     status: Optional[str] = None,
+    q: Optional[str] = Query(None, description="Order number, customer name, email or phone"),
+    limit: int = Query(500, ge=1, le=2000),
+    offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
-    q = db.query(models.Order).options(joinedload(models.Order.items))
+    query = _admin_query(db)
     if status:
-        q = q.filter(models.Order.status == status)
-    return q.order_by(models.Order.created_at.desc()).all()
+        match = next((s for s in models.OrderStatus if s.value == status), None)
+        if match is None:
+            raise HTTPException(status_code=400, detail=f"Unknown status '{status}'")
+        query = query.filter(models.Order.status == match)
+    if q and q.strip():
+        like = f"%{q.strip()}%"
+        query = query.filter(or_(
+            models.Order.order_number.ilike(like),
+            models.Order.customer_name.ilike(like),
+            models.Order.customer_email.ilike(like),
+            models.Order.shipping_phone.ilike(like),
+            models.Order.tracking_number.ilike(like),
+        ))
+    rows = (query.order_by(models.Order.created_at.desc())
+            .offset(offset).limit(limit).all())
+    return [admin_out(o) for o in rows]
 
 
-@router.get("/{order_id}", response_model=schemas.OrderOut)
+@router.get("/{order_id}", response_model=schemas.OrderAdminOut)
 def get_order(
     order_id: str,
     db: Session = Depends(get_db),
     _admin=Depends(get_current_admin),
 ):
-    order = db.query(models.Order).options(joinedload(models.Order.items)).filter(
-        models.Order.id == order_id
-    ).first()
+    order = _admin_query(db).filter(models.Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    return order
+    return admin_out(order)
 
 
-@router.put("/{order_id}/status", response_model=schemas.OrderOut)
+def _apply_tracking(order: models.Order, payload) -> None:
+    for field in ("tracking_number", "carrier", "tracking_url"):
+        value = getattr(payload, field, None)
+        if value is not None:
+            setattr(order, field, value.strip() or None)
+    if order.tracking_url and not order.tracking_url.lower().startswith(("https://", "http://")):
+        raise HTTPException(status_code=400, detail="The tracking link must start with https://")
+
+
+@router.patch("/{order_id}/fulfilment", response_model=schemas.OrderAdminOut)
+def update_fulfilment(
+    order_id: str,
+    payload: schemas.OrderFulfilmentUpdate,
+    db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Tracking details and staff notes, without touching the status."""
+    order = _admin_query(db).filter(models.Order.id == order_id).first()
+    if not order:
+        raise HTTPException(status_code=404, detail="Order not found")
+    _apply_tracking(order, payload)
+    if payload.internal_notes is not None:
+        order.internal_notes = payload.internal_notes.strip() or None
+    db.commit()
+    db.refresh(order)
+    return admin_out(order)
+
+
+@router.put("/{order_id}/status", response_model=schemas.OrderAdminOut)
 def update_order_status(
     order_id: str,
     payload: schemas.OrderStatusUpdate,
@@ -482,22 +613,30 @@ def update_order_status(
     current = order.status.value if order.status else models.OrderStatus.processing.value
     target = payload.status
     if current == target:
-        return order
+        return admin_out(order)
 
     allowed = ALLOWED_TRANSITIONS.get(current, set())
     if target not in allowed:
+        hint = ""
+        if current == "Pending Payment" and target != "Cancelled":
+            hint = " Confirm the payment first — the order moves to Paid when you do."
         raise HTTPException(
             status_code=400,
             detail=(
                 f"Cannot move an order from {current} to {target}. "
-                f"Allowed from {current}: {', '.join(sorted(allowed)) or 'none'}."
+                f"Allowed from {current}: {', '.join(sorted(allowed)) or 'none'}.{hint}"
             ),
         )
+
+    _apply_tracking(order, payload)
 
     # Cancelling or refunding also unwinds loyalty: points earned on this
     # order are clawed back, points spent on it are returned.
     if target in RESTOCKING_STATUSES:
         loyalty.reverse_for_order(db, order, actor=admin.email)
+        # ...and gives the coupon use back, so a cancelled order does not
+        # count towards a usage limit.
+        coupons.release(db, order)
 
     # Cancelling or refunding returns stock to the shelf, through the audit trail.
     if target in RESTOCKING_STATUSES:
@@ -512,11 +651,22 @@ def update_order_status(
                     db, variant, line.quantity, order.id, reason, actor=admin.email,
                 )
 
+    # An unpaid manual payment on a cancelled order is closed too, so it can
+    # no longer be "confirmed" by mistake afterwards.
+    if target == "Cancelled":
+        for p in order.payments:
+            if p.status == models.PaymentStatus.pending:
+                p.status = models.PaymentStatus.cancelled
+
     order.status = target
+    note = (payload.note or "").strip() or None
+    if target == "Shipped" and not note and order.tracking_number:
+        note = " ".join(x for x in (order.carrier, order.tracking_number) if x)
+    order_timeline.record(db, order, target, note=note, actor=admin.email)
     # Same transaction as the status change: the customer is only ever told
     # about a status that actually persisted.
     notify.notify_order_status_change(db, order, target)
     db.commit()
     db.refresh(order)
     notify.schedule_dispatch(background)
-    return order
+    return admin_out(order)

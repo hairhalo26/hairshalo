@@ -35,29 +35,66 @@ def free_shipping_threshold() -> Decimal:
     return money(settings.FREE_SHIPPING_THRESHOLD)
 
 
-def find(db: Session, code: str) -> Optional[models.Coupon]:
+def find(db: Session, code: str, *, lock: bool = False) -> Optional[models.Coupon]:
     if not code:
         return None
-    return db.query(models.Coupon).filter(
-        models.Coupon.code == code.strip().upper()
-    ).first()
+    q = db.query(models.Coupon).filter(models.Coupon.code == code.strip().upper())
+    if lock:
+        # Checkout takes the row lock, so two orders racing for a coupon's
+        # last use are serialised: the second sees the updated usage_count.
+        q = q.with_for_update()
+    return q.first()
 
 
-def evaluate(db: Session, code: str, subtotal, shipping) -> Tuple[models.Coupon, Decimal, Decimal, str]:
+# Orders in these states no longer count as having used a coupon.
+_RELEASED = (models.OrderStatus.cancelled, models.OrderStatus.refunded)
+
+
+def uses_by_customer(db: Session, coupon: models.Coupon, customer_id: str) -> int:
+    """How many live orders this customer has placed with this coupon."""
+    if not customer_id:
+        return 0
+    return db.query(models.Order).filter(
+        models.Order.customer_id == customer_id,
+        models.Order.coupon_code == coupon.code,
+        ~models.Order.status.in_(_RELEASED),
+    ).count()
+
+
+def release(db: Session, order: models.Order) -> None:
+    """Give a coupon use back when its order is cancelled or refunded."""
+    if not order.coupon_code:
+        return
+    coupon = find(db, order.coupon_code, lock=True)
+    if coupon and (coupon.usage_count or 0) > 0:
+        coupon.usage_count = coupon.usage_count - 1
+
+
+def evaluate(db: Session, code: str, subtotal, shipping, *, customer_id: str = None,
+             lock: bool = False) -> Tuple[models.Coupon, Decimal, Decimal, str]:
     """Validate a coupon against a real basket.
 
     Returns (coupon, goods_discount, shipping_discount, human_message).
     Raises CouponError with a customer-readable reason when it cannot apply.
+
+    `customer_id` enables the per-customer limit; without it (an anonymous
+    preview) that rule cannot be checked here, and checkout checks it again.
+    `lock` is for checkout only — see `find`.
     """
-    coupon = find(db, code)
+    coupon = find(db, code, lock=lock)
     if not coupon:
         raise CouponError("That coupon code was not recognised.")
     if not coupon.active:
         raise CouponError(f"{coupon.code} is no longer active.")
+    if coupon.not_started:
+        raise CouponError(f"{coupon.code} is not valid until {coupon.starts_at:%d %b %Y}.")
     if coupon.is_expired:
         raise CouponError(f"{coupon.code} expired on {coupon.expires_at:%d %b %Y}.")
     if coupon.is_exhausted:
         raise CouponError(f"{coupon.code} has reached its usage limit.")
+    if coupon.per_customer_limit is not None and             uses_by_customer(db, coupon, customer_id) >= coupon.per_customer_limit:
+        times = "once" if coupon.per_customer_limit == 1 else f"{coupon.per_customer_limit} times"
+        raise CouponError(f"{coupon.code} can be used {times} per customer, and you already have.")
 
     sub = money(subtotal or 0)
     ship = money(shipping or 0)
@@ -79,6 +116,9 @@ def evaluate(db: Session, code: str, subtotal, shipping) -> Tuple[models.Coupon,
         goods_discount = money(sub * pct / Decimal("100"))
         # format(..., 'f') avoids Decimal.normalize() rendering 10 as "1E+1"
         message = f"{coupon.code} applied — {format(pct.normalize(), 'f')}% off"
+        if coupon.max_discount_amount is not None and                 goods_discount > money(coupon.max_discount_amount):
+            goods_discount = money(coupon.max_discount_amount)
+            message += f" (up to ₹{goods_discount:,.0f})"
 
     elif coupon.discount_type == models.DiscountType.flat:
         amount = money(coupon.discount_value or 0)

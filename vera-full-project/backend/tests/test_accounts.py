@@ -251,7 +251,8 @@ def _place_order(email, token=None):
     for product in products:
         for variant in product.get("variants") or []:
             if (variant.get("stock") or 0) > 2:
-                r = requests.post(f"{API}/orders", timeout=15, json={
+                r = requests.post(f"{API}/orders", timeout=15,
+                                  headers=_auth(token) if token else {}, json={
                     "shipping": SHIPPING,
                     "customer_name": "API Shopper", "customer_email": email,
                     "items": [{"product_id": product["id"],
@@ -323,17 +324,34 @@ def test_admin_endpoints_reject_a_customer_token():
 @live
 def test_order_history_is_hidden_until_the_mailbox_is_confirmed():
     """Rows in `customers` come from checkout, so registering with someone
-    else's address must not hand over their orders."""
+    else's address must not hand over their orders.
+
+    An unverified account sees only what it placed ITSELF while signed in —
+    the guest order already sitting under that email stays hidden until the
+    mailbox is confirmed."""
     email = f"{MARKER}-{uuid.uuid4().hex[:8]}@example.com"
+    guest_order = _place_order(email)            # somebody's earlier guest checkout
     requests.post(f"{API}/account/register", timeout=15, json={
         "email": email, "password": GOOD_PASSWORD, "name": "Unverified"})
     token = requests.post(f"{API}/account/login", timeout=15, json={
         "email": email, "password": GOOD_PASSWORD}).json()["access_token"]
 
-    for path in ("/account/orders", "/account/loyalty"):
-        r = requests.get(f"{API}{path}", headers=_auth(token), timeout=10)
-        assert r.status_code == 403, path
-        assert "confirm your email" in r.json()["detail"].lower()
+    r = requests.get(f"{API}/account/orders", headers=_auth(token), timeout=10)
+    assert r.status_code == 200
+    assert r.json() == [], "an unverified account must not see guest orders under its email"
+    r = requests.get(f"{API}/account/orders/{guest_order['id']}", headers=_auth(token), timeout=10)
+    assert r.status_code == 404
+
+    # Loyalty still waits for the mailbox: points were earned by those orders.
+    r = requests.get(f"{API}/account/loyalty", headers=_auth(token), timeout=10)
+    assert r.status_code == 403
+    assert "confirm your email" in r.json()["detail"].lower()
+
+    # What the account places itself is visible straight away.
+    mine = _place_order(email, token=token)
+    ids = [o["id"] for o in requests.get(f"{API}/account/orders", headers=_auth(token),
+                                         timeout=10).json()]
+    assert ids == [mine["id"]]
 
     # Profile and wishlist still work: they expose nothing that predates the account.
     assert requests.get(f"{API}/account/me", headers=_auth(token), timeout=10).status_code == 200
@@ -341,8 +359,9 @@ def test_order_history_is_hidden_until_the_mailbox_is_confirmed():
     _verify(email)
     token = requests.post(f"{API}/account/login", timeout=15, json={
         "email": email, "password": GOOD_PASSWORD}).json()["access_token"]
-    assert requests.get(f"{API}/account/orders", headers=_auth(token),
-                        timeout=10).status_code == 200
+    ids = {o["id"] for o in requests.get(f"{API}/account/orders", headers=_auth(token),
+                                         timeout=10).json()}
+    assert ids == {guest_order["id"], mine["id"]}
 
 
 @live

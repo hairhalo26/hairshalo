@@ -55,6 +55,28 @@ def get_current_admin(user: models.User = Depends(get_current_user)) -> models.U
     return user
 
 
+def get_optional_admin(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+):
+    """The signed-in staff member, or None.
+
+    For public read endpoints that show MORE to staff — drafts, hidden
+    categories — and must never show it to anyone else. A missing, invalid or
+    customer token is simply "not staff": the caller gets the public view, not
+    an error, so the storefront keeps working whatever it sends.
+    """
+    if not token:
+        return None
+    payload = decode_access_token(token)
+    if not payload or "sub" not in payload or payload.get("typ") == "customer":
+        return None
+    user = db.query(models.User).filter(models.User.id == payload["sub"]).first()
+    if not user or user.role not in ("admin", "staff"):
+        return None
+    return user
+
+
 def get_current_customer(
     token: str = Depends(oauth2_scheme),
     db: Session = Depends(get_db),

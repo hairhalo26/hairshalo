@@ -117,6 +117,16 @@ DEFAULTS: Dict[str, dict] = {
             "intro": "Our most-loved units, chosen by customers who wear them every day.",
         },
     },
+    "shop": {
+        "label": "Shop — all products",
+        "description": ("Heading and intro above the full product listing. Every published "
+                        "product appears there automatically, filterable by category."),
+        "sort_order": 65,
+        "payload": {
+            "heading": "Shop the collection",
+            "intro": "Every style we sell, ready to add to your bag.",
+        },
+    },
     "editorial": {
         "label": "Editorial block",
         "description": "The image-and-text story panel.",
@@ -298,7 +308,36 @@ DEFAULTS: Dict[str, dict] = {
             "privacy": "",
         },
     },
+    "payment": {
+        "label": "Payment details (bank transfer / UPI)",
+        "description": ("What a customer is told after placing an order, when payment is taken "
+                        "manually. Fill in at least a UPI ID or bank account, or customers have "
+                        "no way to pay. Shown only to a customer who has an order to pay."),
+        "sort_order": 160,
+        "payload": {
+            "instructions": ("Your order is reserved. Pay the total using the details below and "
+                             "quote your order number as the reference. We confirm your order as "
+                             "soon as the payment reaches us, usually within one business day."),
+            "upi_id": "",
+            "upi_name": "",
+            "account_name": "",
+            "bank_name": "",
+            "account_number": "",
+            "ifsc": "",
+            "whatsapp_for_receipts": "",
+        },
+    },
 }
+
+# Blocks that are NOT part of the public storefront bundle. The payment block
+# holds account details a customer needs only once they have an order to pay,
+# so they are handed out with that order's payment step rather than to every
+# page view (and every scraper).
+PRIVATE_KEYS = {"payment"}
+
+# The fields of the payment block that make up "how to pay us".
+PAYMENT_DETAIL_FIELDS = ("upi_id", "upi_name", "account_name", "bank_name",
+                         "account_number", "ifsc", "whatsapp_for_receipts")
 
 
 def _row_to_dict(row: models.SiteContent) -> dict:
@@ -364,7 +403,39 @@ def as_map(db: Session) -> dict:
     The storefront needs a dozen blocks to paint one page. Twelve round trips
     to render a homepage is a slow homepage, so this is deliberately one call.
     """
-    return {b["key"]: b["payload"] for b in all_blocks(db) if b["is_active"]}
+    return {b["key"]: b["payload"] for b in all_blocks(db)
+            if b["is_active"] and b["key"] not in PRIVATE_KEYS}
+
+
+def manual_payment(db: Session) -> dict:
+    """The manual-payment instructions and the account details behind them.
+
+    Returns {"instructions": str, "details": {...non-empty fields...},
+    "configured": bool}. `configured` is False when the shop has entered no
+    UPI ID and no account number — the checkout then says so honestly instead
+    of pointing the customer at an invoice that does not exist.
+    """
+    block = get_block(db, "payment") or {"payload": DEFAULTS["payment"]["payload"]}
+    payload = block["payload"] or {}
+    details = {k: str(payload.get(k) or "").strip() for k in PAYMENT_DETAIL_FIELDS}
+    details = {k: v for k, v in details.items() if v}
+    configured = bool(details.get("upi_id") or details.get("account_number"))
+    text = str(payload.get("instructions") or "").strip()         or DEFAULTS["payment"]["payload"]["instructions"]
+    lines = [text]
+    if details.get("upi_id"):
+        lines.append(f"UPI: {details['upi_id']}"
+                     + (f" ({details['upi_name']})" if details.get("upi_name") else ""))
+    if details.get("account_number"):
+        bank = [details.get("account_name"), details.get("bank_name"),
+                f"A/c {details['account_number']}",
+                f"IFSC {details['ifsc']}" if details.get("ifsc") else None]
+        lines.append("Bank transfer: " + ", ".join(b for b in bank if b))
+    if details.get("whatsapp_for_receipts"):
+        lines.append(f"Send your payment receipt on WhatsApp: {details['whatsapp_for_receipts']}")
+    if not configured:
+        lines = [("Your order is reserved. We will contact you shortly with payment details "
+                  "— nothing has been charged.")]
+    return {"instructions": "\n".join(lines), "details": details, "configured": configured}
 
 
 def update_block(db: Session, key: str, *, payload: Optional[dict] = None,

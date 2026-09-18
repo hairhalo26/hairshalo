@@ -1,10 +1,11 @@
+from datetime import timezone
 from typing import List
 
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import get_current_admin
+from app.deps import get_current_admin, get_optional_customer
 from app import models, schemas
 from app import coupons as coupon_service
 from app.pricing import money
@@ -35,7 +36,8 @@ def validate_coupon(payload: schemas.CouponValidateRequest, db: Session = Depend
 
 
 @router.post("/preview", response_model=schemas.CouponPreviewResponse)
-def preview_coupon(payload: schemas.CouponPreviewRequest, db: Session = Depends(get_db)):
+def preview_coupon(payload: schemas.CouponPreviewRequest, db: Session = Depends(get_db),
+                   customer=Depends(get_optional_customer)):
     """Evaluate a coupon against a real basket subtotal.
 
     This is what the checkout UI calls. A coupon that cannot actually reduce
@@ -46,7 +48,8 @@ def preview_coupon(payload: schemas.CouponPreviewRequest, db: Session = Depends(
     shipping = coupon_service.shipping_fee_for(subtotal)
     try:
         coupon, goods_off, ship_off, message = coupon_service.evaluate(
-            db, payload.code, subtotal, shipping
+            db, payload.code, subtotal, shipping,
+            customer_id=customer.id if customer else None,
         )
     except coupon_service.CouponError as exc:
         return schemas.CouponPreviewResponse(
@@ -78,7 +81,33 @@ def shipping_quote(subtotal: float = 0, db: Session = Depends(get_db)):
 
 @router.get("", response_model=List[schemas.CouponOut])
 def list_coupons(db: Session = Depends(get_db), _admin=Depends(get_current_admin)):
-    return db.query(models.Coupon).all()
+    return db.query(models.Coupon).order_by(models.Coupon.code.asc()).all()
+
+
+def _check_rules(values: dict) -> dict:
+    """Refuse a coupon that could never work, before it reaches a customer."""
+    dtype = values.get("discount_type")
+    if dtype is not None:
+        try:
+            values["discount_type"] = models.DiscountType(dtype)
+        except ValueError:
+            raise HTTPException(
+                status_code=400,
+                detail="discount_type must be one of: percent, flat, free_shipping.")
+    kind = values.get("discount_type")
+    value = values.get("discount_value")
+    if kind == models.DiscountType.percent and value is not None and not (0 < value <= 100):
+        raise HTTPException(status_code=400, detail="A percentage discount must be between 0 and 100.")
+    if kind == models.DiscountType.flat and value is not None and value <= 0:
+        raise HTTPException(status_code=400, detail="A flat discount must be more than zero.")
+    starts, ends = values.get("starts_at"), values.get("expires_at")
+    if starts and ends and ends <= starts:
+        raise HTTPException(status_code=400, detail="The expiry date must be after the start date.")
+    for key in ("starts_at", "expires_at"):
+        # Stored naive-UTC like every other timestamp in this schema.
+        if values.get(key) is not None and values[key].tzinfo is not None:
+            values[key] = values[key].astimezone(timezone.utc).replace(tzinfo=None)
+    return values
 
 
 @router.post("", response_model=schemas.CouponOut, status_code=201)
@@ -89,8 +118,40 @@ def create_coupon(
 ):
     if db.query(models.Coupon).filter(models.Coupon.code == payload.code.upper()).first():
         raise HTTPException(status_code=400, detail="Coupon code already exists")
-    coupon = models.Coupon(**{**payload.model_dump(), "code": payload.code.upper()})
+    values = _check_rules(payload.model_dump())
+    values["code"] = payload.code.strip().upper()
+    coupon = models.Coupon(**values)
     db.add(coupon)
+    db.commit()
+    db.refresh(coupon)
+    return coupon
+
+
+@router.put("/{coupon_id}", response_model=schemas.CouponOut)
+def update_coupon(
+    coupon_id: str,
+    payload: schemas.CouponUpdate,
+    db: Session = Depends(get_db),
+    _admin=Depends(get_current_admin),
+):
+    """Edit a coupon's rules. The code itself is fixed: orders refer to it."""
+    coupon = db.query(models.Coupon).filter(models.Coupon.id == coupon_id).first()
+    if not coupon:
+        raise HTTPException(status_code=404, detail="Coupon not found")
+    values = payload.model_dump(exclude_unset=True)
+    merged = {
+        "discount_type": values.get("discount_type", coupon.discount_type.value
+                                    if coupon.discount_type else None),
+        "discount_value": values.get("discount_value", float(coupon.discount_value or 0)),
+        "starts_at": values.get("starts_at", coupon.starts_at),
+        "expires_at": values.get("expires_at", coupon.expires_at),
+    }
+    merged = _check_rules(merged)
+    for key in ("discount_type", "starts_at", "expires_at"):
+        if key in values:
+            values[key] = merged[key]
+    for field, value in values.items():
+        setattr(coupon, field, value)
     db.commit()
     db.refresh(coupon)
     return coupon

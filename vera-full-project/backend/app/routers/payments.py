@@ -23,7 +23,7 @@ from app.database import get_db
 from app.deps import get_current_admin, get_optional_customer
 from app import (
     models, schemas, payments as gateway, inventory,
-    notifications as notify, loyalty,
+    notifications as notify, loyalty, coupons, order_timeline, site_content,
 )
 from app.pricing import money
 
@@ -102,6 +102,8 @@ def _apply_event(db: Session, payment: models.Payment, event: gateway.PaymentEve
         # Stock was reserved when the order was created; payment finalises it.
         if order.status == models.OrderStatus.pending_payment:
             order.status = models.OrderStatus.paid
+            order_timeline.record(db, order, models.OrderStatus.paid.value,
+                                  note="Payment received", actor=event.actor or "payment")
         # Money has arrived, so points are earned now. Idempotent: a replayed
         # webhook or a second confirmation awards once.
         loyalty.earn_for_order(db, order, actor="payment-gateway")
@@ -121,6 +123,9 @@ def _apply_event(db: Session, payment: models.Payment, event: gateway.PaymentEve
                         actor="payment-gateway",
                     )
             order.status = models.OrderStatus.cancelled
+            order_timeline.record(db, order, models.OrderStatus.cancelled.value,
+                                  note="Payment was not completed", actor="payment")
+            coupons.release(db, order)
             loyalty.reverse_for_order(db, order, actor="payment-gateway")
             notify.notify_order_event(db, order, "order.cancelled")
         notify.notify_payment_failed(db, payment)
@@ -138,6 +143,9 @@ def _apply_event(db: Session, payment: models.Payment, event: gateway.PaymentEve
                         models.MovementReason.refund, actor="payment-gateway",
                     )
             order.status = models.OrderStatus.refunded
+            order_timeline.record(db, order, models.OrderStatus.refunded.value,
+                                  note="Payment refunded", actor=event.actor or "payment")
+            coupons.release(db, order)
             loyalty.reverse_for_order(db, order, actor="payment-gateway")
         notify.notify_payment_refunded(db, payment)
 
@@ -186,6 +194,34 @@ def create_intent(payload: schemas.PaymentIntentRequest, db: Session = Depends(g
         raise HTTPException(status_code=400, detail=f"This order is {order.status.value.lower()}.")
 
     provider = gateway.get_provider()
+
+    if provider.name == "manual":
+        # The order already carries its pending manual payment (created with
+        # the order). Hand that one back: calling this twice — a refresh, a
+        # "Pay now" retry — must not stack up duplicate payments to confirm.
+        manual = site_content.manual_payment(db)
+        payment = next((p for p in order.payments
+                        if p.provider == "manual" and p.status == models.PaymentStatus.pending),
+                       None)
+        if payment is None:
+            payment = models.Payment(
+                order_id=order.id, provider="manual",
+                provider_order_id=f"manual_{order.order_number}",
+                status=models.PaymentStatus.pending,
+                amount=money(order.total), currency=order.currency or "INR",
+            )
+            db.add(payment)
+            db.commit()
+            db.refresh(payment)
+        return schemas.PaymentIntentOut(
+            payment_id=payment.id, provider="manual",
+            provider_order_id=payment.provider_order_id,
+            amount=payment.amount, currency=payment.currency,
+            instructions=manual["instructions"],
+            extra={"details": manual["details"], "configured": manual["configured"],
+                   "order_number": order.order_number},
+        )
+
     try:
         intent = provider.create_intent(order)
     except gateway.PaymentError as exc:
@@ -335,6 +371,14 @@ def mark_paid(payment_id: str, payload: schemas.ManualSettleRequest,
             detail="Only offline (manual) payments can be settled by hand; "
                    "gateway payments are confirmed by the gateway.",
         )
+    if payment.order.status in (models.OrderStatus.cancelled, models.OrderStatus.refunded):
+        # Its stock has already gone back on the shelf; confirming it now
+        # would take money for an order that can no longer be fulfilled.
+        raise HTTPException(
+            status_code=400,
+            detail=f"Order {payment.order.order_number} is "
+                   f"{payment.order.status.value.lower()}; it cannot be marked paid.",
+        )
     # provider_payment_id must stay unique and gateway-issued; the human bank
     # reference lives in its own column.
     event = gateway.PaymentEvent(
@@ -342,7 +386,7 @@ def mark_paid(payment_id: str, payload: schemas.ManualSettleRequest,
         provider_payment_id=f"manual_{payment.id}",
         provider_order_id=payment.provider_order_id,
         status="paid", amount=payment.amount, currency=payment.currency,
-        method="offline",
+        method="offline", actor=admin.email,
     )
     _apply_event(db, payment, event)
     payment.reference = payload.reference
@@ -379,7 +423,7 @@ def refund_payment(payment_id: str, payload: schemas.RefundRequest,
     event = gateway.PaymentEvent(
         event_id=f"refund_{refund_id}", provider_payment_id=payment.provider_payment_id,
         provider_order_id=payment.provider_order_id, status="refunded",
-        amount=amount, currency=payment.currency,
+        amount=amount, currency=payment.currency, actor=admin.email,
     )
     _apply_event(db, payment, event)
     notify.schedule_dispatch(background)

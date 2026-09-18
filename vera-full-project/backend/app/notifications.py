@@ -597,7 +597,7 @@ def check_low_stock(db, variant, product) -> None:
     email — not one per subsequent sale at the same level, and not a fresh
     alert after a restock returns it above the line.
     """
-    threshold = settings.LOW_STOCK_ALERT_THRESHOLD
+    threshold = variant.effective_low_stock_threshold
     stock = variant.stock or 0
     if threshold <= 0 or stock > threshold:
         return

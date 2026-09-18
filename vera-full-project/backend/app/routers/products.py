@@ -8,7 +8,7 @@ from sqlalchemy import or_, func
 from sqlalchemy.orm import Session, joinedload
 
 from app.database import get_db
-from app.deps import get_current_admin
+from app.deps import get_current_admin, get_optional_admin
 from app import models, schemas, inventory
 from app.pricing import compute_pricing, PricingError
 from app.storage import get_storage, validate_and_classify, UploadRejected
@@ -76,6 +76,8 @@ def _variant_out(v: models.ProductVariant, product: models.Product) -> schemas.P
         stock=v.stock or 0, is_available=bool(v.is_available),
         in_stock=bool(v.is_available) and (v.stock or 0) > 0,
         sort_order=v.sort_order or 0,
+        low_stock_threshold=v.low_stock_threshold,
+        has_price_override=v.price is not None,
     )
 
 
@@ -205,9 +207,15 @@ def list_products(
     limit: int = Query(60, ge=1, le=200),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    staff=Depends(get_optional_admin),
 ):
     qry = _base_query(db)
 
+    # `status` is a STAFF filter. For anyone else it is ignored rather than
+    # honoured: this endpoint used to return drafts to an anonymous caller who
+    # simply asked for `?status=all`.
+    if staff is None:
+        status = None
     if status and status.lower() == "all":
         pass  # admin view: every status
     elif status:
@@ -295,9 +303,12 @@ def list_products_paged(
     limit: int = Query(24, ge=1, le=100),
     offset: int = Query(0, ge=0),
     db: Session = Depends(get_db),
+    staff=Depends(get_optional_admin),
 ):
     """Paginated listing envelope (items + total) for large catalogs."""
     qry = _base_query(db)
+    if staff is None:
+        status = None
     if status and status.lower() == "all":
         pass
     elif status:
@@ -324,9 +335,22 @@ def list_products_paged(
     )
 
 
+def _get_visible_or_404(product_id: str, db: Session, staff) -> models.Product:
+    """A product the caller is allowed to see.
+
+    The public sees Published products only. Anything else is a 404 — the same
+    answer as a product that does not exist, so a draft's id confirms nothing.
+    """
+    product = _get_or_404(product_id, db)
+    if staff is None and product.status != models.ProductStatus.published:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return product
+
+
 @router.get("/{product_id}", response_model=schemas.ProductOut)
-def get_product(product_id: str, db: Session = Depends(get_db)):
-    return _to_out(_get_or_404(product_id, db))
+def get_product(product_id: str, db: Session = Depends(get_db),
+                staff=Depends(get_optional_admin)):
+    return _to_out(_get_visible_or_404(product_id, db, staff))
 
 
 @router.get("/{product_id}/preview", response_model=schemas.ProductOut)
@@ -565,8 +589,9 @@ def delete_product(
 # ---------------- Variants ----------------
 
 @router.get("/{product_id}/variants", response_model=List[schemas.ProductVariantOut])
-def list_variants(product_id: str, db: Session = Depends(get_db)):
-    product = _get_or_404(product_id, db)
+def list_variants(product_id: str, db: Session = Depends(get_db),
+                  staff=Depends(get_optional_admin)):
+    product = _get_visible_or_404(product_id, db, staff)
     return [schemas.ProductVariantOut(
         id=v.id, sku=v.sku, label=v.label, length=v.length, density=v.density, color=v.color,
         lace_type=v.lace_type, cap_size=v.cap_size, price=v.price, stock=v.stock or 0,

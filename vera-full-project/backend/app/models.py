@@ -251,6 +251,9 @@ class Category(Base):
     sort_order = Column(Integer, default=0)
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # A subcategory names its parent; NULL is top level (migration 0013).
+    parent_id = Column(String, ForeignKey("categories.id", ondelete="SET NULL"),
+                       nullable=True)
 
     products = relationship("Product", back_populates="category_ref")
 
@@ -448,6 +451,15 @@ class ProductVariant(Base):
     is_available = Column(Boolean, default=True, nullable=False)
     sort_order = Column(Integer, default=0)
     created_at = Column(DateTime, default=datetime.utcnow)
+    # NULL = use the shop default (LOW_STOCK_ALERT_THRESHOLD). Migration 0013.
+    low_stock_threshold = Column(Integer, nullable=True)
+
+    @property
+    def effective_low_stock_threshold(self) -> int:
+        from app.config import settings      # local: models must not import config at load
+        if self.low_stock_threshold is not None:
+            return int(self.low_stock_threshold)
+        return int(settings.LOW_STOCK_ALERT_THRESHOLD)
 
     product = relationship("Product", back_populates="variants")
     # NB: InventoryItem.variant is the legacy free-text label column, so the
@@ -591,8 +603,25 @@ class Order(Base):
     status = Column(Enum(OrderStatus), default=OrderStatus.processing)
     created_at = Column(DateTime, default=datetime.utcnow)
 
+    # --- Fulfilment (migration 0013) ----------------------------------
+    tracking_number = Column(String, nullable=True)
+    carrier = Column(String, nullable=True)
+    tracking_url = Column(String, nullable=True)
+    # Staff-only. Deliberately absent from OrderOut, the customer schema.
+    internal_notes = Column(Text, nullable=True)
+    # One checkout attempt's own id. A retried or double-clicked submit
+    # carrying the same key gets the existing order back, not a second one.
+    idempotency_key = Column(String, nullable=True, unique=True, index=True)
+    # Placed by a signed-in account. An account whose email is not yet
+    # verified may still see the orders it placed itself.
+    placed_signed_in = Column(Boolean, default=False, nullable=False)
+
     customer = relationship("Customer", back_populates="orders")
     items = relationship("OrderItem", back_populates="order", cascade="all, delete-orphan")
+    events = relationship(
+        "OrderEvent", back_populates="order", cascade="all, delete-orphan",
+        order_by="OrderEvent.created_at.asc()",
+    )
     payments = relationship(
         "Payment", back_populates="order", cascade="all, delete-orphan",
         order_by="Payment.created_at.desc()",
@@ -645,6 +674,38 @@ class Order(Base):
         """Gateway status of the latest attempt, for display alongside the order."""
         p = self.payment
         return p.status.value if p and p.status else None
+
+    @property
+    def timeline(self):
+        """Status history, oldest first.
+
+        Orders placed before `order_events` existed have no rows. For those a
+        minimal honest timeline is built — placed, then where it is now — with
+        the second step undated, rather than inventing when it happened.
+        """
+        if self.events:
+            return [{"status": e.status, "note": e.note, "at": e.created_at}
+                    for e in self.events]
+        steps = [{"status": "Placed", "note": None, "at": self.created_at}]
+        current = self.status.value if self.status else None
+        if current:
+            steps.append({"status": current, "note": None, "at": None})
+        return steps
+
+
+class OrderEvent(Base):
+    """One step in an order's life: placed, paid, shipped, cancelled..."""
+    __tablename__ = "order_events"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    order_id = Column(String, ForeignKey("orders.id", ondelete="CASCADE"),
+                      nullable=False, index=True)
+    status = Column(String, nullable=False)
+    note = Column(String, nullable=True)       # customer-visible, e.g. "Shipped via Delhivery"
+    actor = Column(String, nullable=True)      # staff email, or "customer" / "payment-gateway"
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    order = relationship("Order", back_populates="events")
 
 
 class Payment(Base):
@@ -700,6 +761,25 @@ class OrderItem(Base):
     order = relationship("Order", back_populates="items")
     product = relationship("Product", back_populates="order_items")
 
+    @property
+    def image_url(self):
+        """A picture of what was bought, for order history.
+
+        The variant's own photograph when it has one (the colour the customer
+        chose), else the product's primary image. Looked up live rather than
+        snapshotted: a replaced photo should update, and a deleted product
+        simply yields None — the order line itself is a snapshot and survives.
+        """
+        product = self.product
+        if product is None:
+            return None
+        if self.variant_id:
+            own = [m for m in product.media
+                   if m.variant_id == self.variant_id and m.media_type == MediaType.image]
+            if own:
+                return sorted(own, key=lambda m: (not m.is_primary, m.sort_order or 0))[0].url
+        return product.primary_image_url
+
 
 class Appointment(Base):
     __tablename__ = "appointments"
@@ -730,6 +810,14 @@ class Coupon(Base):
     min_order_amount = Column(Money, nullable=True)
     expires_at = Column(DateTime, nullable=True)
     usage_limit = Column(Integer, nullable=True)     # NULL = unlimited
+    # Migration 0013. NULL means "no such rule" for each.
+    max_discount_amount = Column(Money, nullable=True)   # cap on a % discount
+    starts_at = Column(DateTime, nullable=True)
+    per_customer_limit = Column(Integer, nullable=True)
+
+    @property
+    def not_started(self):
+        return self.starts_at is not None and self.starts_at > datetime.utcnow()
 
     @property
     def is_expired(self):

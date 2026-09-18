@@ -61,8 +61,12 @@ class PaymentEvent:
     def __init__(self, event_id: str, provider_payment_id: str,
                  provider_order_id: str, status: str, amount: Decimal = None,
                  currency: str = "INR", method: str = None,
-                 error_code: str = None, error_message: str = None):
+                 error_code: str = None, error_message: str = None,
+                 actor: str = None):
         self.event_id = event_id
+        # Who caused it, for the order timeline: a staff email for a manual
+        # settlement or refund, None for a gateway.
+        self.actor = actor
         self.provider_payment_id = provider_payment_id
         self.provider_order_id = provider_order_id
         self.status = status           # paid | authorized | failed | refunded | cancelled

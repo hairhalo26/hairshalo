@@ -1,0 +1,33 @@
+name: Frontend scripts
+
+# The storefront and Admin Panel have no build step, so a syntax error in an
+# inline <script> is otherwise found by a customer: the browser drops the whole
+# block, and checkout with it. This parses every block with Node.
+
+on:
+  push:
+    branches: [main, deploy/aws-production, "feature/**"]
+    paths:
+      - "vera-full-project/frontend/**"
+      - "vera-full-project/scripts/check_frontend_js.py"
+      - ".github/workflows/frontend-check.yml"
+  pull_request:
+    paths:
+      - "vera-full-project/frontend/**"
+      - "vera-full-project/scripts/check_frontend_js.py"
+  workflow_dispatch:
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Parse every inline script
+        run: python vera-full-project/scripts/check_frontend_js.py vera-full-project/frontend

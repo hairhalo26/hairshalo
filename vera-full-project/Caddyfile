@@ -33,6 +33,9 @@
 	}
 
 	handle /media/* {
+		# Every upload is stored under a new UUID name and never rewritten, so
+		# a media URL's content cannot change: browsers may keep it for a year.
+		header Cache-Control "public, max-age=31536000, immutable"
 		reverse_proxy api:8000
 	}
 
@@ -48,6 +51,7 @@
 	@admin path /admin-panel /admin-panel.html
 	handle @admin {
 		header X-Robots-Tag "noindex, nofollow"
+		header Cache-Control "no-cache"
 		root * /srv/frontend
 		# /admin-panel has no file of its own; fall through to the .html.
 		try_files {path} {path}.html
@@ -65,6 +69,13 @@
 	}
 
 	handle {
+		# Pages revalidate on every visit, so a deploy reaches customers on
+		# their next load instead of whenever a heuristic cache expires. Assets
+		# are referenced with a ?v= stamp and may be cached for an hour.
+		@assets path /assets/*
+		header @assets Cache-Control "public, max-age=3600"
+		@pages not path /assets/*
+		header @pages Cache-Control "no-cache"
 		root * /srv/frontend
 		try_files {path} {path}.html /index.html
 		file_server

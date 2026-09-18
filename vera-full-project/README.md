@@ -155,8 +155,10 @@ the row, tops it up from `/api/product-placeholders`. That top-up is opt-in via
 | GET | `/api/categories` | — | Database-driven categories with product counts |
 | POST/PUT/DELETE | `/api/categories[/{id}]` | Admin | Manage categories |
 | POST | `/api/orders` | — | Place an order (checkout) |
-| GET | `/api/orders` | Admin | List all orders |
-| PUT | `/api/orders/{id}/status` | Admin | Update order status |
+| GET | `/api/orders` | Admin | List orders — `status`, `q` (order number, name, email, phone, tracking) |
+| GET | `/api/orders/{id}` | Admin | One order with payment id, staff notes and timeline |
+| PUT | `/api/orders/{id}/status` | Admin | Move an order on; optional customer-visible `note` and tracking |
+| PATCH | `/api/orders/{id}/fulfilment` | Admin | Courier, tracking number/link and staff-only notes |
 | GET | `/api/customers` | Admin | List customers with order stats |
 | POST | `/api/appointments` | — | Book a fitting/consultation |
 | GET | `/api/appointments` | Admin | List appointments |
@@ -169,7 +171,8 @@ the row, tops it up from `/api/product-placeholders`. That top-up is opt-in via
 | POST | `/api/product-placeholders` | Admin | Create placeholder |
 | PUT/DELETE | `/api/product-placeholders/{id}` | Admin | Update / delete placeholder |
 | POST | `/api/product-placeholders/{id}/convert-to-product` | Admin | Create a **new** real product from a placeholder |
-| GET/POST | `/api/coupons` | Admin | Manage coupons |
+| GET/POST | `/api/coupons` | Admin | List / create coupons (min order, max discount, start, expiry, usage and per-customer limits) |
+| PUT/DELETE | `/api/coupons/{id}` | Admin | Edit / delete a coupon (the code itself is fixed) |
 | GET | `/api/analytics/summary` | Admin | Revenue, orders, customers KPIs |
 | GET | `/api/analytics/top-products` | Admin | Best sellers by units sold |
 | GET | `/api/analytics/revenue-trend` | Admin | Daily revenue for charting |
@@ -667,9 +670,14 @@ exists.
 Almost every row in `customers` was created by **checkout**, from an email
 typed into an order form — nobody proved they owned that mailbox. So
 registering with an address does not reveal the orders already sitting under
-it: order history and loyalty require `email_verified`, which only a click in
-that mailbox can set. Profile and wishlist work immediately, because they
-expose nothing that predates the account.
+it: guest orders under that email, and loyalty, require `email_verified`,
+which only a click in that mailbox can set.
+
+What an account places **itself while signed in** is different: those orders
+(`orders.placed_signed_in`) are visible straight away, verified or not — the
+account holder demonstrably placed them. Profile, addresses and wishlist also
+work immediately, because they expose nothing that predates the account. A
+signed-in order is filed under the account, whatever contact email was typed.
 
 ### The rest of the rules
 
@@ -957,6 +965,39 @@ has a working `downgrade()`, including the enum changes Postgres cannot undo
 directly.
 
 ---
+
+## Production-readiness pass (September 2026)
+
+Changes made after auditing the live shop. Migration `0013_orders_coupons_cats`
+is additive (new nullable columns and one new table); run a backup first as
+usual.
+
+- **Drafts stay private.** `status=`, `include_inactive` and `include_hidden`
+  are staff filters; the public API ignores them, and `GET /api/products/{id}`
+  is a 404 for anything unpublished.
+- **Manual payments can be settled.** The pending payment row is created with
+  the order. The Admin Panel order screen confirms it (`mark-paid`, with the
+  bank/UPI reference) or records a refund. What customers are told to pay into
+  is the **Payment details** content block — it is not in the public content
+  bundle and is only handed out with an order's payment step.
+- **Checkout is idempotent.** The storefront sends one `idempotency_key` per
+  attempt; a repeat returns the existing order instead of placing another.
+- **Order timeline and tracking** (`order_events`, carrier/tracking fields) are
+  shown in the customer's account; `internal_notes` never leave the staff API.
+- **Coupons** gained a percentage cap, start date and per-customer limit, a
+  row lock at checkout, and give their use back when an order is cancelled.
+- **Subcategories** (`categories.parent_id`, one level) and a per-variant
+  **low-stock threshold** (NULL = `LOW_STOCK_ALERT_THRESHOLD`).
+- **Storefront:** a Shop section lists every published product with category
+  filters; Best sellers is driven by the flag; product photos are shown whole
+  (`contain`, not cropped); the hero, editorial and collection images fall back
+  to the shop's own product photos; policies open from the footer; the bag
+  persists across reloads and is re-checked against the live catalog.
+- **Customer account page** rebuilt: dashboard, orders with images and detail,
+  addresses, wishlist, reviews, points, profile, password and sign-out-everywhere.
+- **Caching:** HTML is revalidated on every visit, `/assets` is versioned
+  (`?v=`), and `/media` (UUID filenames, never rewritten) is cached as immutable.
+- `scripts/check_frontend_js.py` parses every inline script; CI runs it.
 
 ## What's real vs. what's still a stub
 

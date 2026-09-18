@@ -10,7 +10,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 
 from app.database import get_db
-from app.deps import get_current_admin
+from app.deps import get_current_admin, get_optional_admin
 from app import models, schemas
 from app.pricing import compute_pricing, PricingError
 from app.routers.products import slugify, _coerce_status, _to_out as product_to_out
@@ -33,7 +33,10 @@ def list_placeholders(
     include_hidden: bool = Query(False, description="Admin only — also return hidden placeholders"),
     limit: Optional[int] = Query(None, ge=1, le=100),
     db: Session = Depends(get_db),
+    staff=Depends(get_optional_admin),
 ):
+    if staff is None:
+        include_hidden = False
     q = db.query(models.ProductPlaceholder)
     if category:
         q = q.filter(models.ProductPlaceholder.category == category)
@@ -49,8 +52,12 @@ def list_placeholders(
 
 
 @router.get("/{placeholder_id}", response_model=schemas.ProductPlaceholderOut)
-def get_placeholder(placeholder_id: str, db: Session = Depends(get_db)):
-    return _get_or_404(placeholder_id, db)
+def get_placeholder(placeholder_id: str, db: Session = Depends(get_db),
+                    staff=Depends(get_optional_admin)):
+    ph = _get_or_404(placeholder_id, db)
+    if staff is None and not ph.is_visible:
+        raise HTTPException(status_code=404, detail="Placeholder not found")
+    return ph
 
 
 @router.post("", response_model=schemas.ProductPlaceholderOut, status_code=201)
