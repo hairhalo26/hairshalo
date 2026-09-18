@@ -180,7 +180,17 @@
     .cms-row{grid-template-columns:1fr;}
   }
 
-  .sidebar{background:var(--sidebar);color:#EFE6DA;padding:24px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;}
+  .sidebar{background:var(--sidebar);color:#EFE6DA;padding:24px 16px;display:flex;flex-direction:column;position:sticky;top:0;height:100vh;
+    /* The menu outgrew a short screen once Coupons and Product Import were
+       added; without this the lower items (and the account footer) were cut off. */
+    overflow-y:auto;overscroll-behavior:contain;}
+  .side-foot{flex-wrap:wrap;}
+  .side-foot > div:not(.side-avatar){flex:1;}
+  .side-signout{flex-basis:100%;margin-top:6px;background:none;border:1px solid rgba(255,255,255,.18);color:#EFE6DA;border-radius:8px;
+    padding:7px 10px;font:inherit;font-size:12px;cursor:pointer;white-space:nowrap;}
+  .side-signout:hover{background:rgba(255,255,255,.08);}
+  .side-foot div{min-width:0;}
+  .side-foot div strong,.side-foot div small{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
   /* Balldoug is the Hairshalo logotype face — brand name lockup only.
      Every other heading and label stays on Fraunces/Inter. */
   @font-face{
@@ -295,7 +305,10 @@
     .sidebar{position:relative;height:auto;flex-direction:row;align-items:center;overflow-x:auto;}
     .nav-group{display:flex;gap:4px;margin-bottom:0;}
     .nav-label{display:none;}
-    .side-foot{display:none;}
+    /* On the compact top bar only the sign-out button stays. */
+    .side-foot{margin:0 0 0 8px;padding:0;border:0;flex:none;}
+    .side-foot .side-avatar,.side-foot div{display:none;}
+    .side-signout{flex-basis:auto;margin-top:0;}
     .side-logo,.side-sub{display:none;}
     .stat-grid{grid-template-columns:repeat(2,1fr);}
     .two-col{grid-template-columns:1fr;}
@@ -657,7 +670,11 @@
       <h4>1 · Basic Information</h4>
       <div class="ph-field"><label for="pfName">Product name *</label><input id="pfName" placeholder="HD Lace Body Wave Wig"></div>
       <div class="ph-row">
-        <div class="ph-field"><label for="pfCategory">Category *</label><select id="pfCategory"></select></div>
+        <div class="ph-field"><label for="pfCategory">Category <span class="pf-hint" style="display:inline;">required to publish</span></label>
+          <div style="display:flex;gap:6px;">
+            <select id="pfCategory" style="flex:1;min-width:0;"></select>
+            <button class="btn" type="button" id="pfNewCategory" title="Create a category without leaving this product">+ New</button>
+          </div></div>
         <div class="ph-field"><label for="pfBrand">Brand</label><input id="pfBrand" placeholder="Hairshalo Signature"></div>
       </div>
       <div class="ph-field"><label for="pfShort">Short description</label><input id="pfShort" placeholder="Shown on product cards"></div>
@@ -986,7 +1003,9 @@
 
     <div class="side-foot">
       <div class="side-avatar"></div>
-      <div><strong>Admin User</strong><small>owner@hairshalo.com</small></div>
+      <!-- Filled from /api/auth/me — this used to be a fixed placeholder name. -->
+      <div><strong id="sideUserName">Signed in</strong><small id="sideUserEmail"></small></div>
+      <button class="side-signout" id="signOutBtn" type="button" title="Sign out of the Admin Panel">Sign out</button>
     </div>
   </aside>
 
@@ -2564,6 +2583,13 @@
     modal.classList.add('open');
   }
 
+  let catCreatedForProduct = false;
+  document.getElementById('pfNewCategory').addEventListener('click', async () => {
+    if(categoriesCache.length === 0) await loadCategories();
+    catCreatedForProduct = true;
+    openCategoryEditor(null);
+  });
+
   async function saveCategory(){
     const id = document.getElementById('catId').value;
     const payload = {
@@ -2580,11 +2606,16 @@
       msg.textContent = 'A category needs a name.'; msg.className = 'cms-msg err'; return;
     }
     try{
-      if(id) await apiSend('PUT', '/categories/' + id, payload);
-      else   await apiSend('POST', '/categories', payload);
+      const saved = id ? await apiSend('PUT', '/categories/' + id, payload)
+                       : await apiSend('POST', '/categories', payload);
       await loadCategories();
       renderCategoriesTable();
       document.getElementById('catModal').classList.remove('open');
+      // Opened from the product form: select the new category there.
+      if(catCreatedForProduct){
+        catCreatedForProduct = false;
+        document.getElementById('pfCategory').value = saved.id;
+      }
     }catch(err){
       msg.textContent = err.message; msg.className = 'cms-msg err';
     }
@@ -2611,6 +2642,7 @@
     if(edit) openCategoryEditor(categoriesCache.find(c => c.id === edit.dataset.catEdit));
     if(e.target.id === 'catSave') await saveCategory();
     if(e.target.id === 'catDelete') await deleteCategory();
+    if(e.target.id === 'catCancel' || e.target.id === 'catModalClose') catCreatedForProduct = false;
     if(e.target.id === 'catCancel' || e.target.id === 'catModalClose')
       document.getElementById('catModal').classList.remove('open');
     if(e.target.id === 'catPickProduct'){
@@ -3044,6 +3076,8 @@
     // Real identity and date, instead of a hardcoded greeting.
     try{
       const me = await apiGet('/auth/me');
+      document.getElementById('sideUserName').textContent = me.full_name || 'Staff';
+      document.getElementById('sideUserEmail').textContent = me.email || '';
       const hour = new Date().getHours();
       const part = hour < 12 ? 'Good morning' : hour < 17 ? 'Good afternoon' : 'Good evening';
       document.getElementById('dashGreeting').textContent =
@@ -3566,7 +3600,14 @@
     const payload = pfCollectPayload();
 
     if(!payload.name){ errEl.textContent = 'Product name is required.'; errEl.style.display='block'; return; }
-    if(!payload.category_id){ errEl.textContent = 'Please choose a category.'; errEl.style.display='block'; return; }
+    // A draft may be saved without a category; publishing needs one (the
+    // server enforces the same rule).
+    if(publish && !payload.category_id){
+      errEl.textContent = categoriesCache.length
+        ? 'Choose a category before publishing (or Save Draft for now).'
+        : 'You have no categories yet — click “+ New” next to Category to create one, then publish.';
+      errEl.style.display='block'; return;
+    }
     const skus = pfVariantRows.map(v => (v.sku||'').trim()).filter(Boolean);
     if(new Set(skus).size !== skus.length){
       errEl.textContent = 'Variant SKUs must be unique.'; errEl.style.display='block'; return;
@@ -4076,6 +4117,14 @@
     }
     submitBtn.disabled = false;
     submitBtn.textContent = 'Sign In';
+  });
+
+  /* The staff token lives only in this page's memory, so signing out is
+     forgetting it and starting again at the login screen. */
+  document.getElementById('signOutBtn').addEventListener('click', () => {
+    if(!confirm('Sign out of the Admin Panel?')) return;
+    authToken = null;
+    window.location.replace(window.location.pathname);
   });
 
   document.getElementById('skipLogin').addEventListener('click', () => {

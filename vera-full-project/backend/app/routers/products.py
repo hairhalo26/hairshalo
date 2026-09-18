@@ -391,7 +391,10 @@ def create_product(
     product = models.Product(**data, slug=slug)
     product.status = _coerce_status(payload.status)
     product.badge = _coerce_badge(payload.badge)
-    _apply_pricing(product, payload.original_price, payload.discount_type, payload.discount_value)
+    # A draft may start without a price — publishing refuses it until it has
+    # one (HARD_PUBLISH_REQUIREMENTS). A discount with no price is meaningless.
+    if payload.original_price is not None:
+        _apply_pricing(product, payload.original_price, payload.discount_type, payload.discount_value)
 
     for m in payload.media:
         product.media.append(models.ProductMedia(
@@ -470,12 +473,17 @@ def update_product(
     pricing_keys = {"original_price", "discount_type", "discount_value"}
     if pricing_keys & data.keys():
         current_original = product.compare_at_price if product.compare_at_price is not None else product.price
-        _apply_pricing(
-            product,
-            data.pop("original_price", current_original),
-            data.pop("discount_type", product.discount_type.value if product.discount_type else "none"),
-            data.pop("discount_value", product.discount_value or 0),
-        )
+        if data.get("original_price", current_original) is None:
+            # Still no price (a draft being edited): nothing to compute yet.
+            for key in pricing_keys:
+                data.pop(key, None)
+        else:
+            _apply_pricing(
+                product,
+                data.pop("original_price", current_original),
+                data.pop("discount_type", product.discount_type.value if product.discount_type else "none"),
+                data.pop("discount_value", product.discount_value or 0),
+            )
 
     for field, value in data.items():
         setattr(product, field, value)

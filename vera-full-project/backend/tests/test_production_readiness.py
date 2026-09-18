@@ -500,3 +500,22 @@ def test_variants_follow_the_product_price_until_given_their_own(auth, product):
     r = requests.put(f"{API}/products/variants/{v['id']}", headers=auth, timeout=10,
                      json={"clear_price_override": True})
     assert r.json()["has_price_override"] is False and float(r.json()["price"]) == 5999.0
+
+
+def test_a_draft_can_be_saved_before_it_has_a_price_or_category(auth):
+    """Admins build a product up over time. Only publishing needs the price
+    and category — a shop with no categories yet must still be able to start."""
+    r = requests.post(f"{API}/products", headers=auth, timeout=10,
+                      json={"name": f"Unfinished Wig {uuid.uuid4().hex[:6]}", "status": "Draft"})
+    assert r.status_code == 201, r.text
+    p = r.json()
+    assert p["price"] is None and p["category_id"] is None and p["status"] == "Draft"
+    # Editing other fields keeps working while it is still unpriced.
+    r = requests.put(f"{API}/products/{p['id']}", headers=auth, timeout=10,
+                     json={"description": "Still being written", "discount_type": "none"})
+    assert r.status_code == 200, r.text
+    r = requests.post(f"{API}/products/{p['id']}/status", headers=auth, timeout=10,
+                      json={"action": "publish", "force": True})
+    assert r.status_code == 400
+    assert "Set a price" in r.json()["detail"] and "Choose a category" in r.json()["detail"]
+    requests.delete(f"{API}/products/{p['id']}", headers=auth, timeout=10)
