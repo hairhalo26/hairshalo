@@ -776,6 +776,7 @@
     <div class="ph-error" id="pfError"></div>
     <div class="pf-success" id="pfSuccess"></div>
     <div class="ph-actions">
+      <button class="btn" id="pfDelete" type="button" style="color:var(--danger);margin-right:auto;" hidden>Delete product</button>
       <button class="btn" id="pfCancel">Cancel</button>
       <button class="btn" id="pfSaveDraft">Save Draft</button>
       <button class="btn btn-primary" id="pfPublish">Publish Product</button>
@@ -1671,6 +1672,7 @@
           <button class="icon-mini" title="Edit" data-prod-edit="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 013 3L7 19l-4 1 1-4z"/></svg></button>
           <button class="icon-mini" title="Workflow &amp; flags" data-prod-manage="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 6h16M4 12h16M4 18h10"/></svg></button>
           <button class="icon-mini" title="Preview" data-prod-preview="${p.id}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M1 12s4-7 11-7 11 7 11 7-4 7-11 7-11-7-11-7z"/><circle cx="12" cy="12" r="3"/></svg></button>
+          <button class="icon-mini" title="Delete product" data-prod-delete="${p.id}" style="color:var(--danger);"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 12a2 2 0 002 2h6a2 2 0 002-2l1-12M9 7V4h6v3"/></svg></button>
         </div></td>
       </tr>`;
     }).join('')
@@ -3459,6 +3461,7 @@
   /* ---- Open / populate ---- */
   async function openProductForm(product){
     pfEditingId = product ? product.id : null;
+    el('pfDelete').hidden = !product;
     el('pfTitle').textContent = product ? 'Edit Product' : 'Add Product';
     el('pfSub').textContent = product
       ? 'Changes apply immediately. Historical orders keep their original prices.'
@@ -3505,6 +3508,10 @@
   }
 
   el('pfCancel').addEventListener('click', () => el('pfModal').classList.remove('open'));
+  el('pfDelete').addEventListener('click', async () => {
+    if(!pfEditingId) return;
+    if(await deleteProductById(pfEditingId)) el('pfModal').classList.remove('open');
+  });
 
   /* Supplier facts for an imported product — staff-only, read-only. The
      supplier price here is a cost, never the selling price above. */
@@ -3639,6 +3646,7 @@
           variants: pfVariantRows.map(pfVariantPayload)
         });
         pfEditingId = product.id;
+        el('pfDelete').hidden = false;      // saved now, so it can be deleted
       }
 
       if(publish){
@@ -3793,7 +3801,33 @@
   document.getElementById('previewClose').addEventListener('click',
     () => document.getElementById('previewModal').classList.remove('open'));
 
+  /* Delete a product for good — or, once customers have ordered it, archive it:
+     the server refuses to delete anything that appears in an order, because
+     that order's history would lose the product it refers to. */
+  async function deleteProductById(id){
+    const p = liveProducts.find(x => x.id === id) || {};
+    const name = p.name || 'this product';
+    if(!confirm(`Delete “${name}” permanently?
+
+Its variants, stock records and photos are removed. This cannot be undone.`)) return false;
+    try{
+      await apiSend('DELETE', '/products/' + id);
+    }catch(err){
+      if(/archive/i.test(err.message)){
+        if(!confirm(`“${name}” has been ordered, so it can't be deleted — past orders still refer to it.
+
+Archive it instead? It disappears from the shop and can be restored later.`)) return false;
+        try{ await apiSend('POST', `/products/${id}/status`, {action:'archive'}); }
+        catch(e2){ alert(e2.message); return false; }
+      } else { alert(err.message); return false; }
+    }
+    await loadLiveDashboard();
+    return true;
+  }
+
   document.addEventListener('click', async (e) => {
+    const del = e.target.closest('[data-prod-delete]');
+    if(del){ await deleteProductById(del.dataset.prodDelete); return; }
     const manage = e.target.closest('[data-prod-manage]');
     const preview = e.target.closest('[data-prod-preview]');
     const edit = e.target.closest('[data-prod-edit]');

@@ -519,3 +519,26 @@ def test_a_draft_can_be_saved_before_it_has_a_price_or_category(auth):
     assert r.status_code == 400
     assert "Set a price" in r.json()["detail"] and "Choose a category" in r.json()["detail"]
     requests.delete(f"{API}/products/{p['id']}", headers=auth, timeout=10)
+
+
+def test_delete_removes_unordered_products_and_refuses_ordered_ones(auth, category):
+    """The Admin Panel's delete button: gone for good if nobody bought it;
+    refused (so it can be archived) once an order refers to it."""
+    spare = _make_product(auth, category, publish=False)
+    r = requests.delete(f"{API}/products/{spare['id']}", headers=auth, timeout=10)
+    assert r.status_code == 204
+    assert requests.get(f"{API}/products/{spare['id']}", headers=auth, timeout=10).status_code == 404
+
+    sold = _make_product(auth, category)
+    assert _order(sold).status_code == 201
+    r = requests.delete(f"{API}/products/{sold['id']}", headers=auth, timeout=10)
+    assert r.status_code == 400 and "archive" in r.json()["detail"].lower()
+    assert requests.get(f"{API}/products/{sold['id']}", timeout=10).status_code == 200
+
+    # Customers and anonymous callers can never delete.
+    _email, token = _customer()
+    for headers in ({}, {"Authorization": f"Bearer {token}"}):
+        assert requests.delete(f"{API}/products/{sold['id']}", headers=headers,
+                               timeout=10).status_code in (401, 403)
+    requests.post(f"{API}/products/{sold['id']}/status", headers=auth, timeout=10,
+                  json={"action": "archive"})
