@@ -3,7 +3,7 @@
 Two populations share one JWT scheme and must never be confused for each other:
 
 * **Staff** (`users` table) run the dashboard. Their tokens have no `typ`, or
-  `typ="admin"`.
+  `typ="admin"`, and a `tv` (token version) that signing out invalidates.
 * **Customers** (`customers` table) use the storefront. Their tokens carry
   `typ="customer"` and a `tv` (token version).
 
@@ -46,6 +46,11 @@ def get_current_user(
     user = db.query(models.User).filter(models.User.id == payload["sub"]).first()
     if not user:
         raise _unauthorized()
+    # Staff token version: signing out bumps it and every earlier token stops
+    # working. A token issued before versions existed has none and counts as 0,
+    # so nobody was locked out by the upgrade — it just expires as it always did.
+    if int(payload.get("tv", 0)) != int(user.token_version or 0):
+        raise _unauthorized("This session has ended. Please sign in again.")
     return user
 
 
@@ -74,6 +79,8 @@ def get_optional_admin(
     user = db.query(models.User).filter(models.User.id == payload["sub"]).first()
     if not user or user.role not in ("admin", "staff"):
         return None
+    if int(payload.get("tv", 0)) != int(user.token_version or 0):
+        return None                   # signed out: the public view, like no token
     return user
 
 

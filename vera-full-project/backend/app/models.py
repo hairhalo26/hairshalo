@@ -169,6 +169,10 @@ class User(Base):
     full_name = Column(String, nullable=False)
     role = Column(String, default="admin")  # admin | staff
     created_at = Column(DateTime, default=datetime.utcnow)
+    # Token version (migration 0015). Every staff token carries the version it
+    # was issued under; signing out increments it, so tokens issued before are
+    # refused at once instead of staying valid until they expire.
+    token_version = Column(Integer, default=0, nullable=False)
 
 
 class Customer(Base):

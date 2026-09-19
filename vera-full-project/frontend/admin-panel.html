@@ -2984,8 +2984,18 @@
     return new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(s) ? s : s + 'Z');
   }
 
+  /* A 401 while signed in means the session was ended — signed out here or on
+     another device (the server revokes every earlier token). Rather than leave
+     screens half-working, go back to the login with a plain explanation. */
+  function sessionEnded(){
+    if(!authToken) return;
+    authToken = null;
+    window.location.replace(window.location.pathname + '?session=ended');
+  }
+
   async function apiGet(path){
     const res = await fetch(API_BASE + path, { headers: { 'Authorization': 'Bearer ' + authToken } });
+    if(res.status === 401) sessionEnded();
     if(!res.ok) throw new Error('Request failed: ' + path);
     return res.json();
   }
@@ -3128,7 +3138,9 @@
       categoriesCache = await apiGet('/categories?include_inactive=true');
     }catch(err){ categoriesCache = []; }
     const sel = el('pfCategory');
-    sel.innerHTML = '<option value="">— Select a category —</option>' +
+    sel.innerHTML = (categoriesCache.length
+        ? '<option value="">— Select a category —</option>'
+        : '<option value="">No categories yet — click “+ New” →</option>') +
       categoriesCache.map(c => `<option value="${c.id}">${esc(categoryPath(c))}</option>`).join('');
     const filt = el('prodCategoryFilter');
     if(filt) filt.innerHTML = '<option value="">All categories</option>' +
@@ -3156,6 +3168,7 @@
       ? note + ' The server will reject this.'
       : 'Preview only — the server recalculates and validates these values on save.';
     el('pfCalcNote').style.color = note ? 'var(--danger)' : 'var(--text-soft)';
+    pfVariantHints();
   }
   ['pfOriginal','pfDiscType','pfDiscValue'].forEach(id => {
     document.addEventListener('input', e => { if(e.target.id === id) pfUpdateCalc(); });
@@ -3198,7 +3211,44 @@
             <label class="ph-check" style="margin-bottom:10px;"><input type="checkbox" data-vfield="is_available" data-vi="${i}" ${v.is_available !== false ? 'checked' : ''}> Available</label>
           </div>
         </div>
+        <div class="pf-hint" data-vsells="${i}" style="margin-top:2px;"></div>
       </div>`).join('') || '<div class="pf-hint">No variants yet. A product needs at least one variant before it can be published.</div>';
+    pfVariantHints();
+  }
+
+  /* Price after a discount, the same arithmetic as the product price preview.
+     Preview only: the server computes the real price on save. */
+  function pfSellingFrom(original, type, value){
+    original = parseFloat(original) || 0; value = parseFloat(value) || 0;
+    let discount = 0;
+    if(type === 'percentage' && value <= 100) discount = original * value / 100;
+    else if(type === 'fixed_amount' && value <= original) discount = value;
+    return Math.max(0, original - discount);
+  }
+
+  /* What each variant will actually sell for. An override price wins over the
+     product price, so a stray value in that box (a live product once sold at
+     ₹5 instead of ₹25,000 this way) is shown plainly and flagged when it is
+     far below the product's own price. */
+  function pfVariantHints(){
+    const productPrice = el('pfOriginal').value === '' ? null
+      : pfSellingFrom(el('pfOriginal').value, el('pfDiscType').value, el('pfDiscValue').value);
+    pfVariantRows.forEach((v, i) => {
+      const box = document.querySelector(`[data-vsells="${i}"]`);
+      if(!box) return;
+      const own = v.original_price !== null && v.original_price !== '' && v.original_price !== undefined;
+      if(own){
+        const price = pfSellingFrom(v.original_price, v.discount_type, v.discount_value);
+        const low = productPrice && price < productPrice * 0.5;
+        box.innerHTML = `Sells at <strong>${fmtINR(price)}</strong> — this variant's own price.` +
+          (low ? ` <span style="color:var(--danger);font-weight:600;">That is far below the product price of ${fmtINR(productPrice)}.
+              Check it is intended, or empty the “Price override” box to use the product price.</span>` : '');
+      } else if(productPrice !== null){
+        box.innerHTML = `Sells at <strong>${fmtINR(productPrice)}</strong> — the product price.`;
+      } else {
+        box.textContent = 'No price yet — set the product price above, or a price for this variant.';
+      }
+    });
   }
 
   document.addEventListener('input', e => {
@@ -3207,12 +3257,14 @@
     const i = parseInt(e.target.dataset.vi, 10);
     pfVariantRows[i][f] = e.target.type === 'checkbox' ? e.target.checked
       : (e.target.type === 'number' ? (e.target.value === '' ? null : parseFloat(e.target.value)) : e.target.value);
+    if(['original_price','discount_type','discount_value'].includes(f)) pfVariantHints();
   });
   document.addEventListener('change', e => {
     const f = e.target.dataset && e.target.dataset.vfield;
     if(!f) return;
     const i = parseInt(e.target.dataset.vi, 10);
     pfVariantRows[i][f] = e.target.type === 'checkbox' ? e.target.checked : e.target.value;
+    if(['original_price','discount_type','discount_value'].includes(f)) pfVariantHints();
   });
   document.addEventListener('click', e => {
     const rm = e.target.closest('[data-vremove]');
@@ -3910,6 +3962,7 @@ Archive it instead? It disappears from the shop and can be restored later.`)) re
       headers: {'Content-Type':'application/json', 'Authorization':'Bearer ' + authToken},
       body: body === undefined ? undefined : JSON.stringify(body)
     });
+    if(res.status === 401 && path !== '/auth/logout') sessionEnded();
     if(!res.ok){
       let detail = 'Request failed';
       try{ detail = (await res.json()).detail || detail; }catch(e){}
@@ -4155,11 +4208,29 @@ Archive it instead? It disappears from the shop and can be restored later.`)) re
 
   /* The staff token lives only in this page's memory, so signing out is
      forgetting it and starting again at the login screen. */
-  document.getElementById('signOutBtn').addEventListener('click', () => {
-    if(!confirm('Sign out of the Admin Panel?')) return;
+  /* Sign out ends the session on the SERVER: every token issued to this
+     account before now is refused from here on (on every device). Forgetting
+     the token in this page alone would leave a copied token valid for 24h. */
+  document.getElementById('signOutBtn').addEventListener('click', async () => {
+    if(!confirm('Sign out of the Admin Panel? This signs you out on every device.')) return;
+    const btn = document.getElementById('signOutBtn');
+    btn.disabled = true; btn.textContent = 'Signing out…';
+    try{
+      await fetch(API_BASE + '/auth/logout', {method:'POST', headers:{'Authorization':'Bearer ' + authToken}});
+    }catch(_){ /* offline: the token is still forgotten below */ }
     authToken = null;
-    window.location.replace(window.location.pathname);
+    window.location.replace(window.location.pathname + '?session=signedout');
   });
+  // Explain why the login screen is showing after a sign-out or a revoked session.
+  (function(){
+    const why = new URLSearchParams(window.location.search).get('session');
+    const box = document.getElementById('loginError');
+    if(!why || !box) return;
+    box.textContent = why === 'signedout' ? 'You have been signed out.'
+                                          : 'Your session has ended. Please sign in again.';
+    box.style.display = 'block';
+    box.style.color = why === 'signedout' ? 'var(--text-soft)' : '';
+  })();
 
   document.getElementById('skipLogin').addEventListener('click', () => {
     if(!IS_LOCAL_DEV) return;

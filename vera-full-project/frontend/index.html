@@ -416,6 +416,7 @@
     font-size:12px;font-weight:700;cursor:pointer;letter-spacing:.04em;
   }
   .coupon-row button:disabled{opacity:.5;cursor:not-allowed;}
+  .coupon-row button.coupon-remove{background:transparent;color:var(--ink);border:1px solid var(--line);}
   .coupon-msg{font-size:12px;margin-bottom:10px;line-height:1.6;display:none;}
   .coupon-msg.ok{color:#3F7D58;display:block;}
   .coupon-msg.err{color:var(--wine);display:block;}
@@ -2512,6 +2513,7 @@
     <div class="coupon-row">
       <input type="text" id="ckCoupon" placeholder="Enter coupon code" autocomplete="off">
       <button type="button" id="ckCouponApply">Apply</button>
+      <button type="button" id="ckCouponRemove" class="coupon-remove" hidden>Remove</button>
     </div>
     <div class="coupon-msg" id="ckCouponMsg"></div>
 
@@ -3318,6 +3320,21 @@
     appliedCoupon = null;
     const msg = document.getElementById('ckCouponMsg');
     if(msg && !silent){ msg.className = 'coupon-msg'; msg.textContent = ''; }
+    const remove = document.getElementById('ckCouponRemove');
+    if(remove) remove.hidden = true;
+  }
+
+  /* Taking a coupon off again. There was no way to do this: an emptied box
+     just said "Enter a coupon code first" and the order still carried the
+     discount. Only the code is ever sent at checkout, and the server
+     re-checks it, so this is purely about what the customer chose. */
+  function removeCoupon(){
+    const input = document.getElementById('ckCoupon');
+    if(input) input.value = '';
+    clearCoupon(true);
+    const msg = document.getElementById('ckCouponMsg');
+    if(msg){ msg.className = 'coupon-msg ok'; msg.textContent = 'Coupon removed.'; }
+    refreshTotals();
   }
 
   async function applyCoupon(){
@@ -3325,6 +3342,8 @@
     const msg = document.getElementById('ckCouponMsg');
     const btn = document.getElementById('ckCouponApply');
     const code = (input.value || '').trim();
+    // An emptied box with a coupon applied means "take it off".
+    if(!code && appliedCoupon){ removeCoupon(); return; }
     if(!code){ msg.className='coupon-msg err'; msg.textContent='Enter a coupon code first.'; return; }
     if(cart.length === 0){ msg.className='coupon-msg err'; msg.textContent='Add something to your bag first.'; return; }
 
@@ -3345,6 +3364,7 @@
         };
         msg.className = 'coupon-msg ok';
         msg.textContent = d.message;
+        document.getElementById('ckCouponRemove').hidden = false;
       } else {
         clearCoupon();
         msg.className = 'coupon-msg err';
@@ -3360,6 +3380,7 @@
   }
 
   document.getElementById('ckCouponApply').addEventListener('click', applyCoupon);
+  document.getElementById('ckCouponRemove').addEventListener('click', removeCoupon);
   document.getElementById('ckCoupon').addEventListener('keydown', e => {
     if(e.key === 'Enter'){ e.preventDefault(); applyCoupon(); }
   });

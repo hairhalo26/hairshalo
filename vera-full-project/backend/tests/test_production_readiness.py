@@ -542,3 +542,72 @@ def test_delete_removes_unordered_products_and_refuses_ordered_ones(auth, catego
                                timeout=10).status_code in (401, 403)
     requests.post(f"{API}/products/{sold['id']}/status", headers=auth, timeout=10,
                   json={"action": "archive"})
+
+
+# ----------------------------------------------------------- staff sign-out
+
+def _staff_account():
+    """A throwaway staff user, so signing out never touches the shared admin
+    whose token the rest of this suite is using."""
+    from app.database import SessionLocal
+    from app.security import hash_password
+    from app import models as m
+    email, pw = f"staff-{uuid.uuid4().hex[:8]}@example.com", "Staff-password-2026!"
+    db = SessionLocal()
+    try:
+        user = m.User(email=email, hashed_password=hash_password(pw), full_name="Test Staff", role="staff")
+        db.add(user)
+        db.commit()
+        return user.id, email, pw
+    finally:
+        db.close()
+
+
+def _staff_login(email, pw):
+    r = requests.post(f"{API}/auth/login", timeout=10, json={"email": email, "password": pw})
+    assert r.status_code == 200, r.text
+    return {"Authorization": f"Bearer {r.json()['access_token']}"}
+
+
+def test_signing_out_revokes_staff_tokens_on_the_server():
+    """Sign out used to only forget the token in the page; a copied token kept
+    working for 24 hours. Now every token issued before the sign-out is refused."""
+    _uid_, email, pw = _staff_account()
+    first = _staff_login(email, pw)
+    second = _staff_login(email, pw)                  # e.g. another device
+    assert requests.get(f"{API}/orders?limit=1", headers=first, timeout=10).status_code == 200
+
+    r = requests.post(f"{API}/auth/logout", headers=first, timeout=10)
+    assert r.status_code == 200
+    for old in (first, second):
+        assert requests.get(f"{API}/orders?limit=1", headers=old, timeout=10).status_code == 401
+        assert requests.get(f"{API}/auth/me", headers=old, timeout=10).status_code == 401
+        assert requests.post(f"{API}/auth/logout", headers=old, timeout=10).status_code == 401
+    # A revoked token on a public endpoint just gets the public view: no drafts.
+    public = requests.get(f"{API}/products", params={"status": "all", "limit": 200},
+                          headers=first, timeout=10).json()
+    assert all(p["status"] == "Published" for p in public)
+    # Signing in again works.
+    fresh = _staff_login(email, pw)
+    assert requests.get(f"{API}/orders?limit=1", headers=fresh, timeout=10).status_code == 200
+
+
+def test_a_token_from_before_versioning_still_works_until_the_first_sign_out():
+    """Tokens issued before this change carry no version; they count as 0, so
+    the upgrade signs nobody out — but a sign-out still revokes them."""
+    from app.security import create_access_token
+    user_id, email, pw = _staff_account()
+    legacy = {"Authorization": "Bearer " + create_access_token({"sub": user_id, "role": "staff"})}
+    assert requests.get(f"{API}/orders?limit=1", headers=legacy, timeout=10).status_code == 200
+    requests.post(f"{API}/auth/logout", headers=_staff_login(email, pw), timeout=10)
+    assert requests.get(f"{API}/orders?limit=1", headers=legacy, timeout=10).status_code == 401
+
+
+def test_staff_sign_out_is_staff_only_and_leaves_customers_alone():
+    email, token = _customer()
+    customer = {"Authorization": f"Bearer {token}"}
+    for headers in ({}, customer):
+        assert requests.post(f"{API}/auth/logout", headers=headers, timeout=10).status_code == 401
+    _uid_, s_email, s_pw = _staff_account()
+    requests.post(f"{API}/auth/logout", headers=_staff_login(s_email, s_pw), timeout=10)
+    assert requests.get(f"{API}/account/me", headers=customer, timeout=10).status_code == 200
