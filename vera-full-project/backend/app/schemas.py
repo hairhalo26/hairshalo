@@ -43,6 +43,9 @@ class CategoryCreate(CategoryBase):
 
 class CategoryUpdate(BaseModel):
     name: Optional[str] = None
+    # Changing a slug changes public filter URLs, so it only happens when asked
+    # for explicitly; renaming a category keeps its slug stable.
+    slug: Optional[str] = None
     description: Optional[str] = None
     tagline: Optional[str] = None
     image_url: Optional[str] = None
@@ -55,7 +58,45 @@ class CategoryOut(CategoryBase):
     model_config = ConfigDict(from_attributes=True)
     id: str
     slug: str
+    # Published products in this category — for a top-level category, including
+    # those filed under its subcategories (its Hair Types).
     product_count: int = 0
+
+
+class ReorderRequest(BaseModel):
+    """Ids in their new display order; sort_order becomes each one's position."""
+    ids: List[str] = Field(..., min_length=1, max_length=500)
+
+
+# ---------- Colours (hair catalogue) ----------
+class ColourBase(BaseModel):
+    name: str = Field(..., min_length=1, max_length=80)
+    hex: Optional[str] = None                # "#RRGGBB" swatch, optional
+    sort_order: int = 0
+    is_active: bool = True
+
+
+class ColourCreate(ColourBase):
+    slug: Optional[str] = None
+
+
+class ColourUpdate(BaseModel):
+    name: Optional[str] = Field(None, min_length=1, max_length=80)
+    slug: Optional[str] = None
+    hex: Optional[str] = None
+    sort_order: Optional[int] = None
+    is_active: Optional[bool] = None
+
+
+class ColourOut(ColourBase):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    slug: str
+    # Published products with an available variant in this colour (within the
+    # category/type asked about, when the request names one).
+    product_count: int = 0
+    # Variants of ANY status using it — why a colour can be archived but not deleted.
+    variant_count: int = 0
 
 
 # ---------- Pricing (shared input block) ----------
@@ -132,6 +173,9 @@ class ProductVariantBase(BaseModel):
     length: Optional[str] = None
     density: Optional[str] = None
     color: Optional[str] = None
+    # A managed colour (Back Office -> Hair Catalogue -> Colours). When given,
+    # the server sets `color` to that colour's name.
+    colour_id: Optional[str] = None
     lace_type: Optional[str] = None
     cap_size: Optional[str] = None
     stock: int = Field(0, ge=0)
@@ -153,6 +197,7 @@ class ProductVariantUpdate(BaseModel):
     length: Optional[str] = None
     density: Optional[str] = None
     color: Optional[str] = None
+    colour_id: Optional[str] = None       # "" unlinks the managed colour
     lace_type: Optional[str] = None
     cap_size: Optional[str] = None
     original_price: Optional[Decimal] = Field(None, ge=0)
@@ -182,6 +227,8 @@ class ProductVariantOut(ProductVariantBase):
     # price and saving it back would freeze a copy of today's price onto the
     # variant, and later product price changes would stop reaching it.
     has_price_override: bool = False
+    colour_slug: Optional[str] = None
+    colour_hex: Optional[str] = None
 
 
 # ---------- Product readiness (admin publishing aid) ----------
@@ -220,6 +267,9 @@ class ProductBase(BaseModel):
 class ProductCreate(ProductBase):
     slug: Optional[str] = None
     category_id: Optional[str] = None
+    # Hair Type: a subcategory of `category_id`. The server checks it belongs
+    # to that category and is active, then files the product under it.
+    subcategory_id: Optional[str] = None
     status: str = "Draft"
     # Pricing is expressed as original + discount; the server derives the rest.
     original_price: Optional[Decimal] = Field(None, ge=0)
@@ -238,6 +288,7 @@ class ProductUpdate(BaseModel):
     benefits: Optional[str] = None
     care_instructions: Optional[str] = None
     category_id: Optional[str] = None
+    subcategory_id: Optional[str] = None     # Hair Type; see ProductCreate
     short_description: Optional[str] = None
     description: Optional[str] = None
     brand: Optional[str] = None
@@ -262,6 +313,17 @@ class ProductOut(ProductBase):
     status: str
     category: Optional[str] = None       # category name, for the existing UI
     category_id: Optional[str] = None
+    category_slug: Optional[str] = None
+    # The hair hierarchy, derived from category_id: the Hair Category (top
+    # level) and, when the product is filed under one, its Hair Type.
+    main_category_id: Optional[str] = None
+    main_category: Optional[str] = None
+    main_category_slug: Optional[str] = None
+    subcategory_id: Optional[str] = None
+    subcategory: Optional[str] = None
+    subcategory_slug: Optional[str] = None
+    # Managed colours this product's variants come in, in Back Office order.
+    colours: List[ColourOut] = []
     image_url: Optional[str] = None      # primary image, derived from media
     video_url: Optional[str] = None      # first video, if any
     rating: float

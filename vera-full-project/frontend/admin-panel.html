@@ -370,6 +370,30 @@
     font-weight:700;margin-bottom:14px;
   }
   .pf-row-3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px;}
+  /* Hair Catalogue */
+  .hc-grid{display:grid;grid-template-columns:1fr 1.3fr 1fr;gap:22px;align-items:start;}
+  @media (max-width:1100px){ .hc-grid{grid-template-columns:1fr;} }
+  .hc-group{margin-bottom:16px;}
+  .hc-group-head{display:flex;justify-content:space-between;align-items:center;gap:8px;
+    font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--text-soft);font-weight:700;margin-bottom:6px;}
+  .hc-row{display:flex;align-items:center;gap:10px;padding:9px 10px;border:1px solid var(--line);
+    border-radius:10px;margin-bottom:6px;background:#fff;}
+  .hc-row.off{background:#FAF6F0;}
+  .hc-row.off .hc-name strong{color:var(--text-soft);}
+  .hc-name{flex:1;min-width:0;}
+  .hc-name strong{display:block;font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+  .hc-name span{display:block;font-size:11px;color:var(--text-soft);}
+  .hc-actions{display:flex;gap:4px;flex:none;}
+  .hc-actions .cms-mini[disabled]{opacity:.35;cursor:default;}
+  .hc-swatch{width:18px;height:18px;border-radius:50%;flex:none;border:1px solid rgba(0,0,0,.12);
+    background:repeating-linear-gradient(45deg,#F4EEE3 0 3px,#fff 3px 6px);}
+  .pf-colours{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-bottom:12px;}
+  .pf-colours .pf-colours-label{font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--text-soft);font-weight:700;margin-right:4px;}
+  .pf-colour{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--line);border-radius:100px;
+    padding:5px 11px 5px 8px;font-size:12px;cursor:pointer;background:#fff;}
+  .pf-colour input{width:auto;margin:0;}
+  .pf-colour .hc-swatch{width:13px;height:13px;}
+  .pf-colour.on{border-color:var(--wine);background:#FBF3F4;}
   .pf-calc{
     background:#FBF7F0;border:1px solid var(--line);border-radius:12px;padding:14px 16px;margin-top:6px;
   }
@@ -669,12 +693,16 @@
     <div class="pf-section">
       <h4>1 · Basic Information</h4>
       <div class="ph-field"><label for="pfName">Product name *</label><input id="pfName" placeholder="HD Lace Body Wave Wig"></div>
-      <div class="ph-row">
+      <!-- Category -> Hair Type: the type list only ever shows the chosen
+           category's own types, and the server refuses any other pairing. -->
+      <div class="pf-row-3">
         <div class="ph-field"><label for="pfCategory">Category <span class="pf-hint" style="display:inline;">required to publish</span></label>
           <div style="display:flex;gap:6px;">
             <select id="pfCategory" style="flex:1;min-width:0;"></select>
-            <button class="btn" type="button" id="pfNewCategory" title="Create a category without leaving this product">+ New</button>
+            <button class="btn" type="button" id="pfNewCategory" title="Create a category or hair type without leaving this product">+ New</button>
           </div></div>
+        <div class="ph-field"><label for="pfSubcategory">Hair type</label>
+          <select id="pfSubcategory"></select></div>
         <div class="ph-field"><label for="pfBrand">Brand</label><input id="pfBrand" placeholder="Hairshalo Signature"></div>
       </div>
       <div class="ph-field"><label for="pfShort">Short description</label><input id="pfShort" placeholder="Shown on product cards"></div>
@@ -683,7 +711,7 @@
         <!-- Free text with suggestions: an imported "Human Hair Blend" or
              "Deep Wave" must survive being opened and saved here. These were
              fixed dropdowns, which silently blanked any other value. -->
-        <div class="ph-field"><label for="pfHairType">Hair type</label>
+        <div class="ph-field"><label for="pfHairType">Fibre <span class="pf-hint" style="display:inline;">free text</span></label>
           <input id="pfHairType" list="pfHairTypeList" placeholder="Human Hair">
           <datalist id="pfHairTypeList"><option>Human Hair</option><option>Synthetic</option><option>Human Hair Blend</option></datalist>
         </div>
@@ -731,6 +759,9 @@
     <!-- 3. VARIANTS -->
     <div class="pf-section">
       <h4>3 · Variants</h4>
+      <!-- Ticking a colour adds a variant row in that colour (its own SKU,
+           stock and price); the list comes from Hair Catalogue → Colours. -->
+      <div class="pf-colours" id="pfColours"></div>
       <div id="pfVariants"></div>
       <button class="btn" id="pfAddVariant" type="button">+ Add Variant</button>
       <div class="pf-hint">A product with variants requires the customer to choose one at checkout. Leave a variant's price blank to inherit the product price.</div>
@@ -972,6 +1003,7 @@
     <div class="nav-group">
       <div class="nav-label">Catalog</div>
       <button class="nav-link" data-view="products"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M20 7l-8-4-8 4m16 0v10l-8 4m8-14L12 11m0 0L4 7m8 4v10M4 7v10l8 4"/></svg>Products</button>
+      <button class="nav-link" data-view="hair"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M4 5h6v6H4zM14 5h6v6h-6zM4 15h6v4H4z"/><circle cx="17" cy="17" r="3"/></svg>Hair Catalogue</button>
       <button class="nav-link" data-view="import"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M12 3v12m0 0l-4-4m4 4l4-4M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2"/></svg>Product Import</button>
       <button class="nav-link" data-view="inventory"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M3 7l9-4 9 4-9 4-9-4z"/><path d="M3 7v10l9 4 9-4V7"/></svg>Inventory<span class="nav-badge" id="invBadge" style="display:none;"></span></button>
       <button class="nav-link" data-view="placeholders"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="3" y="3" width="18" height="18" rx="2.5" stroke-dasharray="4 3"/><path d="M8 14l2.5-3 2 2.4L15 10l3 4"/></svg>Product Placeholders</button>
@@ -1133,6 +1165,35 @@
           <tbody id="productsBody"></tbody>
         </table>
         <p class="empty-note">Publishing workflow: <strong>Draft → Review → Published → Archived</strong>. A product can only be published once its readiness checks pass.</p>
+      </div>
+    </section>
+
+    <!-- HAIR CATALOGUE — hair categories, the hair types under each, and the
+         colour list. All of it is rows in the database: nothing here is a
+         fixed list, and the shop's filters are built from what is saved. -->
+    <section class="view" id="view-hair">
+      <div class="topbar">
+        <div><h1>Hair Catalogue</h1><p>Hair categories, the hair types under each, and the colours products come in</p></div>
+      </div>
+      <div class="cms-msg" id="hcMsg"></div>
+      <div class="hc-grid">
+        <div class="panel">
+          <div class="panel-head"><h3>Hair Categories</h3>
+            <button class="btn btn-primary" type="button" data-hc-add-cat>+ Add category</button></div>
+          <div id="hcCategories"></div>
+          <p class="empty-note">Top-level categories, such as Synthetic Hair and Human Hair. Each active one is a collection card and a filter in the shop.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Hair Types</h3></div>
+          <div id="hcTypes"></div>
+          <p class="empty-note">Each type belongs to one category — a Synthetic Hair type can never be chosen for a Human Hair product. Deactivated types take no new products.</p>
+        </div>
+        <div class="panel">
+          <div class="panel-head"><h3>Colours</h3>
+            <button class="btn btn-primary" type="button" data-hc-add-colour>+ Add colour</button></div>
+          <div id="hcColours"></div>
+          <p class="empty-note">One list for every category. A colour only shows on a product once one of its variants uses it. Colours in use are archived, never deleted.</p>
+        </div>
       </div>
     </section>
 
@@ -1519,6 +1580,34 @@
   </main>
 </div>
 
+<!-- Colour editor (Hair Catalogue) -->
+<div class="ph-modal" id="colModal">
+  <div class="ph-modal-card" style="max-width:440px;">
+    <h3 id="colModalTitle">New colour</h3>
+    <p class="ph-sub">Shared by every hair category. Renaming a colour renames it on every variant that uses it; past orders keep the name they were placed with.</p>
+    <div class="cms-msg" id="colMsg"></div>
+    <input type="hidden" id="colId">
+    <div class="cms-field">
+      <label for="colName">Name</label>
+      <input type="text" id="colName" maxlength="80" placeholder="e.g. Honey Blonde">
+    </div>
+    <div class="cms-field">
+      <label for="colHex">Swatch (optional)</label>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <input type="color" id="colPicker" value="#2b1b14" style="width:44px;height:38px;padding:2px;flex:none;">
+        <input type="text" id="colHex" maxlength="7" placeholder="#2B1B14">
+      </div>
+      <span class="cms-note">Shown as a dot beside the colour name in the shop. Leave blank for none.</span>
+    </div>
+    <label class="ph-check"><input type="checkbox" id="colActive" checked> Active — can be chosen for variants</label>
+    <div class="cms-actions">
+      <button class="btn btn-ghost" id="colDelete" type="button" style="color:#B4483F;">Delete</button>
+      <button class="btn btn-ghost" id="colCancel" type="button">Cancel</button>
+      <button class="btn btn-primary" id="colSave" type="button">Save colour</button>
+    </div>
+  </div>
+</div>
+
 <!-- Category editor -->
 <div class="ph-modal" id="catModal">
   <div class="ph-modal-card" style="max-width:520px;">
@@ -1662,7 +1751,7 @@
           <div class="cell-thumb" style="${p.image_url ? `background-image:url('${cssUrl(resolveMediaUrl(p.image_url))}')` : 'background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34)'}"></div>
           <div><strong>${escAttr(p.name)}</strong><span>${(p.variants||[]).length} variant(s)${p.is_demo ? ' · demo' : ''}</span></div>
         </div></td>
-        <td>${escAttr(p.category || '—')}</td>
+        <td>${escAttr(p.subcategory ? p.main_category + ' › ' + p.subcategory : (p.category || '—'))}</td>
         <td>${priceCell(p)}</td>
         <td>${stockBar(level, stock)}</td>
         <td>${flagsCell(p)}</td>
@@ -2561,9 +2650,10 @@
       </tr>`).join('');
   }
 
-  function openCategoryEditor(category){
+  function openCategoryEditor(category, presetParentId){
     const editing = !!category;
-    const c = category || {name:'', description:'', tagline:'', image_url:'', sort_order:0, is_active:true};
+    const c = category || {name:'', description:'', tagline:'', image_url:'', sort_order:0, is_active:true,
+                           parent_id: presetParentId || null};
     const modal = document.getElementById('catModal');
     document.getElementById('catModalTitle').textContent = editing ? 'Edit category' : 'New category';
     document.getElementById('catId').value = editing ? c.id : '';
@@ -2589,7 +2679,9 @@
   document.getElementById('pfNewCategory').addEventListener('click', async () => {
     if(categoriesCache.length === 0) await loadCategories();
     catCreatedForProduct = true;
-    openCategoryEditor(null);
+    // With a category chosen, "+ New" most likely means a new hair type in it;
+    // the Parent dropdown in the editor can still change that.
+    openCategoryEditor(null, el('pfCategory').value || null);
   });
 
   async function saveCategory(){
@@ -2613,10 +2705,11 @@
       await loadCategories();
       renderCategoriesTable();
       document.getElementById('catModal').classList.remove('open');
-      // Opened from the product form: select the new category there.
+      // Opened from the product form: select the new category (or type) there.
       if(catCreatedForProduct){
         catCreatedForProduct = false;
-        document.getElementById('pfCategory').value = saved.id;
+        if(saved.parent_id) pfRenderCategorySelects(saved.parent_id, saved.id);
+        else pfRenderCategorySelects(saved.id, '');
       }
     }catch(err){
       msg.textContent = err.message; msg.className = 'cms-msg err';
@@ -3117,6 +3210,168 @@
     await loadPlaceholders();
   }
 
+  // ================= Hair Catalogue =================
+  /* Hair categories are the top-level categories, hair types their
+     subcategories, colours the managed colour list. Every row comes from the
+     API; this view only arranges them so the relationship is plain to see. */
+  async function loadHairCatalogue(){
+    await Promise.all([loadCategories(), loadColours()]);
+    renderHairCatalogue();
+  }
+
+  function hcMessage(text, kind){
+    const box = document.getElementById('hcMsg');
+    box.textContent = text || '';
+    box.className = text ? 'cms-msg ' + (kind || 'ok') : 'cms-msg';
+  }
+
+  function hcRow({id, kind, name, meta, active, first, last, swatch}){
+    return `<div class="hc-row${active ? '' : ' off'}">
+      ${swatch !== undefined ? `<span class="hc-swatch"${swatch ? ` style="background:${escAttr(swatch)}"` : ''}></span>` : ''}
+      <div class="hc-name"><strong>${escAttr(name)}</strong><span>${meta}</span></div>
+      ${active ? '<span class="badge ok">Active</span>' : '<span class="badge neutral">' + (kind === 'colour' ? 'Archived' : 'Hidden') + '</span>'}
+      <div class="hc-actions">
+        <button class="cms-mini" type="button" title="Move up" data-hc-move="up" data-hc-kind="${kind}" data-hc-id="${escAttr(id)}"${first ? ' disabled' : ''}>↑</button>
+        <button class="cms-mini" type="button" title="Move down" data-hc-move="down" data-hc-kind="${kind}" data-hc-id="${escAttr(id)}"${last ? ' disabled' : ''}>↓</button>
+        <button class="cms-mini" type="button" data-hc-edit="${kind}" data-hc-id="${escAttr(id)}">Edit</button>
+        <button class="cms-mini" type="button" data-hc-toggle="${kind}" data-hc-id="${escAttr(id)}">${active ? (kind === 'colour' ? 'Archive' : 'Deactivate') : 'Activate'}</button>
+      </div>
+    </div>`;
+  }
+
+  function hcSiblings(kind, id){
+    if(kind === 'colour') return coloursCache;
+    const me = categoriesCache.find(c => c.id === id);
+    return categoriesCache.filter(c => (c.parent_id || null) === (me ? me.parent_id || null : null));
+  }
+
+  function renderHairCatalogue(){
+    const catBox = document.getElementById('hcCategories');
+    if(!catBox) return;
+    const tops = categoriesCache.filter(c => !c.parent_id);
+    const typesOf = id => categoriesCache.filter(c => c.parent_id === id);
+    const plural = (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`;
+
+    catBox.innerHTML = tops.length ? tops.map((c, i) => hcRow({
+      id: c.id, kind: 'category', name: c.name, active: c.is_active,
+      meta: `/${escAttr(c.slug)} · ${plural(typesOf(c.id).length, 'type')} · ${c.product_count} live`,
+      first: i === 0, last: i === tops.length - 1,
+    })).join('') : '<p class="empty-note">No categories yet. Add “Synthetic Hair” and “Human Hair” to begin.</p>';
+
+    document.getElementById('hcTypes').innerHTML = tops.length ? tops.map(top => {
+      const types = typesOf(top.id);
+      return `<div class="hc-group">
+        <div class="hc-group-head"><span>Category: ${escAttr(top.name)}</span>
+          <button class="cms-mini" type="button" data-hc-add-type="${escAttr(top.id)}">+ Add type</button></div>
+        ${types.length ? types.map((t, i) => hcRow({
+          id: t.id, kind: 'type', name: t.name, active: t.is_active,
+          meta: `/${escAttr(t.slug)} · ${t.product_count} live`,
+          first: i === 0, last: i === types.length - 1,
+        })).join('') : '<p class="pf-hint" style="margin:0 0 6px;">No types yet.</p>'}
+      </div>`;
+    }).join('') : '<p class="empty-note">Types are added under a category — add a category first.</p>';
+
+    document.getElementById('hcColours').innerHTML = coloursCache.length ? coloursCache.map((c, i) => hcRow({
+      id: c.id, kind: 'colour', name: c.name, active: c.is_active, swatch: c.hex || '',
+      meta: `/${escAttr(c.slug)} · ${plural(c.variant_count, 'variant')} · ${c.product_count} live`,
+      first: i === 0, last: i === coloursCache.length - 1,
+    })).join('') : '<p class="empty-note">No colours yet. Add the shades you sell, e.g. Black, Dark Brown, Blonde.</p>';
+  }
+
+  async function hcMove(kind, id, dir){
+    const list = hcSiblings(kind, id).slice();
+    const i = list.findIndex(x => x.id === id), j = dir === 'up' ? i - 1 : i + 1;
+    if(i < 0 || j < 0 || j >= list.length) return;
+    [list[i], list[j]] = [list[j], list[i]];
+    try{
+      await apiSend('POST', kind === 'colour' ? '/colours/reorder' : '/categories/reorder',
+                    {ids: list.map(x => x.id)});
+      hcMessage('');
+      await loadHairCatalogue();
+    }catch(err){ hcMessage(err.message, 'err'); }
+  }
+
+  async function hcToggle(kind, id){
+    const row = (kind === 'colour' ? coloursCache : categoriesCache).find(x => x.id === id);
+    if(!row) return;
+    try{
+      await apiSend('PUT', (kind === 'colour' ? '/colours/' : '/categories/') + id, {is_active: !row.is_active});
+      hcMessage(`${row.name} ${row.is_active ? (kind === 'colour' ? 'archived' : 'deactivated') : 'activated'}.`, 'ok');
+      await loadHairCatalogue();
+    }catch(err){ hcMessage(err.message, 'err'); }
+  }
+
+  function openColourEditor(colour){
+    const c = colour || {name:'', hex:'', is_active:true};
+    document.getElementById('colModalTitle').textContent = colour ? 'Edit colour' : 'New colour';
+    document.getElementById('colId').value = colour ? c.id : '';
+    document.getElementById('colName').value = c.name || '';
+    document.getElementById('colHex').value = c.hex || '';
+    document.getElementById('colPicker').value = c.hex || '#2b1b14';
+    document.getElementById('colActive').checked = c.is_active !== false;
+    document.getElementById('colMsg').className = 'cms-msg';
+    // Only an unused colour can be deleted; the API refuses otherwise.
+    document.getElementById('colDelete').style.display = colour && !c.variant_count ? '' : 'none';
+    document.getElementById('colModal').classList.add('open');
+  }
+
+  async function saveColour(){
+    const id = document.getElementById('colId').value;
+    const payload = {
+      name: document.getElementById('colName').value.trim(),
+      hex: document.getElementById('colHex').value.trim() || null,
+      is_active: document.getElementById('colActive').checked
+    };
+    const msg = document.getElementById('colMsg');
+    if(!payload.name){ msg.textContent = 'A colour needs a name.'; msg.className = 'cms-msg err'; return; }
+    try{
+      if(id) await apiSend('PUT', '/colours/' + id, payload);
+      else await apiSend('POST', '/colours', payload);
+      document.getElementById('colModal').classList.remove('open');
+      await loadHairCatalogue();
+      hcMessage(`Colour “${payload.name}” saved.`, 'ok');
+      if(el('pfModal').classList.contains('open')) pfRenderVariants();
+    }catch(err){ msg.textContent = err.message; msg.className = 'cms-msg err'; }
+  }
+
+  async function deleteColour(){
+    const id = document.getElementById('colId').value;
+    if(!id || !confirm('Delete this colour? Colours used by any variant cannot be deleted — archive them instead.')) return;
+    const msg = document.getElementById('colMsg');
+    try{
+      await apiSend('DELETE', '/colours/' + id);
+      document.getElementById('colModal').classList.remove('open');
+      await loadHairCatalogue();
+    }catch(err){ msg.textContent = err.message; msg.className = 'cms-msg err'; }
+  }
+
+  document.querySelector('.nav-link[data-view="hair"]').addEventListener('click', loadHairCatalogue);
+  document.addEventListener('input', e => {
+    if(e.target.id === 'colPicker') document.getElementById('colHex').value = e.target.value;
+    if(e.target.id === 'colHex' && /^#[0-9a-fA-F]{6}$/.test(e.target.value.trim()))
+      document.getElementById('colPicker').value = e.target.value.trim().toLowerCase();
+  });
+  document.addEventListener('click', async e => {
+    const t = e.target;
+    if(t.closest('[data-hc-add-cat]')){ openCategoryEditor(null, null); return; }
+    const addType = t.closest('[data-hc-add-type]');
+    if(addType){ openCategoryEditor(null, addType.dataset.hcAddType); return; }
+    if(t.closest('[data-hc-add-colour]')){ openColourEditor(null); return; }
+    const move = t.closest('[data-hc-move]');
+    if(move && !move.disabled){ await hcMove(move.dataset.hcKind, move.dataset.hcId, move.dataset.hcMove); return; }
+    const edit = t.closest('[data-hc-edit]');
+    if(edit){
+      if(edit.dataset.hcEdit === 'colour') openColourEditor(coloursCache.find(c => c.id === edit.dataset.hcId));
+      else openCategoryEditor(categoriesCache.find(c => c.id === edit.dataset.hcId));
+      return;
+    }
+    const toggle = t.closest('[data-hc-toggle]');
+    if(toggle){ await hcToggle(toggle.dataset.hcToggle, toggle.dataset.hcId); return; }
+    if(t.id === 'colSave') await saveColour();
+    if(t.id === 'colDelete') await deleteColour();
+    if(t.id === 'colCancel') document.getElementById('colModal').classList.remove('open');
+  });
+
   // ================= Add / Edit product =================
   let categoriesCache = [];
   let pfEditingId = null;        // null = creating
@@ -3137,15 +3392,46 @@
     try{
       categoriesCache = await apiGet('/categories?include_inactive=true');
     }catch(err){ categoriesCache = []; }
-    const sel = el('pfCategory');
-    sel.innerHTML = (categoriesCache.length
+    pfRenderCategorySelects(el('pfCategory').value, el('pfSubcategory').value);
+    const filt = el('prodCategoryFilter');
+    if(filt){
+      const keep = filt.value;
+      filt.innerHTML = '<option value="">All categories</option>' +
+        categoriesCache.map(c => `<option value="${esc(c.id)}">${esc(categoryPath(c))}</option>`).join('');
+      filt.value = keep;
+    }
+    if(typeof renderHairCatalogue === 'function') renderHairCatalogue();
+  }
+
+  /* Category -> Hair Type. The type list is rebuilt from the chosen category's
+     own subcategories, so a type from another category is never offered. The
+     server applies the same rule (subcategory must belong to category_id). */
+  function pfRenderCategorySelects(catId, subId){
+    const tops = categoriesCache.filter(c => !c.parent_id);
+    const off = c => c.is_active ? '' : ' (hidden)';
+    el('pfCategory').innerHTML = (tops.length
         ? '<option value="">— Select a category —</option>'
         : '<option value="">No categories yet — click “+ New” →</option>') +
-      categoriesCache.map(c => `<option value="${c.id}">${esc(categoryPath(c))}</option>`).join('');
-    const filt = el('prodCategoryFilter');
-    if(filt) filt.innerHTML = '<option value="">All categories</option>' +
-      categoriesCache.map(c => `<option value="${esc(c.name)}">${esc(c.name)}</option>`).join('');
+      tops.map(c => `<option value="${esc(c.id)}">${esc(c.name + off(c))}</option>`).join('');
+    el('pfCategory').value = catId || '';
+    pfRenderTypeSelect(subId);
   }
+
+  function pfRenderTypeSelect(subId){
+    const catId = el('pfCategory').value;
+    const types = categoriesCache.filter(c => catId && c.parent_id === catId);
+    const sel = el('pfSubcategory');
+    sel.innerHTML = !catId ? '<option value="">Choose a category first</option>'
+      : (types.length ? '<option value="">— No specific type —</option>'
+                      : '<option value="">No types in this category yet</option>') +
+        // A deactivated type cannot take new products; it stays listed (and
+        // selected) only for a product already filed under it.
+        types.map(c => `<option value="${esc(c.id)}"${!c.is_active && c.id !== subId ? ' disabled' : ''}>${
+          esc(c.name + (c.is_active ? '' : ' (deactivated)'))}</option>`).join('');
+    sel.disabled = !catId;
+    sel.value = types.some(c => c.id === subId) ? subId : '';
+  }
+  document.addEventListener('change', e => { if(e.target.id === 'pfCategory') pfRenderTypeSelect(''); });
 
   /* ---- Live pricing preview. PREVIEW ONLY — the server recalculates. ---- */
   function pfUpdateCalc(){
@@ -3189,7 +3475,7 @@
           <div class="ph-field"><label>Density</label><input data-vfield="density" data-vi="${i}" value="${esc(v.density||'')}" placeholder="180%"></div>
         </div>
         <div class="pf-row-3">
-          <div class="ph-field"><label>Color</label><input data-vfield="color" data-vi="${i}" value="${esc(v.color||'')}" placeholder="Natural Black"></div>
+          <div class="ph-field"><label>Colour</label>${pfColourSelect(v, i)}</div>
           <div class="ph-field"><label>Lace type</label><input data-vfield="lace_type" data-vi="${i}" value="${esc(v.lace_type||'')}" placeholder="HD Lace"></div>
           <div class="ph-field"><label>Cap size</label><input data-vfield="cap_size" data-vi="${i}" value="${esc(v.cap_size||'')}" placeholder="Medium"></div>
         </div>
@@ -3214,7 +3500,109 @@
         <div class="pf-hint" data-vsells="${i}" style="margin-top:2px;"></div>
       </div>`).join('') || '<div class="pf-hint">No variants yet. A product needs at least one variant before it can be published.</div>';
     pfVariantHints();
+    pfRenderColourPicks();
   }
+
+  /* ---- Colours (Hair Catalogue → Colours) ---- */
+  let coloursCache = [];
+  async function loadColours(){
+    try{ coloursCache = await apiGet('/colours?include_inactive=true'); }
+    catch(err){ coloursCache = []; }
+  }
+
+  /* A variant's colour: one of the managed colours, or — for a variant saved
+     before colours were managed — its original free text, kept as it is
+     until staff choose a colour for it. Nothing is linked automatically. */
+  function pfColourSelect(v, i){
+    const usable = coloursCache.filter(c => c.is_active || c.id === v.colour_id);
+    const legacy = !v.colour_id && v.legacy_color;
+    return `<select data-vcolour="${i}">
+      <option value="">— No colour —</option>
+      ${legacy ? `<option value="__legacy" selected>${esc(v.legacy_color)} (unlinked text)</option>` : ''}
+      ${usable.map(c => `<option value="${esc(c.id)}"${c.id === v.colour_id ? ' selected' : ''}>${
+        esc(c.name + (c.is_active ? '' : ' (archived)'))}</option>`).join('')}
+    </select>`;
+  }
+
+  function pfSetRowColour(row, value){
+    if(value === '__legacy'){ row.colour_id = null; row.color = row.legacy_color; return; }
+    const c = coloursCache.find(x => x.id === value);
+    row.colour_id = c ? c.id : null;
+    row.color = c ? c.name : null;
+  }
+
+  document.addEventListener('change', e => {
+    const i = e.target.dataset && e.target.dataset.vcolour;
+    if(i === undefined) return;
+    pfSetRowColour(pfVariantRows[parseInt(i, 10)], e.target.value);
+    pfRenderColourPicks();
+  });
+
+  /* The colour checklist. Ticking a colour adds a variant row in it — a
+     colour is sold as its own variant, with its own SKU, stock and price —
+     copying the first row's length/density/lace/cap as a starting point. */
+  function pfRenderColourPicks(){
+    const box = el('pfColours');
+    if(!box) return;
+    const used = new Set(pfVariantRows.map(v => v.colour_id).filter(Boolean));
+    const list = coloursCache.filter(c => c.is_active || used.has(c.id));
+    if(!list.length){
+      box.innerHTML = '<span class="pf-hint">No colours yet — add them in <a href="#" data-goto-hair>Hair Catalogue → Colours</a>, then tick them here.</span>';
+      return;
+    }
+    box.innerHTML = '<span class="pf-colours-label">Colours</span>' + list.map(c => `
+      <label class="pf-colour${used.has(c.id) ? ' on' : ''}">
+        <input type="checkbox" data-pfcolour="${esc(c.id)}"${used.has(c.id) ? ' checked' : ''}>
+        <span class="hc-swatch"${c.hex ? ` style="background:${esc(c.hex)}"` : ''}></span>${esc(c.name)}
+      </label>`).join('');
+  }
+
+  function pfSuggestSku(colour){
+    const first = pfVariantRows.find(v => (v.sku || '').trim());
+    let base;
+    if(first){
+      const parts = first.sku.trim().split('-');
+      base = parts.length > 1 ? parts.slice(0, -1).join('-') : parts[0];
+    } else {
+      base = 'HS-' + ((el('pfName').value || 'WIG').toUpperCase().replace(/[^A-Z0-9]+/g, ' ')
+        .trim().split(' ').map(w => w.slice(0, 3)).join('').slice(0, 9) || 'WIG');
+    }
+    const code = colour.slug.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 10) || 'CLR';
+    let sku = base + '-' + code, n = 2;
+    const taken = new Set(pfVariantRows.map(v => (v.sku || '').trim()));
+    while(taken.has(sku)) sku = base + '-' + code + (n++);
+    return sku;
+  }
+
+  document.addEventListener('change', e => {
+    const id = e.target.dataset && e.target.dataset.pfcolour;
+    if(!id) return;
+    const colour = coloursCache.find(c => c.id === id);
+    if(e.target.checked){
+      const first = pfVariantRows[0] || {};
+      pfVariantRows.push({sku: pfSuggestSku(colour), length: first.length || '', density: first.density || '',
+        color: colour.name, colour_id: colour.id, lace_type: first.lace_type || '', cap_size: first.cap_size || '',
+        stock:0, original_price:null, discount_type:'none', discount_value:0, is_available:true,
+        low_stock_threshold:null});
+    } else {
+      const saved = pfVariantRows.filter(v => v.colour_id === id && v.id);
+      if(saved.length){
+        // Saved variants may have stock movements or orders behind them, so
+        // they are never removed by a checkbox.
+        alert(`${colour.name} has ${saved.length} saved variant(s). Remove them below, or untick "Available" to stop selling them.`);
+      }
+      pfVariantRows = pfVariantRows.filter(v => v.colour_id !== id || v.id);
+    }
+    pfRenderVariants();
+  });
+  document.addEventListener('click', e => {
+    if(e.target.closest('[data-goto-hair]')){
+      e.preventDefault();
+      el('pfModal').classList.remove('open');
+      showView('hair');
+      loadHairCatalogue();
+    }
+  });
 
   /* Price after a discount, the same arithmetic as the product price preview.
      Preview only: the server computes the real price on save. */
@@ -3271,7 +3659,7 @@
     if(rm){ pfVariantRows.splice(parseInt(rm.dataset.vremove,10), 1); pfRenderVariants(); }
   });
   el('pfAddVariant').addEventListener('click', () => {
-    pfVariantRows.push({sku:'', length:'', density:'', color:'', lace_type:'', cap_size:'',
+    pfVariantRows.push({sku:'', length:'', density:'', color:'', colour_id:null, lace_type:'', cap_size:'',
       stock:0, original_price:null, discount_type:'none', discount_value:0, is_available:true,
       low_stock_threshold:null});
     pfRenderVariants();
@@ -3518,10 +3906,15 @@
     el('pfSub').textContent = product
       ? 'Changes apply immediately. Historical orders keep their original prices.'
       : 'Complete the sections below, then save as draft or publish.';
-    if(categoriesCache.length === 0) await loadCategories();
+    // Always fresh: a type or colour added in Hair Catalogue a moment ago
+    // must be selectable here without reloading the page.
+    await Promise.all([loadCategories(), loadColours()]);
 
     el('pfName').value = product ? product.name : '';
-    el('pfCategory').value = product ? (product.category_id || '') : '';
+    // Filed under a hair type: show its category, then the type. Filed
+    // directly under a category (or a legacy product): the type stays empty.
+    pfRenderCategorySelects(product ? (product.main_category_id || product.category_id || '') : '',
+                            product ? (product.subcategory_id || '') : '');
     el('pfBrand').value = product ? (product.brand || '') : '';
     el('pfShort').value = product ? (product.short_description || '') : '';
     el('pfDesc').value = product ? (product.description || '') : '';
@@ -3588,6 +3981,7 @@
     return {
       name: el('pfName').value.trim(),
       category_id: el('pfCategory').value || null,
+      subcategory_id: el('pfSubcategory').value || null,
       brand: el('pfBrand').value.trim() || null,
       short_description: el('pfShort').value.trim(),
       description: el('pfDesc').value.trim(),
@@ -3620,6 +4014,10 @@
     const own = !!v.has_price_override;
     return {
       id: v.id, sku: v.sku, length: v.length, density: v.density, color: v.color,
+      colour_id: v.colour_id || null,
+      // Free text from before colours were managed, kept verbatim until staff
+      // pick a managed colour for this variant.
+      legacy_color: v.colour_id ? null : (v.color || null),
       lace_type: v.lace_type, cap_size: v.cap_size, stock: v.stock,
       original_price: own ? (v.compare_at_price != null ? v.compare_at_price : v.price) : null,
       discount_type: own ? (v.discount_type || 'none') : 'none',
@@ -3633,7 +4031,8 @@
   function pfVariantPayload(v){
     const p = {
       sku: (v.sku || '').trim(), length: v.length || null, density: v.density || null,
-      color: v.color || null, lace_type: v.lace_type || null, cap_size: v.cap_size || null,
+      color: v.color || null, colour_id: v.colour_id || null,
+      lace_type: v.lace_type || null, cap_size: v.cap_size || null,
       stock: parseInt(v.stock || 0, 10),
       is_available: v.is_available !== false,
       // Blank = the shop-wide default threshold.
@@ -3756,7 +4155,8 @@
       p.name.toLowerCase().includes(term) ||
       (p.description||'').toLowerCase().includes(term) ||
       (p.variants||[]).some(v => (v.sku||'').toLowerCase().includes(term)));
-    if(cat) rows = rows.filter(p => p.category === cat);
+    // A category includes the products filed under its hair types.
+    if(cat) rows = rows.filter(p => p.category_id === cat || p.main_category_id === cat);
     if(status) rows = rows.filter(p => p.status === status);
     if(stock === 'in_stock') rows = rows.filter(p => p.total_stock > 0);
     if(stock === 'low_stock') rows = rows.filter(p => p.total_stock > 0 && productIsLow(p));

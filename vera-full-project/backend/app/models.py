@@ -256,10 +256,35 @@ class Category(Base):
     is_active = Column(Boolean, default=True)
     created_at = Column(DateTime, default=datetime.utcnow)
     # A subcategory names its parent; NULL is top level (migration 0013).
+    # This is also the hair hierarchy: a top-level category is a Hair Category
+    # (Synthetic Hair, Human Hair) and its subcategories are its Hair Types.
+    # Indexed in migration 0016, since the shop now filters on it.
     parent_id = Column(String, ForeignKey("categories.id", ondelete="SET NULL"),
-                       nullable=True)
+                       nullable=True, index=True)
 
     products = relationship("Product", back_populates="category_ref")
+    parent = relationship("Category", remote_side=[id])
+
+
+class Colour(Base):
+    """A reusable colour (Black, Honey Blonde, 1B …), managed in the Back Office.
+
+    Colours are global — Synthetic Hair and Human Hair draw from the same list —
+    but a colour only appears on a product through a variant that uses it, so
+    the list itself never implies what any product is available in.
+    Migration 0016.
+    """
+    __tablename__ = "colours"
+
+    id = Column(String, primary_key=True, default=gen_uuid)
+    name = Column(String, unique=True, nullable=False)
+    slug = Column(String, unique=True, index=True, nullable=False)
+    hex = Column(String, nullable=True)          # "#2B1B14" swatch, optional
+    sort_order = Column(Integer, default=0, nullable=False)
+    is_active = Column(Boolean, default=True, nullable=False)
+    created_at = Column(DateTime, default=datetime.utcnow)
+
+    variants = relationship("ProductVariant", back_populates="colour")
 
 
 class Product(Base):
@@ -339,6 +364,21 @@ class Product(Base):
     @property
     def category(self):
         return self.category_ref.name if self.category_ref else None
+
+    # The hair hierarchy, derived from the one category_id: a product filed
+    # under a Hair Type (a subcategory) belongs to that type's parent Hair
+    # Category. Derived rather than stored, so the two can never disagree.
+    @property
+    def main_category_ref(self):
+        c = self.category_ref
+        if c is None:
+            return None
+        return c.parent if c.parent_id and c.parent is not None else c
+
+    @property
+    def subcategory_ref(self):
+        c = self.category_ref
+        return c if c is not None and c.parent_id else None
 
     @property
     def primary_image_url(self):
@@ -451,6 +491,12 @@ class ProductVariant(Base):
     length = Column(String, nullable=True)      # e.g. 18"
     density = Column(String, nullable=True)     # e.g. 150%
     color = Column(String, nullable=True)       # e.g. Natural Black
+    # The managed colour this variant is in (migration 0016). When set, `color`
+    # above is kept equal to the colour's name, so labels, order snapshots and
+    # anything else that reads the text keep working. NULL for variants whose
+    # colour is still free text (every variant that predates 0016).
+    colour_id = Column(String, ForeignKey("colours.id", ondelete="RESTRICT"),
+                       nullable=True, index=True)
     lace_type = Column(String, nullable=True)   # e.g. HD Lace
     cap_size = Column(String, nullable=True)    # e.g. Medium
     # Variant pricing overrides the product's when `price` is set. Same
@@ -474,6 +520,7 @@ class ProductVariant(Base):
         return int(settings.LOW_STOCK_ALERT_THRESHOLD)
 
     product = relationship("Product", back_populates="variants")
+    colour = relationship("Colour", back_populates="variants")
     # NB: InventoryItem.variant is the legacy free-text label column, so the
     # reverse side is the `variant_ref` relationship, not `variant`.
     inventory = relationship("InventoryItem", back_populates="variant_ref")

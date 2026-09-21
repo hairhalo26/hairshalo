@@ -78,7 +78,28 @@ def _variant_out(v: models.ProductVariant, product: models.Product) -> schemas.P
         sort_order=v.sort_order or 0,
         low_stock_threshold=v.low_stock_threshold,
         has_price_override=v.price is not None,
+        colour_id=v.colour_id,
+        colour_slug=v.colour.slug if v.colour is not None else None,
+        colour_hex=v.colour.hex if v.colour is not None else None,
     )
+
+
+def _colour_out(c: models.Colour) -> schemas.ColourOut:
+    return schemas.ColourOut(id=c.id, name=c.name, slug=c.slug, hex=c.hex,
+                             sort_order=c.sort_order or 0, is_active=bool(c.is_active))
+
+
+def _product_colours(product: models.Product):
+    """The managed colours a product actually comes in, in Back Office order.
+
+    Only colours some variant uses — the global list never implies a product
+    is available in a colour it has no variant for."""
+    seen = {}
+    for v in product.variants:
+        if v.colour is not None and v.colour_id not in seen:
+            seen[v.colour_id] = v.colour
+    return [_colour_out(c) for c in sorted(
+        seen.values(), key=lambda c: (c.sort_order or 0, c.name.lower()))]
 
 
 def _media_out(m: models.ProductMedia) -> schemas.ProductMediaOut:
@@ -120,6 +141,7 @@ def _variant_of(product: models.Product, variant_id):
 
 def _to_out(product: models.Product) -> schemas.ProductOut:
     pmin, pmax = product.price_range
+    main, sub = product.main_category_ref, product.subcategory_ref
     video = next((m for m in product.media if m.media_type == models.MediaType.video), None)
     return schemas.ProductOut(
         id=product.id,
@@ -128,6 +150,14 @@ def _to_out(product: models.Product) -> schemas.ProductOut:
         status=product.status.value if product.status else "Draft",
         category=product.category,
         category_id=product.category_id,
+        category_slug=product.category_ref.slug if product.category_ref else None,
+        main_category_id=main.id if main else None,
+        main_category=main.name if main else None,
+        main_category_slug=main.slug if main else None,
+        subcategory_id=sub.id if sub else None,
+        subcategory=sub.name if sub else None,
+        subcategory_slug=sub.slug if sub else None,
+        colours=_product_colours(product),
         short_description=product.short_description or "",
         description=product.description or "",
         brand=product.brand,
@@ -175,10 +205,130 @@ def _to_out(product: models.Product) -> schemas.ProductOut:
 def _base_query(db: Session):
     return db.query(models.Product).options(
         joinedload(models.Product.media),
-        joinedload(models.Product.variants),
-        joinedload(models.Product.category_ref),
+        joinedload(models.Product.variants).joinedload(models.ProductVariant.colour),
+        joinedload(models.Product.category_ref).joinedload(models.Category.parent),
         joinedload(models.Product.inventory),
     )
+
+
+# ---------------- Hair hierarchy: category -> hair type -> colour ----------------
+
+def _category_scope(db: Session, category: Optional[str] = None,
+                    type_: Optional[str] = None):
+    """Category ids a listing is limited to, or None for "no limit".
+
+    `category` is a slug or a name (a name is what this filter always took)
+    and includes the category's subcategories — Synthetic Hair means every
+    Synthetic Hair type. `type_` is a subcategory's slug or id and must sit
+    under `category` when both are given; otherwise nothing matches.
+    """
+    ids = None
+    if category:
+        cat = db.query(models.Category).filter(or_(
+            models.Category.slug == category, models.Category.name == category)).first()
+        if cat is None:
+            return set()
+        ids = {cat.id} | {cid for (cid,) in db.query(models.Category.id)
+                          .filter(models.Category.parent_id == cat.id).all()}
+    if type_:
+        sub = db.query(models.Category).filter(
+            models.Category.parent_id.isnot(None),
+            or_(models.Category.slug == type_, models.Category.id == type_)).first()
+        if sub is None or (ids is not None and sub.id not in ids):
+            return set()
+        ids = {sub.id}
+    return ids
+
+
+def _colour_filter(db: Session, key: str):
+    """Variant condition for "comes in this colour": an available variant
+    linked to the managed colour. An unknown colour matches nothing rather
+    than being ignored."""
+    found = db.query(models.Colour).filter(or_(
+        models.Colour.slug == key, models.Colour.id == key,
+        func.lower(models.Colour.name) == key.lower())).first()
+    if found is None:
+        return [models.ProductVariant.id.is_(None)]
+    return [models.ProductVariant.colour_id == found.id,
+            models.ProductVariant.is_available == True]  # noqa: E712
+
+
+def _check_assignable(cat: models.Category, current_id):
+    """A category newly given to a product must be live: a deactivated hair
+    type, or a type under a deactivated hair category, is hidden from the shop
+    and takes no new products. A product already filed there may keep it."""
+    if cat.id == current_id:
+        return
+    if not cat.is_active:
+        raise HTTPException(status_code=400,
+                            detail=f"'{cat.name}' is deactivated; activate it or choose another.")
+    if cat.parent is not None and not cat.parent.is_active:
+        raise HTTPException(
+            status_code=400,
+            detail=f"'{cat.parent.name}' is deactivated, so its hair types cannot take new products.")
+
+
+def _resolve_filing(db: Session, data: dict, current_id=None):
+    """Turn the payload's category_id / subcategory_id into the ONE category
+    the product is filed under, enforcing the hierarchy server-side.
+
+    * subcategory_id given: it must be a subcategory (a Hair Type) and, when
+      category_id is also given, a child of exactly that category.
+    * subcategory_id sent empty: filed under category_id, or under the current
+      Hair Category when no category_id is sent.
+    * only category_id: as before — any category, top level or sub.
+
+    Mutates `data`: always removes subcategory_id, sets category_id when decided.
+    """
+    has_sub = "subcategory_id" in data
+    sub_id = data.pop("subcategory_id", None)
+    has_cat = "category_id" in data
+    cat_id = data.get("category_id") or None
+
+    cat = None
+    if cat_id:
+        cat = db.query(models.Category).filter(models.Category.id == cat_id).first()
+        if cat is None:
+            raise HTTPException(status_code=400, detail="Category not found")
+
+    if sub_id:
+        sub = db.query(models.Category).filter(models.Category.id == sub_id).first()
+        if sub is None:
+            raise HTTPException(status_code=400, detail="Hair type not found")
+        if not sub.parent_id:
+            raise HTTPException(status_code=400,
+                                detail=f"'{sub.name}' is a top-level category, not a hair type.")
+        if cat is not None and sub.parent_id != cat.id:
+            raise HTTPException(status_code=400,
+                                detail=f"Hair type '{sub.name}' does not belong to '{cat.name}'.")
+        _check_assignable(sub, current_id)
+        data["category_id"] = sub.id
+        return
+    if has_sub and not has_cat and current_id:
+        current = db.query(models.Category).filter(models.Category.id == current_id).first()
+        data["category_id"] = (current.parent_id or current.id) if current else None
+        return
+    if cat is not None:
+        _check_assignable(cat, current_id)
+    if has_cat:
+        data["category_id"] = cat_id
+
+
+def _link_colour(db: Session, vdata: dict, current_colour_id=None):
+    """Validate a variant's managed colour and keep its `color` text in step."""
+    if "colour_id" not in vdata:
+        return
+    cid = vdata.get("colour_id") or None
+    vdata["colour_id"] = cid
+    if cid is None:
+        return
+    colour = db.query(models.Colour).filter(models.Colour.id == cid).first()
+    if colour is None:
+        raise HTTPException(status_code=400, detail="Colour not found")
+    if not colour.is_active and cid != current_colour_id:
+        raise HTTPException(status_code=400,
+                            detail=f"Colour '{colour.name}' is archived; activate it first.")
+    vdata["color"] = colour.name
 
 
 def _get_or_404(product_id: str, db: Session) -> models.Product:
@@ -191,8 +341,10 @@ def _get_or_404(product_id: str, db: Session) -> models.Product:
 @router.get("", response_model=List[schemas.ProductOut])
 def list_products(
     # --- filtering ---
-    category: Optional[str] = Query(None, description="Category name"),
+    category: Optional[str] = Query(None, description="Category slug or name; includes its hair types"),
     category_id: Optional[str] = None,
+    type: Optional[str] = Query(None, description="Hair type (subcategory) slug or id"),
+    colour: Optional[str] = Query(None, description="Managed colour slug, id or name"),
     status: Optional[str] = Query(None, description="Admin only; public callers see Published"),
     q: Optional[str] = Query(None, description="Search name/description"),
     min_price: Optional[float] = None,
@@ -231,8 +383,9 @@ def list_products(
         # out-of-stock and archived products are never exposed by default.
         qry = qry.filter(models.Product.status == models.ProductStatus.published)
 
-    if category:
-        qry = qry.join(models.Category).filter(models.Category.name == category)
+    scope = _category_scope(db, category, type)
+    if scope is not None:
+        qry = qry.filter(models.Product.category_id.in_(scope))
     if category_id:
         qry = qry.filter(models.Product.category_id == category_id)
     if q:
@@ -265,6 +418,8 @@ def list_products(
         variant_filters.append(models.ProductVariant.length == length)
     if color:
         variant_filters.append(models.ProductVariant.color == color)
+    if colour:
+        variant_filters.extend(_colour_filter(db, colour))
     if density:
         variant_filters.append(models.ProductVariant.density == density)
     if availability == "in_stock":
@@ -304,6 +459,8 @@ def list_products(
 def list_products_paged(
     q: Optional[str] = None,
     category: Optional[str] = None,
+    type: Optional[str] = None,
+    colour: Optional[str] = None,
     status: Optional[str] = None,
     sort: str = "curated",
     limit: int = Query(24, ge=1, le=100),
@@ -321,8 +478,13 @@ def list_products_paged(
         qry = qry.filter(models.Product.status == _coerce_status(status))
     else:
         qry = qry.filter(models.Product.status == models.ProductStatus.published)
-    if category:
-        qry = qry.join(models.Category).filter(models.Category.name == category)
+    scope = _category_scope(db, category, type)
+    if scope is not None:
+        qry = qry.filter(models.Product.category_id.in_(scope))
+    if colour:
+        sub = db.query(models.ProductVariant.product_id).filter(
+            *_colour_filter(db, colour)).distinct()
+        qry = qry.filter(models.Product.id.in_(sub))
     if q:
         like = f"%{q}%"
         qry = qry.filter(or_(models.Product.name.ilike(like), models.Product.description.ilike(like)))
@@ -379,15 +541,11 @@ def create_product(
     if db.query(models.Product).filter(models.Product.slug == slug).first():
         slug = f"{slug}-{db.query(models.Product).count() + 1}"
 
-    if payload.category_id and not db.query(models.Category).filter(
-        models.Category.id == payload.category_id
-    ).first():
-        raise HTTPException(status_code=400, detail="Category not found")
-
     data = payload.model_dump(exclude={
         "slug", "media", "variants", "status", "badge",
         "original_price", "discount_type", "discount_value",
     })
+    _resolve_filing(db, data)
     product = models.Product(**data, slug=slug)
     product.status = _coerce_status(payload.status)
     product.badge = _coerce_badge(payload.badge)
@@ -408,6 +566,7 @@ def create_product(
         seen_skus.add(v.sku)
         _assert_sku_free(v.sku, db)
         vdata = v.model_dump(exclude={"original_price", "discount_type", "discount_value"})
+        _link_colour(db, vdata)
         variant = models.ProductVariant(**vdata)
         if v.original_price is not None:
             _apply_pricing(variant, v.original_price, v.discount_type, v.discount_value)
@@ -460,9 +619,8 @@ def update_product(
     product = _get_or_404(product_id, db)
     data = payload.model_dump(exclude_unset=True)
 
-    if "category_id" in data and data["category_id"]:
-        if not db.query(models.Category).filter(models.Category.id == data["category_id"]).first():
-            raise HTTPException(status_code=400, detail="Category not found")
+    if "category_id" in data or "subcategory_id" in data:
+        _resolve_filing(db, data, current_id=product.category_id)
     if "status" in data:
         data["status"] = _coerce_status(data["status"])
     if "badge" in data:
@@ -608,7 +766,7 @@ def list_variants(product_id: str, db: Session = Depends(get_db),
     product = _get_visible_or_404(product_id, db, staff)
     return [schemas.ProductVariantOut(
         id=v.id, sku=v.sku, label=v.label, length=v.length, density=v.density, color=v.color,
-        lace_type=v.lace_type, cap_size=v.cap_size, price=v.price, stock=v.stock or 0,
+        colour_id=v.colour_id, lace_type=v.lace_type, cap_size=v.cap_size, price=v.price, stock=v.stock or 0,
         is_available=bool(v.is_available), sort_order=v.sort_order or 0,
     ) for v in product.variants]
 
@@ -623,6 +781,7 @@ def add_variant(
     product = _get_or_404(product_id, db)
     _assert_sku_free(payload.sku, db)
     vdata = payload.model_dump(exclude={"original_price", "discount_type", "discount_value"})
+    _link_colour(db, vdata)
     opening = int(vdata.get("stock") or 0)
     variant = models.ProductVariant(product_id=product.id, **vdata)
     if payload.original_price is not None:
@@ -649,6 +808,11 @@ def update_variant(
     data = payload.model_dump(exclude_unset=True)
     if "sku" in data:
         _assert_sku_free(data["sku"], db, exclude_id=variant_id)
+    if "color" in data and "colour_id" not in data and variant.colour_id:
+        # Typing over a managed colour's name would make the two disagree, so
+        # the managed colour wins. Send colour_id "" to go back to free text.
+        data.pop("color")
+    _link_colour(db, data, current_colour_id=variant.colour_id)
 
     if data.pop("clear_price_override", False):
         variant.price = None

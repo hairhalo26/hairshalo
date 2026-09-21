@@ -22,7 +22,7 @@ from app.routers import (
     auth, products, categories, product_placeholders, orders, customers,
     appointments, inventory, coupons, analytics, currency, payments,
     notifications, reviews, loyalty, marketing, account, site_content,
-    supplier_import,
+    supplier_import, colours,
 )
 
 logger = logging.getLogger("vera")
@@ -110,6 +110,7 @@ app.mount(
 app.include_router(auth.router)
 app.include_router(products.router)
 app.include_router(categories.router)
+app.include_router(colours.router)
 app.include_router(product_placeholders.router)
 app.include_router(orders.router)
 app.include_router(customers.router)
