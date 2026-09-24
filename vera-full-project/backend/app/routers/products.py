@@ -18,7 +18,15 @@ router = APIRouter(prefix="/api/products", tags=["products"])
 
 # Readiness issues that `force=true` may NOT waive — without these a published
 # product is a dead end the customer can see but never buy.
-HARD_PUBLISH_REQUIREMENTS = {"missing_variants", "missing_price", "missing_category"}
+#
+# `missing_price` is deliberately NOT in this set. A shop that has photographed
+# and catalogued a range before agreeing its prices can list it as "Price on
+# request": the storefront shows that wording instead of a figure and offers no
+# way to add it to a bag, and POST /orders independently refuses any line whose
+# product has no price ("has no price set and cannot be ordered"). Price is read
+# from the database and never from the request, so an unpriced product cannot be
+# bought for nothing — listing one is a presentation choice, not a checkout risk.
+HARD_PUBLISH_REQUIREMENTS = {"missing_variants", "missing_category"}
 
 
 def slugify(text: str) -> str:

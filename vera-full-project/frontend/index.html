@@ -44,6 +44,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
   :root{
+    /* Lets height:auto be interpolated, which is what makes the Details
+       panels close smoothly instead of snapping shut. Ignored where
+       unsupported: the panels then open and close instantly. */
+    interpolate-size: allow-keywords;
     --ink:#2B1B14;
     --cream:#FAF5EE;
     --blush:#E7C7B4;
@@ -261,7 +265,8 @@
   /* A real product photograph is shown WHOLE: studio shots are square on
      white, and "cover" in a portrait frame cut the sides off the product. */
   .prod-media.has-photo,.arch.product-photo{background:#fff;}
-  .prod-media.has-photo::after,.arch.product-photo::after{display:none;}
+  .prod-media.has-photo::after,.arch.product-photo::after,
+  .arch.photo-cover::after{display:none;}
   /* ---- Shop: every published product ---- */
   .shop-bar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-bottom:26px;}
   .shop-chips{display:flex;flex-wrap:wrap;gap:8px;}
@@ -1038,9 +1043,1477 @@
     .header-icons{gap:6px;}
     .nav-account{font-size:12px;}
   }
+
+  /* =====================================================================
+     HAIRSHALO MOTION SYSTEM
+     ---------------------------------------------------------------------
+     One art direction, applied in layers. Everything below extends the
+     design system above rather than replacing it: the palette, the arch
+     motif, Fraunces/Inter and the .brand-panel fallback are unchanged.
+
+       01  TOKENS                 07  HEADER               13  LOADING STATES
+       02  ATMOSPHERE / GRAIN     08  HERO                 14  DARK LUXURY BAND
+       03  PAGE INTRO             09  TRUST MARQUEE        15  AI PERSONALISATION
+       04  TYPOGRAPHY REVEAL      10  SECTION RHYTHM       16  EDITORIAL
+       05  SCROLL REVEALS         11  CATEGORY TILES       17  WHY / TESTIMONIALS
+       06  HAIR-STRAND MOTIF      12  PRODUCT MOTION       18  FINAL CTA / FOOTER
+       19  PDP  ·  20 CART & MICRO-INTERACTIONS  ·  21 CURSOR  ·  22 MAGNETIC
+       23  MOBILE MOTION  ·  24 REDUCED MOTION
+
+     Motion budget, applied consistently:
+       fast   150-300ms   UI feedback (buttons, chips, links)
+       medium 300-600ms   cards, images, hovers
+       slow   700-1200ms  editorial entrances
+       cine   1200-1800ms large transitions (intro, hero)
+     ===================================================================== */
+
+  /* ---------- 01 · TOKENS ---------- */
+  :root{
+    /* Deep tones for the dark movements of the page. Warm, not blue-black:
+       they have to sit next to --cream without looking like a different site. */
+    --noir:#17100D;
+    --noir-2:#241711;
+    --noir-3:#33211A;
+    /* A second surface, one step off --cream, so consecutive sections are
+       never the same flat white. */
+    --mist:#F4EEE5;
+    --porcelain:#FFFFFF;
+
+    --ease-out:cubic-bezier(.16,1,.3,1);      /* expressive deceleration */
+    --ease-in-out:cubic-bezier(.65,0,.35,1);
+    --ease-soft:cubic-bezier(.22,.61,.36,1);  /* matches --ease */
+    --ease-mask:cubic-bezier(.77,0,.175,1);   /* curtain / clip reveals */
+    --ease-settle:cubic-bezier(.22,.8,.26,1); /* arrives, overshoots a hair, settles */
+
+    --t-fast:220ms;
+    --t-ui:300ms;
+    --t-med:520ms;
+    --t-slow:900ms;
+    --t-cine:1400ms;
+
+    --shadow-sm:0 6px 18px -12px rgba(43,27,20,.35);
+    --shadow-md:0 26px 50px -30px rgba(43,27,20,.42);
+    --shadow-lg:0 50px 90px -50px rgba(43,27,20,.55);
+
+    /* One page gutter, so the header lines up with everything below it.
+       Narrow screens only have to restate this value (see 23). */
+    --gutter:32px;
+  }
+  .wrap{padding:0 var(--gutter);}
+
+  /* .header-inner's `padding: 22px 0` shorthand was cancelling the .wrap
+     gutter, so the header ran edge to edge while every section below it
+     started 32px in — and the cart badge, which overhangs its button by 9px,
+     pushed the document 9px wider than the viewport at every width. */
+  .header-inner{padding:22px var(--gutter);}
+
+  /* ---------- 02 · ATMOSPHERE / GRAIN ----------
+     A single fixed, non-animated layer. It costs one composited element and
+     gives every photograph and flat panel a film-stock surface instead of a
+     digital one. */
+  .hs-grain{
+    position:fixed;inset:0;z-index:400;pointer-events:none;
+    opacity:.038;mix-blend-mode:multiply;
+    background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='160' height='160'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3' stitchTiles='stitch'/></filter><rect width='160' height='160' filter='url(%23n)'/></svg>");
+  }
+  @media (max-width:760px){ .hs-grain{display:none;} }
+
+  /* ---------- 03 · PAGE INTRO ----------
+     A brand opening, not a loading screen. Roughly:
+
+       0.0s  dark, one soft pool of warm light
+       0.2s  the halo rings scale open and the strands begin drawing
+       0.4s  letters start arriving, 52ms apart
+       1.9s  the wordmark has settled
+       2.0s  the halo opens outward and the curtain clips away, while the
+             hero underneath plays its own reveal — so the mark becomes the
+             page rather than being swapped for it
+
+     It runs once per session and never under reduced motion (decided before
+     first paint by the inline script at the top of <body>). */
+  .hs-intro{
+    position:fixed;inset:0;z-index:2000;
+    background:radial-gradient(120% 90% at 50% 42%, var(--noir-3) 0%, var(--noir) 62%);
+    display:none;align-items:center;justify-content:center;
+    overflow:hidden;
+  }
+  html[data-intro="run"] .hs-intro{display:flex;}
+  /* The lock is its own class so the page becomes scrollable the moment the
+     curtain starts lifting, while it is still on screen. */
+  html.hs-lock body{overflow:hidden;}
+
+  .hs-intro-stage{
+    position:relative;display:grid;place-items:center;
+    width:min(74vmin,560px);aspect-ratio:1;
+  }
+
+  /* --- the halo --- */
+  .hs-intro-halo{
+    position:absolute;inset:0;width:100%;height:100%;
+    overflow:visible;color:rgba(231,199,180,.5);
+    opacity:0;animation:hs-fade-in 900ms var(--ease-out) 160ms forwards;
+  }
+  .hs-intro-halo .ring{
+    stroke:rgba(231,199,180,.16);stroke-width:1;
+    vector-effect:non-scaling-stroke;
+    transform-origin:50% 50%;transform:scale(.72);
+    animation:hs-halo-ring 1700ms var(--ease-out) 200ms forwards;
+  }
+  .hs-intro-halo .ring.r2{
+    stroke:rgba(173,135,82,.2);
+    animation-delay:340ms;animation-duration:1900ms;
+  }
+  @keyframes hs-halo-ring{ to{ transform:scale(1); } }
+
+  .hs-intro-halo .strand{
+    stroke:currentColor;stroke-width:1;
+    vector-effect:non-scaling-stroke;
+    stroke-dasharray:1;stroke-dashoffset:1;
+    animation:hs-draw 1700ms var(--ease-in-out) forwards;
+    animation-delay:calc(240ms + var(--i,0) * 170ms);
+  }
+  /* Silk: the strands keep breathing while the wordmark settles. */
+  .hs-intro-halo .drift{
+    transform-origin:50% 50%;
+    animation:hs-silk 5s ease-in-out infinite alternate;
+  }
+  @keyframes hs-silk{
+    from{ transform:translateY(-7px) scaleY(1); }
+    to{   transform:translateY(7px) scaleY(1.05); }
+  }
+
+  /* --- the wordmark --- */
+  .hs-intro-mark{
+    position:relative;z-index:1;
+    display:flex;flex-direction:column;align-items:center;gap:16px;
+    padding:0 24px;text-align:center;
+  }
+  .hs-intro-word{
+    font-family:'Balldoug','Fraunces',serif;font-weight:400;
+    font-size:clamp(26px,6.4vw,58px);letter-spacing:.3em;text-indent:.3em;
+    color:var(--cream);display:flex;line-height:1.14;
+  }
+  /* Each letter arrives on its own clock: up from below, scaling out of a
+     slight lean, overshooting by a hair before it settles. */
+  .hs-intro-word span{
+    display:block;opacity:0;
+    transform:translateY(.62em) scale(.82) rotate(var(--r,0deg));
+    animation:hs-letter 1050ms var(--ease-settle) forwards;
+    animation-delay:calc(360ms + var(--i,0) * 52ms);
+  }
+  @keyframes hs-letter{
+    0%  { opacity:0; transform:translateY(.62em) scale(.82) rotate(var(--r,0deg)); }
+    45% { opacity:1; }
+    68% { transform:translateY(-.05em) scale(1.014) rotate(0deg); }
+    100%{ opacity:1; transform:translateY(0) scale(1) rotate(0deg); }
+  }
+
+  .hs-intro-rule{
+    width:min(280px,54vw);height:1px;background:rgba(231,199,180,.35);
+    position:relative;overflow:hidden;opacity:0;
+    animation:hs-fade-in 500ms var(--ease-out) 940ms forwards;
+  }
+  .hs-intro-rule::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent,var(--gold),transparent);
+    transform:translateX(-100%);
+    animation:hs-sweep 1200ms var(--ease-in-out) 1000ms forwards;
+  }
+  @keyframes hs-sweep{ to{ transform:translateX(100%); } }
+  .hs-intro-sub{
+    font-size:11px;letter-spacing:.34em;text-transform:uppercase;
+    color:rgba(231,199,180,.72);opacity:0;
+    animation:hs-fade-in 700ms var(--ease-out) 1180ms forwards;
+  }
+  @keyframes hs-fade-in{ to{ opacity:1; } }
+
+  /* --- the hand-off --- */
+  .hs-intro.is-out{
+    pointer-events:none;
+    clip-path:inset(0 0 100% 0);
+    transition:clip-path 900ms var(--ease-mask) 260ms;
+  }
+  .hs-intro.is-out .hs-intro-mark{
+    opacity:0;transform:translateY(-16px) scale(.985);
+    transition:opacity 420ms var(--ease-out), transform 700ms var(--ease-out);
+  }
+  /* The halo opens outward rather than fading: the brand mark expands into
+     the hero that is already revealing underneath it. */
+  .hs-intro.is-out .hs-intro-halo{
+    opacity:0;transform:scale(2.5);
+    transition:opacity 760ms var(--ease-out), transform 1000ms var(--ease-out);
+  }
+
+  @media (max-width:640px){
+    .hs-intro-stage{width:min(90vmin,420px);}
+    /* Simplified, not removed: one strand instead of three, shorter travel. */
+    .hs-intro-halo .strand:nth-of-type(n+2){display:none;}
+    .hs-intro-halo .ring.r2{display:none;}
+    .hs-intro-word span{
+      animation-duration:820ms;
+      animation-delay:calc(300ms + var(--i,0) * 44ms);
+    }
+    .hs-intro.is-out .hs-intro-halo{transform:scale(1.9);}
+  }
+
+  /* ---------- 04 · TYPOGRAPHY REVEAL ----------
+     One primitive, used for every headline: a line of type inside an
+     overflow-hidden mask, sliding up from below its own baseline. */
+  .tl{
+    display:block;overflow:hidden;
+    /* An italic Fraunces descender would be clipped by a tight mask. */
+    padding-bottom:.08em;margin-bottom:-.08em;
+  }
+  .tl > .tl-i{
+    display:block;
+    transform:translateY(105%);
+    transition:transform var(--t-slow) var(--ease-out);
+    transition-delay:calc(var(--i,0) * 90ms);
+  }
+  .is-in .tl > .tl-i,
+  .tl.is-in > .tl-i{ transform:translateY(0); }
+
+  /* ---------- 05 · SCROLL REVEALS ----------
+     Base state is applied only once the motion script has run (html.hs-js),
+     so with JavaScript disabled or broken every word still renders. */
+  html.hs-js [data-reveal]{
+    opacity:0;
+    transform:translateY(var(--reveal-y,26px));
+    transition:opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out);
+    transition-delay:calc(var(--i,0) * 80ms);
+  }
+  html.hs-js [data-reveal="fade"]{ --reveal-y:0px; }
+  html.hs-js [data-reveal="rise"]{ --reveal-y:38px; }
+  html.hs-js [data-reveal="mask"]{
+    transform:none;opacity:1;
+    clip-path:inset(0 0 100% 0);
+    transition:clip-path var(--t-cine) var(--ease-mask);
+  }
+  html.hs-js [data-reveal].is-in{
+    opacity:1;transform:none;clip-path:inset(0 0 0 0);
+  }
+
+  /* ---------- 06 · HAIR-STRAND MOTIF ----------
+     The one graphic idea that recurs: a few long, weightless curves. Paths
+     carry pathLength="1" so a single dash rule draws any of them. */
+  .strand{
+    position:absolute;inset:0;width:100%;height:100%;
+    pointer-events:none;overflow:visible;
+  }
+  .strand path{
+    fill:none;stroke:currentColor;stroke-width:1;
+    vector-effect:non-scaling-stroke;
+    stroke-dasharray:1;stroke-dashoffset:1;
+  }
+  .is-in .strand path,
+  .strand.is-in path{
+    animation:hs-draw 1800ms var(--ease-in-out) forwards;
+    animation-delay:calc(var(--i,0) * 160ms);
+  }
+  @keyframes hs-draw{ to{ stroke-dashoffset:0; } }
+  /* Ambient drift, decorative strands only. Transform-only, so it stays on
+     the compositor and never triggers layout. */
+  .strand.drift{ animation:hs-drift 26s ease-in-out infinite alternate; }
+  @keyframes hs-drift{
+    from{ transform:translate3d(0,0,0) scale(1); }
+    to{   transform:translate3d(0,-14px,0) scale(1.035); }
+  }
+
+  /* A curved divider that reads as a strand sweeping between two movements. */
+  .hs-divider{
+    position:relative;height:90px;color:var(--blush);
+    margin-top:-40px;pointer-events:none;
+  }
+  .hs-divider svg{width:100%;height:100%;display:block;overflow:visible;}
+  .hs-divider path{
+    fill:none;stroke:currentColor;stroke-width:1;
+    stroke-dasharray:1;stroke-dashoffset:1;vector-effect:non-scaling-stroke;
+  }
+  .hs-divider.is-in path{ animation:hs-draw 1600ms var(--ease-in-out) forwards; }
+
+  /* ---------- 07 · HEADER ----------
+     Overlay while the hero is on screen, a compact bar once you leave it.
+     Height and background change together on one transition so nothing jumps. */
+  header{
+    background:transparent;backdrop-filter:none;
+    transition:background var(--t-med) var(--ease-soft),
+               border-color var(--t-med), box-shadow var(--t-med),
+               backdrop-filter var(--t-med);
+  }
+  header.scrolled{
+    background:rgba(250,245,238,.82);
+    backdrop-filter:blur(16px) saturate(1.1);
+    border-color:var(--line);
+    box-shadow:0 10px 30px -26px rgba(43,27,20,.5);
+  }
+  .header-inner{transition:padding var(--t-med) var(--ease-soft);}
+  header.scrolled .header-inner{padding:13px var(--gutter);}
+
+  /* Scroll progress: a hairline of gold that fills across the header base. */
+  .hs-progress{
+    position:absolute;left:0;bottom:-1px;height:1.5px;width:100%;
+    transform:scaleX(var(--p,0));transform-origin:0 50%;
+    background:linear-gradient(90deg,var(--blush),var(--gold));
+    opacity:0;transition:opacity var(--t-ui);
+  }
+  header.scrolled .hs-progress{opacity:1;}
+
+  .logo{transition:letter-spacing var(--t-med) var(--ease-out);}
+  .logo:hover{letter-spacing:.085em;}
+  .logo-mark{transition:transform var(--t-med) var(--ease-out);}
+  .logo:hover .logo-mark{transform:scale(1.06) rotate(-2deg);}
+
+  /* Nav: the rule wipes in from the left and out to the right, and the label
+     lifts a hair - restrained, but it answers the pointer. */
+  nav.main-nav a{
+    overflow:hidden;
+    transition:color var(--t-fast) var(--ease-soft);
+  }
+  nav.main-nav a::after{
+    width:100%;transform:scaleX(0);transform-origin:100% 50%;
+    transition:transform var(--t-ui) var(--ease-out);
+  }
+  nav.main-nav a:hover::after{width:100%;transform:scaleX(1);transform-origin:0 50%;}
+  nav.main-nav a:hover{color:var(--wine);}
+
+  .icon-btn{transition:transform var(--t-fast) var(--ease-out), color var(--t-fast);}
+  .icon-btn:hover{transform:translateY(-2px);color:var(--wine);}
+  .nav-account{position:relative;transition:color var(--t-fast);}
+  .nav-account::after{
+    content:'';position:absolute;left:0;right:0;bottom:-3px;height:1px;
+    background:var(--gold);transform:scaleX(0);transform-origin:100% 50%;
+    transition:transform var(--t-ui) var(--ease-out);
+  }
+  .nav-account:hover::after{transform:scaleX(1);transform-origin:0 50%;}
+
+  /* Cart count reacts when something lands in the bag (see 20). */
+  .cart-count{transition:transform var(--t-fast) var(--ease-out);}
+  .cart-count.pop{animation:hs-count-pop 620ms var(--ease-out);}
+  @keyframes hs-count-pop{
+    0%{transform:scale(1);}
+    35%{transform:scale(1.55);}
+    60%{transform:scale(.92);}
+    100%{transform:scale(1);}
+  }
+
+  /* Burger: three strands that become a cross. */
+  .burger span{transition:transform var(--t-ui) var(--ease-out), opacity var(--t-fast);}
+  .burger:hover span:nth-child(1){transform:translateX(3px);}
+  .burger:hover span:nth-child(3){transform:translateX(-3px);}
+
+  /* renderNavigation() emits bare <a> elements into the drawer, which are
+     inline by default — the whole menu ran together on a single line, and
+     the padding and rule below each link had nothing to sit on. */
+  .mobile-nav #mobileNavLinks a{display:block;}
+
+  /* Mobile drawer links stagger in behind the panel. */
+  .mobile-nav a{opacity:0;transform:translateY(14px);transition:opacity var(--t-med) var(--ease-out), transform var(--t-med) var(--ease-out);}
+  .mobile-nav.active a{opacity:1;transform:none;transition-delay:calc(140ms + var(--i,0) * 55ms);}
+
+  /* ---------- 08 · HERO ----------
+     A campaign opening: atmosphere behind, editorial type left, the real
+     product photograph framed right. */
+  .hero{
+    position:relative;
+    padding:clamp(56px,7vw,92px) 0 clamp(70px,8vw,110px);
+    overflow:hidden;
+    isolation:isolate;
+  }
+  .hero-atmos{
+    position:absolute;inset:0;z-index:-1;pointer-events:none;
+    color:rgba(173,135,82,.32);
+  }
+  /* Warm light, off-centre behind the product. */
+  .hero-atmos::before{
+    content:'';position:absolute;
+    width:min(760px,78vw);aspect-ratio:1;border-radius:50%;
+    right:-8%;top:-18%;
+    background:radial-gradient(circle,rgba(231,199,180,.55) 0%,rgba(231,199,180,.16) 42%,transparent 68%);
+    animation:hs-breathe 14s ease-in-out infinite alternate;
+  }
+  .hero-atmos::after{
+    content:'';position:absolute;
+    width:min(520px,60vw);aspect-ratio:1;border-radius:50%;
+    left:-14%;bottom:-24%;
+    background:radial-gradient(circle,rgba(92,36,49,.10) 0%,transparent 66%);
+  }
+  @keyframes hs-breathe{
+    from{transform:translate3d(0,0,0) scale(1);opacity:.85;}
+    to{transform:translate3d(-18px,16px,0) scale(1.06);opacity:1;}
+  }
+
+  .hero-grid{gap:clamp(40px,5vw,78px);align-items:center;}
+
+  .hero-copy .eyebrow{
+    display:inline-flex;align-items:center;gap:10px;
+    opacity:0;transform:translateY(10px);
+    transition:opacity var(--t-med) var(--ease-out), transform var(--t-med) var(--ease-out);
+  }
+  .hero-copy .eyebrow::before{
+    content:'';width:30px;height:1px;background:var(--gold);
+    transform:scaleX(0);transform-origin:0 50%;
+    transition:transform var(--t-slow) var(--ease-out) 120ms;
+  }
+  .hero.is-in .hero-copy .eyebrow{opacity:1;transform:none;}
+  .hero.is-in .hero-copy .eyebrow::before{transform:scaleX(1);}
+
+  .hero-copy h1{
+    font-size:clamp(40px,5.6vw,72px);
+    line-height:1.02;letter-spacing:-.015em;
+    margin:20px 0 24px;
+  }
+  .hero-copy h1 em{font-style:italic;color:var(--wine);}
+
+  .hero-copy p,
+  .hero-btns,
+  .hero-chips{
+    opacity:0;transform:translateY(16px);
+    transition:opacity var(--t-slow) var(--ease-out), transform var(--t-slow) var(--ease-out);
+  }
+  .hero.is-in .hero-copy p{opacity:1;transform:none;transition-delay:420ms;}
+  .hero.is-in .hero-btns{opacity:1;transform:none;transition-delay:540ms;}
+  .hero.is-in .hero-chips{opacity:1;transform:none;transition-delay:640ms;}
+
+  .chip{transition:border-color var(--t-fast), color var(--t-fast), transform var(--t-fast) var(--ease-out);}
+  .chip:hover{border-color:var(--blush);color:var(--text);transform:translateY(-2px);}
+
+  /* The frame: an arch on a plinth, with the photograph revealed by a mask
+     that lifts rather than a fade. */
+  .hero-frame{
+    position:relative;
+    clip-path:inset(0 0 100% 0);
+    transition:clip-path var(--t-cine) var(--ease-mask) 200ms;
+  }
+  .hero.is-in .hero-frame{clip-path:inset(0 0 0 0);}
+  .hero-visual .arch{
+    aspect-ratio:3/3.9;
+    box-shadow:var(--shadow-md);
+    transform:scale(1.06);
+    transition:transform 1800ms var(--ease-out) 200ms;
+  }
+  .hero.is-in .hero-visual .arch{transform:scale(1);}
+  /* A slow sheen crossing the frame, the way light moves over hair. */
+  .hero-sheen{
+    position:absolute;inset:0;pointer-events:none;z-index:2;
+    border-radius:50% 50% 4px 4px / 22% 22% 0 0;
+    overflow:hidden;
+  }
+  .hero-sheen::after{
+    content:'';position:absolute;top:-30%;bottom:-30%;width:42%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.34),transparent);
+    transform:translateX(-160%) rotate(8deg);
+  }
+  .hero.is-in .hero-sheen::after{
+    animation:hs-hero-sheen 3600ms var(--ease-in-out) 1400ms;
+  }
+  @keyframes hs-hero-sheen{ to{ transform:translateX(320%) rotate(8deg); } }
+
+  .hero-float{
+    box-shadow:var(--shadow-md);
+    opacity:0;transform:translateY(18px) scale(.96);
+    transition:opacity var(--t-slow) var(--ease-out) 900ms,
+               transform var(--t-slow) var(--ease-out) 900ms;
+  }
+  .hero.is-in .hero-float{opacity:1;transform:none;}
+
+  /* A quiet cue that there is more below. */
+  .hero-scroll{
+    position:absolute;left:50%;bottom:22px;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:9px;
+    font-size:9.5px;letter-spacing:.3em;text-transform:uppercase;
+    color:var(--text-soft);opacity:0;
+    transition:opacity var(--t-slow) var(--ease-out) 1200ms;
+  }
+  .hero.is-in .hero-scroll{opacity:.85;}
+  .hero-scroll i{
+    display:block;width:1px;height:40px;background:var(--line);position:relative;overflow:hidden;
+  }
+  .hero-scroll i::after{
+    content:'';position:absolute;inset:0;background:var(--gold);
+    transform:translateY(-100%);
+    animation:hs-scroll-cue 2400ms var(--ease-in-out) infinite;
+  }
+  @keyframes hs-scroll-cue{
+    0%{transform:translateY(-100%);}
+    55%{transform:translateY(100%);}
+    100%{transform:translateY(100%);}
+  }
+
+  /* ---------- 09 · TRUST MARQUEE ----------
+     Editorial, not an icon row: the promises run past slowly, in the same
+     letterspaced caps the rest of the brand uses. */
+  .trust{
+    border-top:1px solid var(--line);border-bottom:1px solid var(--line);
+    padding:0;overflow:hidden;background:var(--cream);
+  }
+  .trust-grid{
+    display:flex;flex-wrap:nowrap;justify-content:flex-start;gap:0;
+    width:max-content;
+    animation:hs-marquee 46s linear infinite;
+  }
+  .trust:hover .trust-grid,
+  .trust:focus-within .trust-grid{animation-play-state:paused;}
+  @keyframes hs-marquee{ to{ transform:translate3d(-50%,0,0); } }
+  .trust-run{display:flex;flex:none;align-items:center;}
+  .trust-item{
+    display:flex;align-items:center;gap:12px;
+    padding:22px 34px;font-size:11.5px;font-weight:600;
+    letter-spacing:.2em;text-transform:uppercase;color:var(--text);
+    white-space:nowrap;position:relative;
+  }
+  .trust-item::after{
+    content:'';position:absolute;right:0;top:50%;transform:translateY(-50%);
+    width:1px;height:13px;background:var(--line);
+  }
+  .trust-item svg{width:14px;height:14px;stroke:var(--gold);flex-shrink:0;}
+
+  /* ---------- 10 · SECTION RHYTHM ----------
+     Consecutive sections never share a surface. Tone alternates cream / mist
+     / noir so the page reads as scenes rather than a stack of panels. */
+  .section{padding:clamp(72px,9vw,118px) 0;position:relative;}
+  .section-tone-mist{background:var(--mist);}
+  .section-head{align-items:flex-end;margin-bottom:clamp(36px,4.5vw,58px);}
+  .section-head h2{
+    font-size:clamp(30px,4vw,50px);line-height:1.08;letter-spacing:-.012em;
+  }
+  .section-head > p{max-width:380px;line-height:1.7;}
+  /* A hairline over each section title, drawn as it arrives. */
+  .section-head .eyebrow,
+  .section-rule{display:block;}
+  .section-rule{
+    width:54px;height:1px;background:var(--gold);margin-bottom:20px;
+    transform:scaleX(0);transform-origin:0 50%;
+    transition:transform var(--t-slow) var(--ease-out);
+  }
+  .is-in .section-rule{transform:scaleX(1);}
+
+  /* ---------- 11 · CATEGORY TILES ----------
+     Fashion campaign panels: the photograph moves, the type stays put. */
+  .cat-grid{gap:clamp(18px,2vw,28px);}
+  .cat-card{
+    position:relative;display:flex;flex-direction:column;
+  }
+  .cat-card .cat-media{
+    position:relative;overflow:hidden;
+    border-radius:50% 50% 4px 4px / 22% 22% 0 0;
+  }
+  .cat-card .arch{
+    aspect-ratio:3/3.9;
+    transition:transform var(--t-slow) var(--ease-out);
+    background-size:cover;
+  }
+  /* A product photograph stands in whole (contain); an uploaded campaign
+     image fills the arch. Either way the frame, not the picture, is cropped. */
+  .cat-card:hover .arch{transform:scale(1.05);}
+  .cat-card .cat-veil{
+    position:absolute;inset:0;pointer-events:none;
+    background:linear-gradient(to top,rgba(23,16,13,.42),rgba(23,16,13,.04) 46%,transparent 70%);
+    opacity:.75;transition:opacity var(--t-med) var(--ease-soft);
+  }
+  .cat-card:hover .cat-veil{opacity:1;}
+  .cat-card .tag{
+    bottom:16px;left:16px;z-index:2;
+    transform:translateY(6px);opacity:0;
+    transition:transform var(--t-med) var(--ease-out), opacity var(--t-med);
+  }
+  .cat-card:hover .tag{transform:translateY(0);opacity:1;}
+  .cat-card h3{
+    font-size:clamp(17px,1.5vw,21px);margin-top:18px;
+    transition:transform var(--t-med) var(--ease-out);
+  }
+  .cat-card:hover h3{transform:translateX(4px);}
+  .cat-card p{line-height:1.6;margin-top:5px;}
+  .cat-card .arrow{
+    margin-top:12px;position:relative;align-self:flex-start;
+    padding-bottom:3px;
+  }
+  .cat-card .arrow::after{
+    content:'';position:absolute;left:0;right:0;bottom:0;height:1px;
+    background:var(--wine);transform:scaleX(0);transform-origin:0 50%;
+    transition:transform var(--t-ui) var(--ease-out);
+  }
+  .cat-card:hover .arrow::after{transform:scaleX(1);}
+
+  /* ---------- 12 · PRODUCT MOTION ----------
+     The single most important surface on the site. The photograph is now a
+     real <img> (see applyProductImages) rather than a background, so it can
+     be revealed, scaled and swapped without touching layout. */
+  .prod-grid{gap:clamp(18px,2vw,28px);}
+  .prod-card{
+    position:relative;display:flex;flex-direction:column;
+    transition:transform var(--t-med) var(--ease-out);
+  }
+  .prod-card:hover{transform:translateY(-6px);}
+  .prod-media{
+    aspect-ratio:3/3.8;
+    box-shadow:var(--shadow-sm);
+    transition:box-shadow var(--t-med) var(--ease-out);
+  }
+  .prod-card:hover .prod-media{box-shadow:var(--shadow-md);}
+
+  /* The photograph itself. Shown WHOLE - object-fit:contain keeps the rule
+     that a wig is never cropped - on the clean white the studio shots expect. */
+  .prod-photo{
+    position:absolute;inset:0;width:100%;height:100%;
+    object-fit:contain;object-position:center;
+    opacity:0;transform:scale(1.04);
+    transition:opacity var(--t-slow) var(--ease-out),
+               transform var(--t-slow) var(--ease-out);
+  }
+  .prod-media.has-photo .prod-photo.is-loaded{opacity:1;transform:scale(1);}
+  /* A wide photograph fills the card; a studio still stays contained. */
+  .prod-media.photo-cover .prod-photo,
+  .prod-photo.fills{object-fit:cover;}
+  /* Controlled zoom on hover - 3.5%, enough to feel alive, not enough to
+     lose the hairline at the crown. */
+  .prod-card:hover .prod-photo.is-loaded{transform:scale(1.035);}
+  /* A second real photograph, when the product has one, cross-fades in. */
+  .prod-photo.alt{opacity:0;}
+  .prod-media.has-alt:hover .prod-photo.is-loaded:not(.alt){opacity:0;}
+  .prod-media.has-alt:hover .prod-photo.alt.is-loaded{opacity:1;transform:scale(1.035);}
+
+  /* Light sweeping across the image on hover. */
+  .prod-sheen{
+    position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:2;
+    border-radius:inherit;
+  }
+  .prod-sheen::after{
+    content:'';position:absolute;top:-40%;bottom:-40%;width:38%;
+    background:linear-gradient(100deg,transparent,rgba(255,255,255,.42),transparent);
+    transform:translateX(-180%) rotate(9deg);
+  }
+  .prod-card:hover .prod-sheen::after{
+    transition:transform 900ms var(--ease-in-out);
+    transform:translateX(330%) rotate(9deg);
+  }
+
+  .prod-badge{
+    z-index:3;backdrop-filter:blur(6px);
+    font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;
+    padding:6px 12px;
+    transform:translateY(0);
+    transition:transform var(--t-med) var(--ease-out);
+  }
+  .prod-card:hover .prod-badge{transform:translateY(-2px);}
+
+  .quick-add{
+    z-index:3;letter-spacing:.1em;text-transform:uppercase;font-size:10.5px;
+    box-shadow:var(--shadow-sm);
+    transform:translateY(14px);
+    transition:opacity var(--t-med) var(--ease-out), transform var(--t-med) var(--ease-out), background var(--t-fast);
+  }
+  .quick-add:hover{background:var(--ink);color:var(--cream);}
+  .quick-add.is-added{background:var(--wine);color:#fff;}
+
+  .prod-info{
+    padding-top:16px;
+    transition:transform var(--t-med) var(--ease-out);
+  }
+  .prod-card:hover .prod-info{transform:translateY(-2px);}
+  .prod-info .cat{letter-spacing:.16em;font-size:10px;}
+  .prod-info h4{font-size:clamp(15px,1.25vw,17.5px);margin:7px 0 7px;line-height:1.25;}
+  .prod-price{font-size:15px;letter-spacing:.01em;}
+  /* Shown in place of a figure while a product is listed but not yet priced. */
+  .price-on-request{
+    font-size:12.5px;font-weight:600;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--wine);
+  }
+  .pdp-price .price-on-request{font-size:15px;}
+  .view-product{
+    margin-top:12px;position:relative;overflow:hidden;
+    letter-spacing:.12em;text-transform:uppercase;font-size:10.5px;padding:11px;
+    transition:color var(--t-ui) var(--ease-soft), border-color var(--t-ui);
+  }
+  /* The fill wipes up from the base instead of simply changing colour. */
+  .view-product::before{
+    content:'';position:absolute;inset:0;background:var(--ink);z-index:-1;
+    transform:translateY(101%);transition:transform var(--t-ui) var(--ease-out);
+  }
+  .view-product{z-index:0;}
+  .view-product:hover{color:var(--cream);border-color:var(--ink);background:transparent;}
+  .view-product:hover::before{transform:translateY(0);}
+
+  /* ---------- 13 · LOADING STATES ----------
+     A card-shaped skeleton in the brand's own tones, holding exactly the
+     space the real card will take, so nothing shifts when data lands. */
+  .prod-skeleton{pointer-events:none;}
+  .prod-skeleton .sk-media{
+    border-radius:var(--radius);aspect-ratio:3/3.8;
+    background:linear-gradient(150deg,#F3E8DE,#EADACB);
+    position:relative;overflow:hidden;
+  }
+  .prod-skeleton .sk-line{
+    height:10px;border-radius:6px;margin-top:12px;
+    background:#EEE2D6;position:relative;overflow:hidden;
+  }
+  .prod-skeleton .sk-line.w40{width:40%;}
+  .prod-skeleton .sk-line.w75{width:75%;}
+  .prod-skeleton .sk-line.w30{width:30%;}
+  .prod-skeleton .sk-media::after,
+  .prod-skeleton .sk-line::after{
+    content:'';position:absolute;inset:0;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.62),transparent);
+    transform:translateX(-100%);
+    animation:hs-shimmer 1800ms var(--ease-in-out) infinite;
+  }
+  @keyframes hs-shimmer{ to{ transform:translateX(100%); } }
+
+  /* ---------- 14 · DARK LUXURY BAND ----------
+     The promotional offer, staged as the dark movement in the middle of the
+     page. Full-bleed, large type, one real product photograph, strands. */
+  .promo-band{
+    position:relative;overflow:hidden;isolation:isolate;
+    background:radial-gradient(120% 130% at 78% 8%, var(--noir-3) 0%, var(--noir-2) 40%, var(--noir) 100%);
+    color:var(--cream);
+    padding:clamp(66px,8vw,110px) 0;
+    margin:clamp(20px,4vw,48px) 0;
+  }
+  .promo-atmos{
+    position:absolute;inset:0;z-index:-1;pointer-events:none;
+    color:rgba(231,199,180,.22);
+  }
+  .promo-atmos::before{
+    content:'';position:absolute;width:min(680px,70vw);aspect-ratio:1;border-radius:50%;
+    right:-10%;top:-30%;
+    background:radial-gradient(circle,rgba(173,135,82,.30),transparent 66%);
+  }
+  /* One column until a real photograph has loaded into the frame beside it:
+     an empty luxury frame reads as a bug, so there simply is not one. */
+  .promo-inner{
+    display:grid;grid-template-columns:1fr;
+    gap:clamp(32px,5vw,70px);align-items:center;
+  }
+  .promo-band.with-visual .promo-inner{grid-template-columns:1.15fr .85fr;}
+  .promo-copy .eyebrow{color:var(--blush);}
+  .promo-band h3{
+    font-family:'Fraunces',serif;font-weight:500;
+    font-size:clamp(28px,4.2vw,52px);line-height:1.08;letter-spacing:-.015em;
+    margin:18px 0 0;max-width:15ch;
+  }
+  .promo-band p{
+    color:rgba(250,245,238,.72);margin-top:18px;
+    font-size:15px;line-height:1.75;max-width:46ch;
+  }
+  .promo-band .btn{
+    margin-top:30px;background:var(--cream);color:var(--ink);
+  }
+  .promo-band .btn:hover{background:var(--blush);color:var(--ink);}
+  .promo-visual{
+    position:relative;aspect-ratio:4/4.4;
+    border-radius:50% 50% 6px 6px / 20% 20% 0 0;
+    overflow:hidden;
+    background:rgba(250,245,238,.04);
+    border:1px solid rgba(231,199,180,.16);
+  }
+  .promo-visual img{
+    position:absolute;inset:0;width:100%;height:100%;
+    object-fit:contain;opacity:0;
+    transition:opacity var(--t-cine) var(--ease-out);
+  }
+  .promo-visual img.is-loaded{opacity:.95;}
+
+  /* ---------- 15 · AI PERSONALISATION ----------
+     Presented as a service, not a technology card: an editorial list beside
+     an orbital study built from the shop's own product photograph. */
+  .ai-section{
+    background:linear-gradient(180deg,var(--mist) 0%, #EFE2D4 100%);
+    position:relative;overflow:hidden;
+  }
+  .ai-layout{
+    display:grid;grid-template-columns:1fr .92fr;
+    gap:clamp(36px,5vw,76px);align-items:center;
+  }
+  .ai-badge{margin-bottom:18px;}
+  .ai-list{border-top:1px solid var(--line);}
+  .ai-row{
+    display:grid;grid-template-columns:auto 1fr auto;
+    gap:clamp(16px,2vw,26px);align-items:start;
+    padding:26px 4px;border-bottom:1px solid var(--line);
+    position:relative;
+  }
+  .ai-row::before{
+    content:'';position:absolute;left:0;right:0;top:0;bottom:0;
+    background:linear-gradient(90deg,rgba(255,255,255,.55),transparent);
+    opacity:0;transition:opacity var(--t-med) var(--ease-soft);
+    pointer-events:none;
+  }
+  .ai-row:hover::before{opacity:1;}
+  .ai-num{
+    font-family:'Fraunces',serif;font-size:13px;color:var(--gold);
+    letter-spacing:.08em;padding-top:4px;position:relative;
+  }
+  .ai-row h3{
+    font-family:'Fraunces',serif;font-size:clamp(17px,1.6vw,21px);font-weight:500;
+    margin-bottom:7px;transition:transform var(--t-med) var(--ease-out);
+  }
+  .ai-row:hover h3{transform:translateX(5px);}
+  .ai-row p{font-size:13.5px;color:var(--text-soft);line-height:1.7;max-width:46ch;}
+  .ai-row .btn{
+    position:relative;flex:none;align-self:center;white-space:nowrap;
+    padding:12px 22px;font-size:11.5px;letter-spacing:.1em;text-transform:uppercase;
+  }
+
+  /* The orbital: rings, one real photograph, no glow. */
+  .ai-orbit{
+    position:relative;aspect-ratio:1;max-width:520px;margin-inline:auto;width:100%;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .ai-orbit .ring{
+    position:absolute;border-radius:50%;border:1px solid var(--line);
+  }
+  .ai-orbit .ring.r1{inset:0;}
+  .ai-orbit .ring.r2{inset:11%;border-color:rgba(173,135,82,.28);}
+  .ai-orbit .ring.r3{inset:23%;border-style:dashed;border-color:rgba(43,27,20,.12);}
+  .ai-orbit .spin{
+    position:absolute;inset:0;animation:hs-spin 38s linear infinite;
+  }
+  .ai-orbit .spin.rev{animation-duration:54s;animation-direction:reverse;}
+  @keyframes hs-spin{ to{ transform:rotate(360deg); } }
+  .ai-orbit .node{
+    position:absolute;top:calc(50% - 5px);left:-5px;
+    width:10px;height:10px;border-radius:50%;
+    background:var(--gold);box-shadow:0 0 0 5px rgba(173,135,82,.14);
+  }
+  .ai-orbit .node.b{left:auto;right:-5px;background:var(--wine);box-shadow:0 0 0 5px rgba(92,36,49,.12);}
+  .ai-orbit-core{
+    position:relative;width:56%;aspect-ratio:3/3.6;
+    border-radius:50% 50% 6px 6px / 20% 20% 0 0;
+    /* Warm, not white: a photograph that does not fill the frame then reads
+       as a mounted print rather than a gap. */
+    overflow:hidden;background:#FBF6EF;
+    box-shadow:var(--shadow-md);
+  }
+  .ai-orbit-core img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+    opacity:0;transition:opacity var(--t-cine) var(--ease-out);
+  }
+  .ai-orbit-core img.is-loaded{opacity:1;}
+  .ai-orbit-core.brand-panel::after{font-size:12px;}
+
+  /* ---------- 16 · EDITORIAL ----------
+     The magazine spread: oversized type, one photograph, generous air. */
+  .editorial{gap:clamp(36px,5vw,84px);align-items:center;}
+  .editorial .arch{
+    aspect-ratio:4/4.9;box-shadow:var(--shadow-md);
+  }
+  .editorial-media{position:relative;overflow:hidden;border-radius:50% 50% 4px 4px / 22% 22% 0 0;}
+  .editorial-copy h2{
+    font-size:clamp(30px,4.4vw,56px);line-height:1.06;letter-spacing:-.015em;
+    margin-bottom:22px;
+  }
+  .editorial-copy p{font-size:16px;line-height:1.85;max-width:44ch;}
+  .editorial-copy .btn{margin-top:14px;}
+  /* An oversized quiet mark behind the copy, the way a spread carries a
+     folio number. */
+  .editorial-copy{position:relative;}
+
+  /* ---------- 17 · WHY / TESTIMONIALS ---------- */
+  .why-grid{
+    display:grid;grid-template-columns:repeat(4,1fr);
+    gap:0;background:transparent;border:none;border-top:1px solid var(--line);
+    border-radius:0;overflow:visible;
+  }
+  .why-item{
+    background:transparent;padding:34px clamp(18px,2vw,30px) 34px 0;
+    border-right:1px solid var(--line);position:relative;
+  }
+  .why-item:last-child{border-right:none;}
+  .why-num{
+    display:block;font-family:'Fraunces',serif;font-size:12px;
+    letter-spacing:.2em;color:var(--gold);margin-bottom:22px;
+  }
+  .why-item svg{
+    width:22px;height:22px;stroke:var(--wine);margin-bottom:16px;opacity:.55;
+    transition:opacity var(--t-med), transform var(--t-med) var(--ease-out);
+  }
+  .why-item:hover svg{opacity:1;transform:translateY(-3px);}
+  .why-item h4{font-size:17px;margin-bottom:10px;}
+  .why-item p{font-size:13.5px;line-height:1.7;}
+  /* A rule that draws itself under the item being read. */
+  .why-item::after{
+    content:'';position:absolute;left:0;top:-1px;height:1px;width:100%;
+    background:var(--wine);transform:scaleX(0);transform-origin:0 50%;
+    transition:transform var(--t-med) var(--ease-out);
+  }
+  .why-item:hover::after{transform:scaleX(1);}
+
+  .testi-track{gap:clamp(18px,2vw,26px);}
+  .testi-card{
+    background:transparent;border:none;border-left:1px solid var(--line);
+    border-radius:0;padding:6px 26px 6px 28px;
+  }
+  .testi-card p{
+    font-family:'Fraunces',serif;font-size:clamp(16px,1.5vw,20px);
+    font-weight:400;line-height:1.55;letter-spacing:-.005em;color:var(--ink);
+  }
+  .testi-card .stars{margin-bottom:18px;}
+  .testi-person span{font-weight:600;letter-spacing:.02em;}
+
+  /* ---------- 18 · FINAL CTA / FOOTER ----------
+     The closing frame of the campaign: the newsletter, staged dark and large,
+     with the last product photograph and one instruction. */
+  .newsletter{
+    position:relative;overflow:hidden;isolation:isolate;
+    background:radial-gradient(110% 120% at 22% 10%, var(--noir-3) 0%, var(--noir-2) 42%, var(--noir) 100%);
+    border-radius:var(--radius);
+    padding:clamp(56px,7vw,104px) clamp(24px,5vw,72px);
+    text-align:left;
+    display:grid;grid-template-columns:1fr;
+    gap:clamp(28px,4vw,60px);align-items:center;
+  }
+  .newsletter.with-visual{grid-template-columns:1.2fr .8fr;}
+  .newsletter-copy{position:relative;z-index:1;}
+  .newsletter h2{
+    color:var(--cream);font-size:clamp(30px,4.6vw,58px);
+    line-height:1.04;letter-spacing:-.018em;margin-bottom:16px;max-width:14ch;
+  }
+  .newsletter p{color:rgba(250,245,238,.7);opacity:1;margin-bottom:32px;max-width:44ch;font-size:15px;line-height:1.7;}
+  .nl-form{margin:0;max-width:460px;}
+  .nl-form input{
+    background:rgba(250,245,238,.08);color:var(--cream);
+    border-color:rgba(231,199,180,.22);
+  }
+  .nl-form input::placeholder{color:rgba(250,245,238,.45);}
+  .nl-form input:focus{border-color:var(--blush);background:rgba(250,245,238,.13);}
+  /* The field flexes; the button keeps its own width so "Join Us" never
+     breaks across two lines. */
+  .nl-form .btn-primary{background:var(--cream);color:var(--ink);flex:none;white-space:nowrap;}
+  .nl-form .btn-primary:hover{background:var(--blush);}
+  .newsletter-visual{
+    position:relative;aspect-ratio:3/3.6;z-index:1;
+    border-radius:50% 50% 6px 6px / 20% 20% 0 0;overflow:hidden;
+    border:1px solid rgba(231,199,180,.16);background:rgba(250,245,238,.04);
+  }
+  .newsletter-visual img{
+    position:absolute;inset:0;width:100%;height:100%;object-fit:contain;
+    opacity:0;transition:opacity var(--t-cine) var(--ease-out);
+  }
+  .newsletter-visual img.is-loaded{opacity:.95;}
+  .newsletter-atmos{position:absolute;inset:0;z-index:0;color:rgba(231,199,180,.2);pointer-events:none;}
+
+  /* A rule observed on its own, so it draws whether or not its section
+     wrapper is a reveal target. */
+  .section-rule.is-in{transform:scaleX(1);}
+  .promo-band .section-rule,
+  .newsletter .section-rule{background:var(--blush);}
+
+  .ai-lede{
+    font-size:16px;line-height:1.75;color:var(--text-soft);
+    max-width:46ch;margin:16px 0 34px;
+  }
+  .ai-copy h2{font-size:clamp(28px,3.6vw,46px);line-height:1.08;letter-spacing:-.014em;}
+
+  /* The campaign tile is one link around the photograph. The caption below
+     carries the accessible name, so the image link is taken out of the tab
+     order rather than announced twice. */
+  .cat-media{display:block;position:relative;}
+  .cat-media .tag{
+    position:absolute;bottom:16px;left:16px;z-index:2;
+    background:rgba(250,245,238,.94);
+    padding:8px 15px;border-radius:100px;
+    font-size:10.5px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+    color:var(--ink);box-shadow:var(--shadow-sm);white-space:nowrap;
+    max-width:calc(100% - 32px);overflow:hidden;text-overflow:ellipsis;
+  }
+
+  footer{padding:clamp(64px,8vw,104px) 0 34px;}
+  /* A footer link column is a stacked list: .foot-col a MUST stay block, or
+     the links run together on one line. The nudge on hover works on a block
+     element just as well. */
+  .foot-col a{
+    position:relative;display:block;padding:6px 0;
+    transition:color var(--t-fast), transform var(--t-fast) var(--ease-out);
+  }
+  .foot-legal a{
+    position:relative;
+    transition:color var(--t-fast), transform var(--t-fast) var(--ease-out);
+  }
+  .foot-col a:hover,.foot-legal a:hover{color:var(--wine);transform:translateX(3px);}
+  .foot-social a{transition:transform var(--t-fast) var(--ease-out), border-color var(--t-fast), background var(--t-fast);}
+  .foot-social a:hover{transform:translateY(-3px);border-color:var(--wine);background:rgba(92,36,49,.06);}
+
+  /* ---------- 19 · PDP (luxury showroom) ---------- */
+  .pdp{
+    transform:translate(-50%,-46%) scale(.985);
+    transition:opacity var(--t-med) var(--ease-out), transform var(--t-med) var(--ease-out);
+  }
+  .pdp.active{transform:translate(-50%,-50%) scale(1);}
+  .pdp-inner{gap:clamp(24px,3vw,42px);padding:clamp(22px,2.6vw,34px);}
+  .pdp-gallery-main{
+    background:var(--porcelain);box-shadow:var(--shadow-sm);
+  }
+  .pdp-gallery-main img{
+    animation:hs-pdp-img var(--t-med) var(--ease-out);
+  }
+  @keyframes hs-pdp-img{
+    from{opacity:0;transform:scale(1.03);}
+    to{opacity:1;transform:scale(1);}
+  }
+  .pdp-thumb{
+    transition:border-color var(--t-fast), transform var(--t-fast) var(--ease-out), opacity var(--t-fast);
+    opacity:.72;
+  }
+  .pdp-thumb:hover{transform:translateY(-3px);opacity:1;}
+  .pdp-thumb.active{opacity:1;}
+  .pdp-info h2{font-size:clamp(24px,2.6vw,33px);line-height:1.12;letter-spacing:-.012em;}
+  .pdp-price .now{font-size:26px;letter-spacing:-.01em;}
+  .pdp-chip{transition:background var(--t-fast) var(--ease-soft), color var(--t-fast), border-color var(--t-fast), transform var(--t-fast) var(--ease-out);}
+  .pdp-chip:hover:not(.disabled){transform:translateY(-2px);border-color:var(--ink);}
+  .pdp-actions .btn{
+    padding:17px 30px;letter-spacing:.1em;text-transform:uppercase;font-size:12px;
+  }
+  .pdp-close{transition:transform var(--t-fast) var(--ease-out), background var(--t-fast);}
+  .pdp-close:hover{transform:rotate(90deg);background:var(--blush);}
+
+  /* ---------- 20 · CART & MICRO-INTERACTIONS ---------- */
+  /* The primary button fills from the base rather than only lifting. */
+  .btn{position:relative;overflow:hidden;z-index:0;isolation:isolate;}
+  .btn > span.btn-t{position:relative;z-index:1;display:inline-block;}
+  .btn-primary::before{
+    content:'';position:absolute;inset:0;z-index:-1;
+    background:var(--wine);
+    transform:translateY(101%);
+    transition:transform var(--t-ui) var(--ease-out);
+  }
+  .btn-primary:hover::before{transform:translateY(0);}
+  .btn-outline::before{
+    content:'';position:absolute;inset:0;z-index:-1;background:var(--ink);
+    transform:translateY(101%);
+    transition:transform var(--t-ui) var(--ease-out);
+  }
+  .btn-outline:hover{background:transparent;color:var(--cream);}
+  .btn-outline:hover::before{transform:translateY(0);}
+  .btn:active{transform:translateY(1px) scale(.988);}
+
+  /* The thumbnail that travels to the bag when something is added. It is a
+     copy of the real product photograph, animated with the Web Animations
+     API and removed on finish - nothing is left in the DOM. */
+  .hs-fly{
+    position:fixed;z-index:1800;pointer-events:none;
+    border-radius:14px;object-fit:contain;background:var(--porcelain);
+    box-shadow:var(--shadow-md);
+  }
+
+  .cart-drawer{box-shadow:var(--shadow-lg);}
+  .cart-item{
+    animation:hs-cart-line var(--t-med) var(--ease-out) both;
+    animation-delay:calc(var(--i,0) * 45ms);
+  }
+  @keyframes hs-cart-line{
+    from{opacity:0;transform:translateX(16px);}
+    to{opacity:1;transform:none;}
+  }
+  .qty-ctl button{transition:background var(--t-fast), transform var(--t-fast) var(--ease-out);}
+  .qty-ctl button:hover:not(:disabled){transform:scale(1.14);}
+  .cart-progress-fill{transition:width var(--t-slow) var(--ease-out);}
+
+  .toast{
+    border-radius:100px;box-shadow:var(--shadow-md);
+    letter-spacing:.04em;
+  }
+  .shop-chip{
+    transition:background var(--t-fast) var(--ease-soft), color var(--t-fast),
+               border-color var(--t-fast), transform var(--t-fast) var(--ease-out);
+    letter-spacing:.06em;
+  }
+  .shop-chip:hover{transform:translateY(-2px);}
+  .faq-q{transition:color var(--t-fast), padding-left var(--t-ui) var(--ease-out);}
+  .faq-item:hover .faq-q{padding-left:10px;color:var(--wine);}
+  .faq-item{transition:background var(--t-ui);}
+
+  /* ---------- 21 · CURSOR ----------
+     Desktop, fine-pointer only.
+
+     Three rules it follows, each fixing something a naive custom cursor gets
+     wrong:
+
+       · It does not exist until the mouse has actually moved. Otherwise a
+         stray dot sits in the middle of the page from the moment it loads.
+       · Size is animated with transform:scale on an inner element, never
+         width/height/margin — those relayout on every frame of the hover.
+       · Where the native cursor still carries meaning — a text field, the
+         before/after handle — it comes back and this one steps aside, rather
+         than the two being drawn on top of each other.
+  */
+  .hs-cursor,
+  .hs-cursor-ring{
+    position:fixed;top:0;left:0;z-index:9999;pointer-events:none;
+    opacity:0;transition:opacity 180ms linear;
+    will-change:transform;
+  }
+  .hs-cursor{
+    width:7px;height:7px;margin:-3.5px 0 0 -3.5px;border-radius:50%;
+    background:var(--ink);
+  }
+  .hs-cursor-ring{
+    width:38px;height:38px;margin:-19px 0 0 -19px;
+    display:grid;place-items:center;
+  }
+  /* The ring itself. Scaling this leaves the outer element's transform free
+     for position, so the two never fight over one property. */
+  .hs-cursor-ring i{
+    position:absolute;inset:0;border-radius:50%;
+    border:1px solid rgba(43,27,20,.32);
+    transform:scale(1);
+    transition:transform var(--t-med) var(--ease-out),
+               background var(--t-med) var(--ease-out),
+               border-color var(--t-med) var(--ease-out);
+  }
+  .hs-cursor-ring b{
+    position:relative;z-index:1;
+    font:700 10px/1 'Inter',sans-serif;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--cream);opacity:0;transform:scale(.6);
+    transition:opacity var(--t-fast) var(--ease-out), transform var(--t-med) var(--ease-out);
+  }
+
+  html.hs-cursor-live .hs-cursor,
+  html.hs-cursor-live .hs-cursor-ring{opacity:1;}
+  html.hs-cursor-on,
+  html.hs-cursor-on *{cursor:none;}
+
+  /* Native cursor restored where it means something. */
+  html.hs-cursor-on input,
+  html.hs-cursor-on textarea,
+  html.hs-cursor-on select,
+  html.hs-cursor-on [contenteditable]{cursor:auto;}
+  html.hs-cursor-on .ba-handle,
+  html.hs-cursor-on .ba-slider{cursor:ew-resize;}
+  /* ...and ours gets out of the way while it is. */
+  html.hs-cursor-native .hs-cursor,
+  html.hs-cursor-native .hs-cursor-ring{opacity:0;}
+
+  /* Labelled: the ring fills and grows, the dot yields to it. */
+  .hs-cursor-ring.is-label i{
+    transform:scale(1.9);
+    background:var(--ink);border-color:var(--ink);
+  }
+  .hs-cursor-ring.is-label.tone-wine i{background:var(--wine);border-color:var(--wine);}
+  .hs-cursor-ring.is-label b{opacity:1;transform:scale(1);}
+  html.hs-cursor-live .hs-cursor.is-muted{opacity:0;}
+
+  /* Pressed — a small, immediate acknowledgement. */
+  .hs-cursor-ring.is-press i{transform:scale(.8);transition-duration:var(--t-fast);}
+  .hs-cursor-ring.is-label.is-press i{transform:scale(1.66);}
+
+  /* ---------- 22 · MAGNETIC ----------
+     A few pixels of pull on the primary calls to action only. The transform
+     is written by script to --mx/--my so the CSS stays declarative. */
+  [data-magnetic]{
+    transform:translate3d(var(--mx,0),var(--my,0),0);
+    transition:transform var(--t-med) var(--ease-out);
+  }
+  [data-magnetic].is-pulling{transition:transform 90ms linear;}
+
+  /* ---------- 23 · MOBILE MOTION ----------
+     Not the desktop page made narrow: decoration is dropped, the product
+     stays large, and every call to action stays in reach. */
+  @media (max-width:980px){
+    .promo-inner{grid-template-columns:1fr;}
+    .promo-visual{max-width:340px;order:-1;}
+    .ai-layout{grid-template-columns:1fr;}
+    .ai-orbit{max-width:400px;order:-1;}
+    .ai-row{grid-template-columns:auto 1fr;row-gap:16px;}
+    .ai-row .btn{grid-column:2;justify-self:start;}
+    .newsletter{grid-template-columns:1fr;text-align:left;}
+    .newsletter-visual{display:none;}
+    .why-grid{grid-template-columns:repeat(2,1fr);}
+    .why-item{border-bottom:1px solid var(--line);padding-right:20px;}
+    .why-item:nth-child(2n){border-right:none;}
+    .hero-scroll{display:none;}
+  }
+  @media (max-width:760px){
+    .hero-visual .arch{aspect-ratio:3/3.5;}
+    .trust-grid{animation-duration:30s;}
+    .trust-item{padding:18px 22px;font-size:10.5px;letter-spacing:.16em;}
+    .prod-card:hover{transform:none;}
+    .prod-card:hover .prod-photo.is-loaded{transform:scale(1);}
+    .prod-media.has-alt:hover .prod-photo.is-loaded:not(.alt){opacity:1;}
+    .prod-media.has-alt:hover .prod-photo.alt.is-loaded{opacity:0;}
+    /* Quick Add is permanent on touch - there is no hover to reveal it. */
+    .quick-add{opacity:1;transform:none;}
+    .prod-sheen{display:none;}
+    /* On a wide screen the strands sit in the margin beside the headline; at
+       phone width they would run straight through it. The warm light stays. */
+    .hero-atmos .strand{display:none;}
+    .hs-divider{height:56px;margin-top:-24px;}
+  }
+  @media (max-width:560px){
+    :root{--gutter:20px;}
+    .cat-grid{grid-template-columns:1fr;}
+    .cat-card .arch{aspect-ratio:3/3.2;}
+    .prod-grid{grid-template-columns:repeat(2,1fr);gap:16px;}
+    .why-grid{grid-template-columns:1fr;}
+    .why-item{border-right:none;padding:26px 0;}
+    .newsletter{padding:44px 22px;}
+    .promo-band{border-radius:0;}
+    .hero-copy h1{font-size:clamp(34px,10vw,46px);}
+    .section-head{margin-bottom:30px;}
+    .testi-card{padding:6px 18px;}
+  }
+  /* The narrowest supported width only. 360, 375 and 390 keep the 20px
+     gutter above; this is for ~320px devices. */
+  @media (max-width:340px){
+    :root{--gutter:16px;}
+    .prod-grid{gap:12px;}
+    .hero-float{padding:13px 15px;}
+  }
+
+  /* ---------- 24 · REDUCED MOTION ----------
+     The blanket rule near the top of this stylesheet already collapses every
+     duration. These rules make sure nothing is left mid-reveal, hidden, or
+     relying on an animation that no longer plays. */
+  @media (prefers-reduced-motion: reduce){
+    .hs-intro{display:none !important;}
+    html.hs-js [data-reveal],
+    html.hs-js [data-reveal].is-in{
+      opacity:1 !important;transform:none !important;clip-path:none !important;
+    }
+    .tl > .tl-i{transform:none !important;}
+    .strand path{stroke-dashoffset:0 !important;animation:none !important;}
+    .strand.drift{animation:none !important;}
+    .hs-divider path{stroke-dashoffset:0 !important;}
+    .trust-grid{animation:none !important;width:auto;flex-wrap:wrap;justify-content:center;}
+    .trust-run:nth-child(2){display:none;}
+    .hero-frame{clip-path:none !important;}
+    .hero-visual .arch{transform:none !important;}
+    .hero-atmos::before{animation:none !important;}
+    .hero-copy .eyebrow,
+    .hero-copy p,.hero-btns,.hero-chips,.hero-float{opacity:1 !important;transform:none !important;}
+    .hero-copy .eyebrow::before,.section-rule{transform:scaleX(1) !important;}
+    .hero-sheen,.prod-sheen,.hero-scroll{display:none !important;}
+    .ai-orbit .spin{animation:none !important;}
+    .prod-skeleton .sk-media::after,.prod-skeleton .sk-line::after{animation:none !important;opacity:0;}
+    .prod-photo{opacity:1;transform:none !important;}
+    .mobile-nav a{opacity:1 !important;transform:none !important;}
+    .hs-cursor,.hs-cursor-ring{display:none !important;}
+    html.hs-cursor-on,html.hs-cursor-on *{cursor:auto !important;}
+    .cart-item{animation:none !important;}
+  }
+
+  /* ---------- 25 · HAIRSHALO DETAILS EXPERIENCE ----------
+     A dark movement built around native <details>. The interaction is the
+     element's own: no JS opens or closes anything, the `name` attribute makes
+     the group exclusive, and the animation rides ::details-content so a
+     height:auto close is interpolated rather than snapped.
+
+     Everything inside is rendered from the live catalogue (renderDetails).
+     A facet the catalogue has no data for simply does not appear. */
+  .hh-details{
+    position:relative;overflow:hidden;isolation:isolate;
+    background:radial-gradient(115% 125% at 15% 0%, var(--noir-3) 0%, var(--noir-2) 42%, var(--noir) 100%);
+    color:var(--cream);
+  }
+  .hh-details__atmos{
+    position:absolute;inset:0;z-index:-1;pointer-events:none;
+    color:rgba(231,199,180,.18);
+  }
+  .hh-details__atmos::before{
+    content:'';position:absolute;width:min(620px,60vw);aspect-ratio:1;border-radius:50%;
+    left:-12%;bottom:-30%;
+    background:radial-gradient(circle,rgba(173,135,82,.26),transparent 68%);
+  }
+  .hh-details__grid{
+    display:grid;grid-template-columns:.85fr 1fr;
+    gap:clamp(36px,5vw,78px);align-items:start;
+  }
+
+  /* ---- left: the editorial half ---- */
+  .hh-details__intro{position:sticky;top:120px;}
+  .hh-details__intro .eyebrow{color:var(--blush);display:block;margin-bottom:18px;}
+  .hh-details__intro h2{
+    font-family:'Fraunces',serif;font-weight:500;
+    font-size:clamp(30px,4.2vw,52px);line-height:1.04;letter-spacing:-.018em;
+    margin-bottom:22px;max-width:11ch;
+  }
+  .hh-details__intro p{
+    color:rgba(250,245,238,.66);font-size:15px;line-height:1.8;max-width:40ch;
+  }
+  .hh-details .section-rule{background:var(--blush);}
+
+  /* ---- right: the list ---- */
+  .hh-details__list{display:flex;flex-direction:column;gap:10px;}
+
+  .hh-details__item{
+    border:1px solid rgba(231,199,180,.13);
+    border-radius:18px;
+    background:rgba(250,245,238,.035);
+    overflow:clip;
+    transition:background var(--t-med) var(--ease-out),
+               border-color var(--t-med) var(--ease-out),
+               box-shadow var(--t-med) var(--ease-out);
+  }
+  .hh-details__item:hover{
+    background:rgba(250,245,238,.06);
+    border-color:rgba(231,199,180,.26);
+  }
+  .hh-details__item[open]{
+    background:rgba(250,245,238,.075);
+    border-color:rgba(231,199,180,.34);
+    box-shadow:0 30px 60px -40px rgba(0,0,0,.8);
+  }
+
+  /* The trigger. A summary is focusable and clickable on its own — nothing
+     here replaces that, it only dresses it. */
+  .hh-details__trigger{
+    display:grid;grid-template-columns:auto 1fr auto;align-items:center;
+    gap:clamp(14px,2vw,22px);
+    padding:clamp(18px,2vw,22px) clamp(18px,2.2vw,26px);
+    cursor:pointer;list-style:none;
+    min-height:44px;                    /* touch target */
+    transition:padding-left var(--t-med) var(--ease-out);
+  }
+  .hh-details__trigger::-webkit-details-marker{display:none;}
+  .hh-details__trigger::marker{content:'';}
+  .hh-details__item:hover .hh-details__trigger{padding-left:calc(clamp(18px,2.2vw,26px) + 4px);}
+  .hh-details__trigger:focus-visible{
+    outline:2px solid var(--blush);outline-offset:-2px;border-radius:17px;
+  }
+
+  .hh-details__num{
+    font-family:'Fraunces',serif;font-size:12px;letter-spacing:.18em;
+    color:rgba(231,199,180,.55);
+    transition:color var(--t-med), opacity var(--t-med);
+  }
+  .hh-details__item[open] .hh-details__num{color:var(--gold);}
+
+  .hh-details__title{
+    font-size:clamp(15px,1.4vw,17.5px);font-weight:600;letter-spacing:.01em;
+    color:var(--cream);
+  }
+
+  .hh-details__icon{
+    width:26px;height:26px;flex:none;
+    stroke:currentColor;fill:none;stroke-width:1.2;
+    color:rgba(231,199,180,.5);
+    transform:rotate(0deg);
+    transition:transform 520ms var(--ease-out), color var(--t-med);
+  }
+  .hh-details__item:hover .hh-details__icon{color:rgba(231,199,180,.85);}
+  .hh-details__item[open] .hh-details__icon{transform:rotate(90deg);color:var(--blush);}
+  /* The plus becomes a minus: the upright stroke collapses while the whole
+     mark turns, so it reads as one movement rather than an icon swap. */
+  .hh-details__icon .bar-v{
+    transform-box:fill-box;transform-origin:50% 50%;
+    transform:scaleY(1);
+    transition:transform 520ms var(--ease-out);
+  }
+  .hh-details__item[open] .hh-details__icon .bar-v{transform:scaleY(0);}
+
+  /* ---- the panel ----
+     interpolate-size (declared on :root) is what lets height:auto animate;
+     allow-discrete carries content-visibility along with it so the close is
+     animated too rather than snapping shut. */
+  .hh-details__item::details-content{
+    height:0;opacity:0;overflow:clip;
+    transition:height 520ms var(--ease-out),
+               opacity 260ms var(--ease-out),
+               content-visibility 520ms allow-discrete;
+  }
+  .hh-details__item[open]::details-content{
+    height:auto;opacity:1;
+    transition-delay:0s, 140ms, 0s;
+  }
+  .hh-details__content{
+    padding:0 clamp(18px,2.2vw,26px) clamp(20px,2.4vw,26px) clamp(50px,5.4vw,66px);
+  }
+  /* The copy lifts the last few pixels into place as the panel finishes. */
+  .hh-details__content > *{
+    transform:translateY(-6px);
+    transition:transform 520ms var(--ease-out);
+  }
+  .hh-details__item[open] .hh-details__content > *{transform:none;}
+
+  .hh-details__lead{
+    font-size:14px;line-height:1.75;color:rgba(250,245,238,.66);margin-bottom:14px;
+  }
+  .hh-details__values{display:flex;flex-wrap:wrap;gap:8px;list-style:none;padding:0;margin:0;}
+  .hh-details__value{
+    display:inline-flex;align-items:center;gap:8px;
+    border:1px solid rgba(231,199,180,.2);border-radius:100px;
+    padding:7px 14px;font-size:12.5px;letter-spacing:.03em;
+    color:rgba(250,245,238,.88);
+  }
+  .hh-details__value small{color:rgba(250,245,238,.45);font-size:11px;}
+  .hh-details__swatch{
+    width:13px;height:13px;border-radius:50%;flex:none;
+    border:1px solid rgba(250,245,238,.28);
+  }
+  .hh-details__note{
+    margin-top:14px;font-size:12.5px;line-height:1.7;color:rgba(250,245,238,.5);
+  }
+
+  @media (max-width:980px){
+    .hh-details__grid{grid-template-columns:1fr;}
+    .hh-details__intro{position:static;}
+    .hh-details__intro h2{max-width:none;}
+  }
+  @media (max-width:560px){
+    .hh-details__item{border-radius:14px;}
+    .hh-details__content{padding-left:clamp(18px,5vw,26px);}
+    .hh-details__atmos{display:none;}
+  }
+
+  @media (prefers-reduced-motion: reduce){
+    /* Open and close still work; they just stop being a performance. */
+    .hh-details__item::details-content{transition:none !important;}
+    .hh-details__item[open]::details-content{height:auto;opacity:1;}
+    .hh-details__content > *{transform:none !important;}
+    .hh-details__icon,.hh-details__icon .bar-v{transition:none !important;}
+    .hh-details__item:hover .hh-details__trigger{padding-left:clamp(18px,2.2vw,26px);}
+  }
 </style>
 </head>
 <body>
+<script>
+  /* Whether the cinematic opening plays, decided BEFORE first paint so the
+     curtain is never seen appearing. It runs once per browsing session and
+     never for a visitor who has asked for reduced motion. */
+  (function(){
+    try{
+      var reduced = window.matchMedia
+        && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      var seen = sessionStorage.getItem('hairshalo.intro.v1');
+      if(!reduced && !seen){
+        document.documentElement.setAttribute('data-intro','run');
+        document.documentElement.classList.add('hs-lock');
+        sessionStorage.setItem('hairshalo.intro.v1','1');
+      }
+    }catch(e){ /* private mode: simply skip the opening */ }
+  })();
+</script>
+
+<!-- CINEMATIC OPENING.
+     The page underneath is complete in the DOM the whole time — this is a
+     layer over a finished document, not a loading gate, so a crawler never
+     waits for it and the content is one Escape-free scroll away regardless.
+     The wordmark is exposed as a single image labelled "Hairshalo" so a
+     screen reader says the brand once, never nine separate letters. -->
+<div class="hs-intro" id="hsIntro">
+  <div class="hs-intro-stage">
+    <!-- The halo: two rings and three strands of hair, drawn as the mark
+         assembles and opened outward as the curtain lifts. -->
+    <svg class="hs-intro-halo" viewBox="0 0 600 600" fill="none" aria-hidden="true">
+      <circle class="ring r1" cx="300" cy="300" r="186"/>
+      <circle class="ring r2" cx="300" cy="300" r="232"/>
+      <g class="drift">
+        <path class="strand" pathLength="1" style="--i:0"
+              d="M76 300C130 196 214 140 300 140s170 56 224 160"/>
+        <path class="strand" pathLength="1" style="--i:1"
+              d="M60 322C126 214 210 158 300 158s174 56 240 164"/>
+        <path class="strand" pathLength="1" style="--i:2"
+              d="M96 356C150 268 220 220 300 220s150 48 204 136"/>
+      </g>
+    </svg>
+    <div class="hs-intro-mark">
+      <div class="hs-intro-word" id="hsIntroWord" role="img" aria-label="Hairshalo"></div>
+      <span class="hs-intro-rule" aria-hidden="true"></span>
+      <span class="hs-intro-sub" aria-hidden="true">Premium Human Hair</span>
+    </div>
+  </div>
+</div>
+
+<div class="hs-grain" aria-hidden="true"></div>
+
 <div class="fx-banner" id="fxBanner"></div>
 
 <div class="announce" id="announceBar" hidden></div>
@@ -1064,6 +2537,7 @@
       <button class="burger" id="burgerBtn" aria-label="Menu"><span></span><span></span><span></span></button>
     </div>
   </div>
+  <span class="hs-progress" id="hsProgress" aria-hidden="true"></span>
 </header>
 
 <!-- MOBILE NAV -->
@@ -1076,24 +2550,38 @@
   <a href="#collections" class="btn btn-primary">Shop Now</a>
 </div>
 
-<!-- HERO -->
-<section class="hero">
+<!-- HERO — the campaign opening. Every word and the photograph still come
+     from /api/site-content and the live catalog; the choreography is CSS,
+     switched on by the .is-in class the motion module adds once the content
+     has actually landed (so nothing animates into an empty frame). -->
+<section class="hero" id="hero">
+  <div class="hero-atmos" aria-hidden="true">
+    <svg class="strand drift" viewBox="0 0 600 800" preserveAspectRatio="none" fill="none">
+      <path pathLength="1" style="--i:0" d="M-20 610C150 520 250 360 300 150 330 20 360-40 420-90"/>
+      <path pathLength="1" style="--i:1" d="M-40 680C170 590 300 400 360 170 395 40 430-20 500-70"/>
+      <path pathLength="1" style="--i:2" d="M40 760C230 660 360 450 420 200 455 70 500 10 570-40"/>
+    </svg>
+  </div>
   <div class="wrap hero-grid">
     <div class="hero-copy">
       <span class="eyebrow" id="heroEyebrow"></span>
       <h1 id="heroHeading"></h1>
       <p id="heroBody"></p>
       <div class="hero-btns">
-        <a class="btn btn-primary" id="heroPrimaryCta" href="#collections" hidden></a>
-        <a class="btn btn-outline" id="heroSecondaryCta" href="#faq" hidden></a>
+        <a class="btn btn-primary" id="heroPrimaryCta" href="#collections" data-magnetic data-cursor="open" hidden></a>
+        <a class="btn btn-outline" id="heroSecondaryCta" href="#faq" data-magnetic data-cursor="open" hidden></a>
       </div>
       <div class="hero-chips" id="heroChips"></div>
     </div>
     <div class="hero-visual">
-      <!-- Image comes from Back Office → Content → Homepage hero. Until one is
-           uploaded this stays the branded panel rather than borrowing a stock photo. -->
-      <div class="arch brand-panel" id="heroArch">
-        <span class="tag" id="heroArchTag" hidden></span>
+      <div class="hero-frame" data-parallax="-0.05">
+        <!-- Image comes from Back Office → Content → Homepage hero. Until one is
+             uploaded this shows a real product photograph, and the branded panel
+             only when the shop has published nothing at all. -->
+        <div class="arch brand-panel" id="heroArch" data-cursor="explore">
+          <span class="tag" id="heroArchTag" hidden></span>
+        </div>
+        <span class="hero-sheen" aria-hidden="true"></span>
       </div>
       <!-- Filled with a real review when there is one; otherwise it states a
            fact about the product rather than quoting a customer who does not
@@ -1104,6 +2592,7 @@
       </div>
     </div>
   </div>
+  <div class="hero-scroll" aria-hidden="true"><span>Scroll</span><i></i></div>
 </section>
 
 <!-- TRUST -->
@@ -1114,8 +2603,11 @@
 <!-- CATEGORIES -->
 <section class="section" id="collections" hidden>
   <div class="wrap">
-    <div class="section-head">
-      <div><h2 id="collectionsHeading"></h2></div>
+    <div class="section-head" data-reveal="fade">
+      <div>
+        <span class="section-rule"></span>
+        <h2 id="collectionsHeading" data-mask-text></h2>
+      </div>
       <p id="collectionsIntro"></p>
     </div>
     <!-- One card per active category from /api/categories. Name, tagline,
@@ -1125,22 +2617,36 @@
   </div>
 </section>
 
-<!-- PROMO — Back Office → Content → Promotional banner -->
-<div class="wrap">
-  <div class="promo" id="promoPanel" hidden>
-    <div>
-      <h3 id="promoHeading"></h3>
-      <p id="promoBody"></p>
-    </div>
-    <a class="btn" id="promoCta" href="#collections" hidden></a>
+<!-- PROMO — staged as the dark movement in the middle of the page. The copy
+     is Back Office → Content → Promotional banner; the photograph beside it is
+     one of the shop's own product shots, chosen by applyProductPhotoFallbacks()
+     and hidden entirely when there is none. -->
+<section class="promo-band" id="promoPanel" hidden>
+  <div class="promo-atmos" aria-hidden="true">
+    <svg class="strand" viewBox="0 0 1400 600" preserveAspectRatio="none" fill="none">
+      <path pathLength="1" style="--i:0" d="M-20 520C320 470 620 330 900 120 1060 0 1200-40 1420-60"/>
+      <path pathLength="1" style="--i:1" d="M-20 590C360 540 700 380 980 160 1140 40 1260 0 1420 10"/>
+    </svg>
   </div>
-</div>
+  <div class="wrap promo-inner">
+    <div class="promo-copy">
+      <span class="section-rule"></span>
+      <h3 id="promoHeading" data-mask-text></h3>
+      <p id="promoBody" data-reveal></p>
+      <a class="btn" id="promoCta" href="#collections" data-magnetic data-cursor="open" hidden></a>
+    </div>
+    <div class="promo-visual" data-photo-slot="promo" data-parallax="0.05" aria-hidden="true" hidden></div>
+  </div>
+</section>
 
 <!-- BEST SELLERS -->
 <section class="section" id="bestsellers">
   <div class="wrap">
-    <div class="section-head">
-      <div><h2 id="bestsellersHeading"></h2></div>
+    <div class="section-head" data-reveal="fade">
+      <div>
+        <span class="section-rule"></span>
+        <h2 id="bestsellersHeading" data-mask-text></h2>
+      </div>
       <p id="bestsellersIntro"></p>
     </div>
     <!-- Cards are rendered from the live API by renderBestSellers().
@@ -1153,10 +2659,23 @@
 <!-- SHOP — every published product. Nothing here is written by hand: a
      product an admin publishes appears in this grid on the next page load,
      under its category chip. Back Office → Content → Shop for the heading. -->
-<section class="section" id="shop">
+<!-- A strand sweeping between two movements, and a change of surface, so the
+     grid below does not read as one more white panel. -->
+<div class="wrap" aria-hidden="true">
+  <div class="hs-divider">
+    <svg viewBox="0 0 1200 90" preserveAspectRatio="none" fill="none">
+      <path pathLength="1" d="M0 74C220 74 330 16 600 16s380 58 600 58"/>
+    </svg>
+  </div>
+</div>
+
+<section class="section section-tone-mist" id="shop">
   <div class="wrap">
-    <div class="section-head">
-      <div><h2 id="shopHeading">Shop the collection</h2></div>
+    <div class="section-head" data-reveal="fade">
+      <div>
+        <span class="section-rule"></span>
+        <h2 id="shopHeading" data-mask-text>Shop the collection</h2>
+      </div>
       <p id="shopIntro"></p>
     </div>
     <div class="shop-bar">
@@ -1182,51 +2701,100 @@
   </div>
 </section>
 
-<!-- AI FEATURES -->
+<!-- AI FEATURES — presented as a service the shop offers, not as three
+     technology cards. The copy is unchanged; only the staging is. The orbit
+     beside it is built around a real product photograph. -->
 <section class="section ai-section" id="ai-features">
-  <div class="wrap">
-    <div class="section-head">
-      <div>
-        <span class="ai-badge"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6z"/></svg> AI-Powered</span>
-        <h2>Shop smarter, with a little AI help</h2>
+  <div class="wrap ai-layout">
+    <div class="ai-copy">
+      <span class="ai-badge"><svg viewBox="0 0 24 24" width="12" height="12" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M12 2l1.8 5.4L19 9l-5.2 1.6L12 16l-1.8-5.4L5 9l5.2-1.6z"/></svg> AI-Powered</span>
+      <h2 data-mask-text>Shop smarter, with a little AI help</h2>
+      <p class="ai-lede" data-reveal>Get matched to the right unit, preview a style, or ask a question — all before you add to bag.</p>
+
+      <div class="ai-list" data-reveal-group>
+        <div class="ai-row" data-reveal>
+          <span class="ai-num">01</span>
+          <div>
+            <h3>AI Wig Finder</h3>
+            <p>Answer 4 quick questions about your face shape, hair goals, and budget — get a personalised match instantly.</p>
+          </div>
+          <button class="btn btn-outline" id="openQuiz" data-magnetic data-cursor="open"><span class="btn-t">Take the Quiz</span></button>
+        </div>
+        <div class="ai-row" data-reveal>
+          <span class="ai-num">02</span>
+          <div>
+            <h3>Virtual Try-On</h3>
+            <p>Upload a selfie and preview how different lengths and textures could look on you — no commitment needed.</p>
+          </div>
+          <button class="btn btn-outline" id="openTryon" data-magnetic data-cursor="open"><span class="btn-t">Try It On</span></button>
+        </div>
+        <div class="ai-row" data-reveal>
+          <span class="ai-num">03</span>
+          <div>
+            <h3>24/7 AI Assistant</h3>
+            <p>Ask about sizing, shipping, maintenance, or appointments — get instant answers any time, day or night.</p>
+          </div>
+          <button class="btn btn-outline" id="openChatFromCard" data-magnetic data-cursor="open"><span class="btn-t">Chat Now</span></button>
+        </div>
       </div>
-      <p>Get matched to the right unit, preview a style, or ask a question — all before you add to bag.</p>
     </div>
-    <div class="ai-grid">
-      <div class="ai-card">
-        <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.6 10.8c.5.4.6 1 .6 1.5v.7h6v-.7c0-.5.1-1.1.6-1.5A6 6 0 0012 3z"/></svg></div>
-        <h3>AI Wig Finder</h3>
-        <p>Answer 4 quick questions about your face shape, hair goals, and budget — get a personalised match instantly.</p>
-        <button class="btn btn-outline" id="openQuiz">Take the Quiz</button>
-      </div>
-      <div class="ai-card">
-        <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M8 18c0-2.2 1.8-3.5 4-3.5s4 1.3 4 3.5"/></svg></div>
-        <h3>Virtual Try-On</h3>
-        <p>Upload a selfie and preview how different lengths and textures could look on you — no commitment needed.</p>
-        <button class="btn btn-outline" id="openTryon">Try It On</button>
-      </div>
-      <div class="ai-card">
-        <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 01-8.9 8.4 8.6 8.6 0 01-3.6-.8L3 20l1-4.9a8.3 8.3 0 01-1-4A8.4 8.4 0 0111.9 3a8.5 8.5 0 019.1 8.5z"/></svg></div>
-        <h3>24/7 AI Assistant</h3>
-        <p>Ask about sizing, shipping, maintenance, or appointments — get instant answers any time, day or night.</p>
-        <button class="btn btn-outline" id="openChatFromCard">Chat Now</button>
-      </div>
+
+    <div class="ai-orbit" aria-hidden="true">
+      <span class="ring r1"></span>
+      <span class="ring r2"></span>
+      <span class="ring r3"></span>
+      <div class="spin"><span class="node"></span><span class="node b"></span></div>
+      <div class="spin rev"><span class="node"></span></div>
+      <div class="ai-orbit-core brand-panel" data-photo-slot="ai"></div>
     </div>
   </div>
 </section>
 
 <!-- EDITORIAL -->
+<div class="wrap" aria-hidden="true">
+  <div class="hs-divider">
+    <svg viewBox="0 0 1200 90" preserveAspectRatio="none" fill="none">
+      <path pathLength="1" d="M0 16C220 16 330 74 600 74s380-58 600-58"/>
+    </svg>
+  </div>
+</div>
+
 <section class="section" id="editorial" hidden>
   <div class="wrap editorial">
-    <div class="arch order-2 brand-panel" id="editorialArch" style="aspect-ratio:4/4.6;">
-      <span class="tag" id="editorialArchTag" hidden></span>
+    <div class="editorial-media order-2" data-parallax="0.04">
+      <div class="arch brand-panel" id="editorialArch" data-cursor="explore" style="aspect-ratio:4/4.9;">
+        <span class="tag" id="editorialArchTag" hidden></span>
+      </div>
     </div>
     <div class="editorial-copy">
-      <span class="eyebrow" id="editorialEyebrow"></span>
-      <h2 id="editorialHeading"></h2>
-      <div id="editorialBody"></div>
-      <a class="btn btn-outline" id="editorialCta" href="#collections" hidden></a>
+      <span class="eyebrow" id="editorialEyebrow" data-reveal="fade"></span>
+      <h2 id="editorialHeading" data-mask-text></h2>
+      <div id="editorialBody" data-reveal></div>
+      <a class="btn btn-outline" id="editorialCta" href="#collections" data-magnetic data-cursor="open" hidden></a>
     </div>
+  </div>
+</section>
+
+<!-- DETAILS — a dark movement built on native <details>. Every row is a
+     real facet of the live catalogue (see renderDetails); a facet the shop
+     holds no data for is not rendered at all, so this can never describe an
+     option that does not exist. Hidden until there is something to show. -->
+<section class="section hh-details" id="details" hidden>
+  <div class="hh-details__atmos" aria-hidden="true">
+    <svg class="strand" viewBox="0 0 1200 700" preserveAspectRatio="none" fill="none">
+      <path pathLength="1" style="--i:0" d="M-20 600C260 560 520 420 720 220 840 100 980 40 1220 20"/>
+      <path pathLength="1" style="--i:1" d="M-20 670C300 630 600 470 810 260 930 140 1060 90 1220 80"/>
+    </svg>
+  </div>
+  <div class="wrap hh-details__grid">
+    <div class="hh-details__intro">
+      <span class="section-rule"></span>
+      <span class="eyebrow">The detail</span>
+      <h2 data-mask-text>Details that make the difference.</h2>
+      <p data-reveal>Everything the collection is made from, and every choice
+        you can make within it — drawn straight from what is in stock.</p>
+    </div>
+    <div class="hh-details__list" id="hhDetailsList"></div>
   </div>
 </section>
 
@@ -1251,20 +2819,29 @@
 <!-- WHY CHOOSE — Back Office → Content → Why customers choose us -->
 <section class="section" id="whySection" hidden>
   <div class="wrap">
-    <div class="section-head"><h2 id="whyHeading"></h2></div>
-    <div class="why-grid" id="whyGrid"></div>
+    <div class="section-head" data-reveal="fade">
+      <div>
+        <span class="section-rule"></span>
+        <h2 id="whyHeading" data-mask-text></h2>
+      </div>
+    </div>
+    <div class="why-grid" id="whyGrid" data-reveal-group></div>
   </div>
 </section>
 
 <!-- TESTIMONIALS -->
-<section class="section" id="testimonials" style="display:none;">
+<section class="section section-tone-mist" id="testimonials" style="display:none;">
   <div class="wrap">
-    <div class="section-head"><h2>Loved, daily</h2></div>
+    <div class="section-head" data-reveal="fade">
+      <div>
+        <span class="section-rule"></span>
+        <h2 data-mask-text>Loved, daily</h2>
+      </div>
+    </div>
     <!-- Filled from /api/reviews/recent. These were four hardcoded five-star
          quotes with invented names; the section now shows real published
          reviews, or hides itself when there are none. -->
-    <div class="testi-track" id="testiTrack"></div>
-  </div>
+    <div class="testi-track" id="testiTrack" data-reveal-group></div>
   </div>
 </section>
 
@@ -1272,7 +2849,8 @@
 <section class="section" id="faq" hidden>
   <div class="wrap">
     <div class="section-head" style="justify-content:center;text-align:center;flex-direction:column;align-items:center;">
-      <h2 id="faqHeading"></h2>
+      <span class="section-rule"></span>
+      <h2 id="faqHeading" data-mask-text></h2>
     </div>
     <!-- Questions come from Back Office → Content → FAQ. An empty list hides
          the whole section rather than showing invented questions. -->
@@ -1280,18 +2858,29 @@
   </div>
 </section>
 
-<!-- NEWSLETTER -->
+<!-- FINAL CTA — the closing frame of the campaign. Same newsletter, same
+     double opt-in; staged dark, with the last product photograph. -->
 <div class="wrap">
-  <div class="newsletter">
-    <h2 id="newsletterHeading"></h2>
-    <p id="newsletterBody"></p>
-    <!-- Double opt-in: this only asks for a confirmation email. Nothing is
-         added to the list until the link in that email is clicked. -->
-    <form class="nl-form" id="newsletterForm">
-      <input type="email" id="newsletterEmail" placeholder="Enter your email" required>
-      <button class="btn btn-primary" type="submit" id="newsletterSubmit">Join Us</button>
-    </form>
-  </div>
+  <section class="newsletter">
+    <div class="newsletter-atmos" aria-hidden="true">
+      <svg class="strand" viewBox="0 0 1000 500" preserveAspectRatio="none" fill="none">
+        <path pathLength="1" style="--i:0" d="M-20 430C240 400 470 280 660 110 760 20 860-20 1020-30"/>
+        <path pathLength="1" style="--i:1" d="M-20 490C260 460 520 330 720 150 820 60 910 20 1020 20"/>
+      </svg>
+    </div>
+    <div class="newsletter-copy">
+      <span class="section-rule"></span>
+      <h2 id="newsletterHeading" data-mask-text></h2>
+      <p id="newsletterBody" data-reveal></p>
+      <!-- Double opt-in: this only asks for a confirmation email. Nothing is
+           added to the list until the link in that email is clicked. -->
+      <form class="nl-form" id="newsletterForm" data-reveal>
+        <input type="email" id="newsletterEmail" placeholder="Enter your email" required>
+        <button class="btn btn-primary" type="submit" id="newsletterSubmit" data-magnetic data-cursor="open"><span class="btn-t">Join Us</span></button>
+      </form>
+    </div>
+    <div class="newsletter-visual" data-photo-slot="cta" data-parallax="0.04" aria-hidden="true" hidden></div>
+  </section>
 </div>
 
 <!-- FOOTER — every link, the blurb, socials and contact details come from
@@ -1531,11 +3120,9 @@
   document.getElementById('mobileNavClose').addEventListener('click', () => mobileNav.classList.remove('active'));
   mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileNav.classList.remove('active')));
 
-  // Sticky header shadow
-  const header = document.getElementById('siteHeader');
-  window.addEventListener('scroll', () => {
-    header.classList.toggle('scrolled', window.scrollY > 20);
-  });
+  /* Sticky header state, the scroll-progress rule and parallax are all
+     driven by the single rAF loop in the motion module at the end of this
+     file. There is deliberately no second scroll listener here. */
 
   // Toast
   const toast = document.getElementById('toast');
@@ -2681,23 +4268,46 @@
     const badge = product.badge || (onSale ? 'Sale' : '');
     const badgeClass = (!product.badge && onSale) ? 'prod-badge sale-badge' : 'prod-badge';
 
-    const priceHtml = onSale
-      ? `${inr(unitPrice)} <span class="old">${inr(compareAt)}</span><span class="save">${pct}% OFF</span>`
-      : inr(unitPrice);
+    /* A product can be published before its price is agreed. money() would
+       turn a null into "₹0", which is a lie and an invitation to try to buy
+       it, so an unpriced product says so and offers no way into the bag.
+       The server refuses such an order too — this is the polite half. */
+    const onRequest = unitPrice == null;
+    const priceHtml = onRequest
+      ? '<span class="price-on-request">Price on request</span>'
+      : (onSale
+        ? `${inr(unitPrice)} <span class="old">${inr(compareAt)}</span><span class="save">${pct}% OFF</span>`
+        : inr(unitPrice));
 
     const summary = defaultVariant ? [defaultVariant.length, defaultVariant.density, defaultVariant.color]
       .filter(Boolean).join(' · ') : '';
 
     let stockLine = '';
-    if(soldOut) stockLine = '<div class="prod-stock out">Out of Stock</div>';
+    // Stock is meaningless until the item is sellable: an unpriced product is
+    // an enquiry, not something that is "out of stock".
+    if(onRequest) stockLine = '<div class="prod-stock">Enquire for availability</div>';
+    else if(soldOut) stockLine = '<div class="prod-stock out">Out of Stock</div>';
     else if(product.total_stock <= 5) stockLine = `<div class="prod-stock low">Only ${product.total_stock} left</div>`;
+
+    /* A second real photograph for the hover cross-fade, when the product
+       has one. Product-level stills only, and never the one already shown —
+       nothing is invented to fill the slot. */
+    const gallery = (product.media || [])
+      .filter(m => m.media_type === 'image' && !m.variant_id && m.url)
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0));
+    const second = (gallery.find(m => m.url !== product.image_url) || {}).url || '';
 
     return `
       <div class="prod-card" data-product-id="${esc(product.id)}">
-        <div class="prod-media${soldOut ? ' is-sold-out' : ''}" data-media data-image="${esc(product.image_url || '')}">
+        <div class="prod-media${(soldOut && !onRequest) ? ' is-sold-out' : ''}" data-media
+             data-image="${esc(product.image_url || '')}"
+             data-image2="${esc(second)}"
+             data-alt="${esc(product.name)}"
+             data-cursor="view">
           ${veraPlaceholderPanel('Product Image Coming Soon')}
+          <span class="prod-sheen" aria-hidden="true"></span>
           ${badge ? `<span class="${badgeClass}">${esc(badge)}</span>` : ''}
-          ${soldOut ? '' : `<div class="quick-add" data-add
+          ${(soldOut || onRequest) ? '' : `<div class="quick-add" data-add
             data-id="${esc(product.id)}"
             data-variant-id="${esc(defaultVariant ? defaultVariant.id : '')}"
             data-variant-label="${esc(defaultVariant ? defaultVariant.label : '')}"
@@ -2875,12 +4485,17 @@
 
   function pdpRenderPricing(){
     const p = pdpCurrentPricing();
-    pdpEl('pdpPrice').innerHTML = p.sale
-      ? `<span class="now">${inr(p.price)}</span><span class="was">${inr(p.compare)}</span><span class="off">${p.pct}% OFF</span>`
-      : `<span class="now">${inr(p.price)}</span>`;
+    const onRequest = p.price == null;
+    pdpEl('pdpPrice').innerHTML = onRequest
+      ? '<span class="now price-on-request">Price on request</span>'
+      : (p.sale
+        ? `<span class="now">${inr(p.price)}</span><span class="was">${inr(p.compare)}</span><span class="off">${p.pct}% OFF</span>`
+        : `<span class="now">${inr(p.price)}</span>`);
 
     const stockEl = pdpEl('pdpStock');
-    if(!p.available || p.stock <= 0){
+    if(onRequest){
+      stockEl.className = 'pdp-stock'; stockEl.textContent = 'Enquire for availability and pricing';
+    } else if(!p.available || p.stock <= 0){
       stockEl.className = 'pdp-stock out'; stockEl.textContent = 'Out of Stock';
     } else if(p.stock <= 5){
       stockEl.className = 'pdp-stock low'; stockEl.textContent = `Only ${p.stock} left in stock`;
@@ -2889,11 +4504,12 @@
     }
 
     const addBtn = pdpEl('pdpAdd');
-    const buyable = p.available && p.stock > 0;
+    const buyable = !onRequest && p.available && p.stock > 0;
     addBtn.disabled = !buyable;
     addBtn.style.opacity = buyable ? '1' : '.5';
     addBtn.style.cursor = buyable ? 'pointer' : 'not-allowed';
-    addBtn.textContent = buyable ? 'Add to Bag' : 'Out of Stock';
+    addBtn.textContent = buyable ? 'Add to Bag'
+      : (onRequest ? 'Price on request' : 'Out of Stock');
 
     pdpEl('pdpMeta').innerHTML = [
       pdpVariant && pdpVariant.sku ? `<div><strong>SKU:</strong> ${esc(pdpVariant.sku)}</div>` : '',
@@ -3081,22 +4697,57 @@
   /* ---- Image fallback: never show a broken image or a grey box ----
      The image is preloaded; the background is only applied once it actually
      loads. Until then (and forever, on failure) the branded panel shows. */
+  /* The photograph is a real <img>, not a background: that is what lets it
+     fade up, zoom a few percent under the pointer and cross-fade to a second
+     still, and it carries the product name as alt text for a crawler and a
+     screen reader.
+
+     Fit follows the same rule as every other frame (photoFillsFrame): a
+     studio still is shown WHOLE, so a wig is never cropped; a wide lifestyle
+     photograph fills the card instead of becoming a thin band floating in
+     white. Either way the card keeps one aspect ratio, so the grid stays
+     even and nothing is ever stretched. */
   function applyProductImages(root){
     root.querySelectorAll('[data-media]').forEach(el => {
+      if(el.dataset.mediaBound) return;        // safe to call after re-render
+      el.dataset.mediaBound = '1';
       const url = resolveMediaUrl(el.dataset.image);
       if(!url){ el.classList.add('no-image'); return; }
-      const probe = new Image();
-      probe.onload = () => {
-        el.style.backgroundImage = `url('${cssUrl(url)}')`;
-        el.style.backgroundSize = 'contain';
-        el.style.backgroundRepeat = 'no-repeat';
-        el.style.backgroundPosition = 'center';
+      // The element only joins the document once the bytes have arrived, so a
+      // 404 leaves the branded panel showing — never a broken-image icon, and
+      // never a reflow when the image finally lands.
+      const img = new Image();
+      img.decoding = 'async';
+      img.alt = el.dataset.alt || '';
+      img.className = 'prod-photo';
+      img.onload = () => {
+        if(photoFillsFrame(img)) el.classList.add('photo-cover');
         el.classList.add('has-photo');
         el.classList.remove('no-image');
+        el.insertBefore(img, el.firstChild);
+        requestAnimationFrame(() => img.classList.add('is-loaded'));
+        const alt = resolveMediaUrl(el.dataset.image2);
+        if(alt) applyHoverPhoto(el, alt);
       };
-      probe.onerror = () => el.classList.add('no-image');
-      probe.src = url;
+      img.onerror = () => el.classList.add('no-image');
+      img.src = url;
     });
+  }
+
+  /* The hover photograph follows the same rule: it is added only after it has
+     loaded, so hovering can never reveal an empty frame. */
+  function applyHoverPhoto(el, url){
+    const img = new Image();
+    img.decoding = 'async';
+    img.alt = '';
+    img.className = 'prod-photo alt';
+    img.onload = () => {
+      el.appendChild(img);
+      el.classList.add('has-alt');
+      if(photoFillsFrame(img)) img.classList.add('fills');
+      requestAnimationFrame(() => img.classList.add('is-loaded'));
+    };
+    img.src = url;
   }
 
   async function renderBestSellers(){
@@ -3323,7 +4974,7 @@
     const editorial = siteContent.editorial;
     if(editorial && !editorial.image_url){
       const url = productPhoto(p => !used.has(p.image_url)) || productPhoto(() => true);
-      if(url) applyBackdrop(document.getElementById('editorialArch'), url, 'contain');
+      if(url){ used.add(url); applyBackdrop(document.getElementById('editorialArch'), url, 'contain'); }
     }
     document.querySelectorAll('#catGrid [data-cat-id]').forEach(node => {
       if(node.dataset.catImage) return;
@@ -3331,6 +4982,162 @@
       const url = productPhoto(p => ids.has(p.category_id));
       if(url) applyBackdrop(node, url, 'contain');
     });
+
+    /* The three staged frames further down the page — the dark band, the AI
+       orbit and the closing panel. Each prefers a photograph the page has not
+       shown yet, so a four-product catalog does not repeat one face the whole
+       way down, and falls back to any real photograph rather than none. */
+    ['promo', 'ai', 'cta'].forEach(slot => {
+      const url = productPhoto(p => !used.has(p.image_url)) || productPhoto(() => true);
+      if(!url) return;
+      used.add(url);
+      fillPhotoSlot(slot, url);
+    });
+  }
+
+  /* A decorative frame showing one of the shop's own product photographs.
+     Same rule as everywhere else: the frame is only revealed once the file
+     has genuinely loaded, so a 404 leaves no empty panel behind. */
+  function fillPhotoSlot(name, url){
+    const slot = document.querySelector(`[data-photo-slot="${name}"]`);
+    if(!slot || !url) return;
+    const img = new Image();
+    img.decoding = 'async';
+    img.alt = '';
+    img.onload = () => {
+      img.style.objectFit = photoFillsFrame(img) ? 'cover' : 'contain';
+      slot.textContent = '';
+      slot.appendChild(img);
+      slot.hidden = false;
+      slot.classList.remove('brand-panel');
+      const band = slot.closest('.promo-band, .newsletter');
+      if(band) band.classList.add('with-visual');
+      requestAnimationFrame(() => img.classList.add('is-loaded'));
+    };
+    img.src = resolveMediaUrl(url);
+  }
+
+  /* ================= Details experience =================
+     Built from the catalogue, never from a copywriter: each row is one facet
+     and lists the distinct values actually present across published products,
+     with how many products carry each. A facet with no data — the shop has
+     not recorded density, cap size or care notes yet — is skipped entirely,
+     so the section grows by itself as the catalogue is filled in rather than
+     describing options that do not exist. */
+  const DETAIL_FACETS = [
+    {key:'hair_type',    level:'product', title:'Hair type',    lead:'The fibre each piece in the collection is made from.'},
+    {key:'texture',      level:'product', title:'Texture',      lead:'The curl patterns the collection is cut in.'},
+    {key:'construction', level:'product', title:'Construction', lead:'How each piece is put together.'},
+    {key:'length',       level:'variant', title:'Length',       lead:'The lengths you can choose between today.'},
+    {key:'density',      level:'variant', title:'Density',      lead:'The densities you can choose between today.'},
+    {key:'cap_size',     level:'variant', title:'Fit',          lead:'The cap sizes you can choose between today.'},
+    {key:'lace_type',    level:'variant', title:'Lace',         lead:'The lace types you can choose between today.'}
+  ];
+
+  let liveColours = [];
+
+  /* Distinct values for one facet, with the number of products behind each.
+     A variant-level facet counts a product once however many variants share
+     the value. */
+  function detailValues(facet){
+    const counts = new Map();
+    liveProducts.forEach(product => {
+      if(facet.level === 'product'){
+        const value = String(product[facet.key] || '').trim();
+        if(value) counts.set(value, (counts.get(value) || 0) + 1);
+        return;
+      }
+      const seen = new Set();
+      (product.variants || []).forEach(variant => {
+        const value = String(variant[facet.key] || '').trim();
+        if(value) seen.add(value);
+      });
+      seen.forEach(value => counts.set(value, (counts.get(value) || 0) + 1));
+    });
+    return [...counts.entries()]
+      .sort((a, b) => a[0].localeCompare(b[0], undefined, {numeric: true}));
+  }
+
+  function detailRow(values, swatches){
+    return `<ul class="hh-details__values">` + values.map(([value, n]) => {
+      const colour = swatches && liveColours.find(c => c.name === value);
+      // A swatch goes into a style attribute, where cssUrl() is the wrong
+      // tool — it escapes for url(), not for a colour. An admin-set value is
+      // only accepted here if it is literally a hex colour; anything else is
+      // dropped rather than injected into the stylesheet.
+      const hex = colour && /^#[0-9a-fA-F]{3,8}$/.test(String(colour.hex || '').trim())
+        ? colour.hex.trim() : '';
+      const dot = hex ? `<span class="hh-details__swatch" style="background:${hex}"></span>` : '';
+      return `<li class="hh-details__value">${dot}${esc(value)}`
+           + `<small>${n} ${n === 1 ? 'product' : 'products'}</small></li>`;
+    }).join('') + `</ul>`;
+  }
+
+  function renderDetails(){
+    const list = document.getElementById('hhDetailsList');
+    if(!list) return;
+
+    const blocks = [];
+    DETAIL_FACETS.forEach(facet => {
+      const values = detailValues(facet);
+      if(!values.length) return;                    // nothing recorded yet
+      blocks.push({title: facet.title, lead: facet.lead, body: detailRow(values, false)});
+    });
+
+    // Colour is its own row so the managed swatches can be shown.
+    const colourFacet = {key: 'color', level: 'variant'};
+    const colours = detailValues(colourFacet);
+    if(colours.length){
+      blocks.splice(Math.min(3, blocks.length), 0, {
+        title: 'Colour',
+        lead: 'Every shade in the collection, in the industry codes your stylist will know.',
+        body: detailRow(colours, true)
+      });
+    }
+
+    // Care notes, only where a product actually carries them.
+    const care = [...new Set(liveProducts
+      .map(p => String(p.care_instructions || '').trim()).filter(Boolean))];
+    if(care.length){
+      blocks.push({
+        title: 'Care',
+        lead: 'How to keep each piece looking the way it did on day one.',
+        body: care.map(t => `<p class="hh-details__lead">${esc(t)}</p>`).join('')
+      });
+    }
+
+    if(!blocks.length){ toggleSection('details', false); return; }
+
+    list.innerHTML = blocks.map((b, i) => `
+      <details class="hh-details__item" name="hh-details" data-reveal style="--i:${i}">
+        <summary class="hh-details__trigger">
+          <span class="hh-details__num">${String(i + 1).padStart(2, '0')}</span>
+          <span class="hh-details__title">${esc(b.title)}</span>
+          <svg class="hh-details__icon" viewBox="0 0 24 24" aria-hidden="true">
+            <circle cx="12" cy="12" r="11"/>
+            <path d="M7 12h10"/>
+            <path class="bar-v" d="M12 7v10"/>
+          </svg>
+        </summary>
+        <div class="hh-details__content">
+          <div>
+            <p class="hh-details__lead">${esc(b.lead)}</p>
+            ${b.body}
+          </div>
+        </div>
+      </details>`).join('');
+
+    toggleSection('details', true);
+    // The rows appear after the motion module's first pass, so they are
+    // handed to it explicitly rather than being missed.
+    if(window.HS && HS.scan) HS.scan(list);
+  }
+
+  async function loadColoursFromAPI(){
+    try{
+      const res = await fetch(API_BASE + '/colours');
+      liveColours = res.ok ? await res.json() : [];
+    }catch(err){ liveColours = []; }
   }
 
   async function loadPlaceholdersFromAPI(){
@@ -3362,6 +5169,10 @@
       applyShopUrlState();    // ?category=&type=&colour= deep links
     }
     if(apiConnected) applyProductPhotoFallbacks();
+    if(apiConnected){
+      await loadColoursFromAPI();
+      renderDetails();
+    }
   }
   // Currencies first, so the very first render already shows the right money.
   /* One quote with an empty basket, purely to learn the free-delivery
@@ -3611,18 +5422,26 @@
       // point for anyone who can reach the Content screen.
       heading.textContent = '';
       (block.heading_lines || []).forEach((line, index) => {
-        if(index) heading.appendChild(document.createElement('br'));
+        // Each line gets its own overflow mask so it can rise independently.
+        // Still assembled from text nodes and one <em> — never innerHTML.
+        const mask = document.createElement('span');
+        mask.className = 'tl';
+        mask.style.setProperty('--i', index);
+        const inner = document.createElement('span');
+        inner.className = 'tl-i';
         const emphasis = block.heading_emphasis;
         if(emphasis && line.includes(emphasis)){
           const [before, after] = line.split(emphasis);
-          heading.appendChild(document.createTextNode(before));
+          inner.appendChild(document.createTextNode(before));
           const em = document.createElement('em');
           em.textContent = emphasis;
-          heading.appendChild(em);
-          heading.appendChild(document.createTextNode(after));
+          inner.appendChild(em);
+          inner.appendChild(document.createTextNode(after));
         } else {
-          heading.appendChild(document.createTextNode(line));
+          inner.appendChild(document.createTextNode(line));
         }
+        mask.appendChild(inner);
+        heading.appendChild(mask);
       });
     }
     setText('heroBody', block.body);
@@ -3660,6 +5479,22 @@
     }
   }
 
+  /* How a photograph meets a frame it was not shot for — one rule, used by
+     every decorative frame on the page.
+
+     A studio still is square or portrait, and it is shown WHOLE: cropping one
+     to an arch cuts the sides off the wig, which is the point of the rule. A
+     distinctly WIDE photograph is a scene rather than a product cut-out, and
+     letterboxing one inside a tall frame leaves most of the frame empty — so
+     those fill it. The decision is read off the file's own proportions.
+
+     The PDP gallery is deliberately NOT covered by this: on the page where
+     you decide whether to buy, the photograph is always shown whole. */
+  const PHOTO_WIDE_RATIO = 1.2;
+  function photoFillsFrame(img){
+    return !!img.naturalHeight && (img.naturalWidth / img.naturalHeight) > PHOTO_WIDE_RATIO;
+  }
+
   /* Apply an image as a background only once it has genuinely loaded — the
      same rule the product cards follow. A URL that 404s therefore leaves the
      branded panel showing, never a broken-image icon or a grey skeleton. */
@@ -3673,7 +5508,7 @@
     const resolved = resolveMediaUrl(url);
     const probe = new Image();
     probe.onload = () => {
-      if(fit === 'contain'){
+      if(fit === 'contain' && !photoFillsFrame(probe)){
         node.style.backgroundImage = `url('${cssUrl(resolved)}')`;
         node.style.backgroundSize = 'contain';
         node.style.backgroundRepeat = 'no-repeat';
@@ -3683,6 +5518,7 @@
           `linear-gradient(160deg, rgba(43,27,20,.2), rgba(140,90,60,.05)), url('${cssUrl(resolved)}')`;
         node.style.backgroundSize = 'cover';
         node.classList.remove('product-photo');
+        node.classList.add('photo-cover');
       }
       node.style.backgroundPosition = 'center';
       node.classList.remove('brand-panel');
@@ -3694,8 +5530,14 @@
     const grid = document.getElementById('trustGrid');
     const items = (block && block.items) || [];
     if(!grid) return;
-    grid.innerHTML = items.map(item =>
+    /* The strip runs as a marquee, which needs the sequence twice to loop
+       without a seam. The second run is aria-hidden, so the promises are
+       announced once and read once by a crawler. */
+    const run = items.map(item =>
       `<div class="trust-item">${icon(item.icon)}${esc(item.text)}</div>`).join('');
+    grid.innerHTML = items.length
+      ? `<div class="trust-run">${run}</div><div class="trust-run" aria-hidden="true">${run}</div>`
+      : '';
     toggleSection('trustStrip', items.length > 0);
   }
 
@@ -3711,11 +5553,17 @@
     // Top-level categories are the collection cards; subcategories appear as
     // filters inside the shop once a card is chosen.
     const visible = (categories || []).filter(c => c.is_active && !c.parent_id);
-    grid.innerHTML = visible.map(cat => `
-      <div class="cat-card">
-        <div class="arch brand-panel" data-cat-id="${esc(cat.id)}" data-cat-image="${esc(cat.image_url || '')}">
+    /* Campaign panels. The whole image is a link to the filtered shop, which
+       is what a visitor expects to be able to click, and the arrow below is
+       kept for anyone navigating by keyboard or reading the count. */
+    grid.innerHTML = visible.map((cat, index) => `
+      <div class="cat-card" data-reveal style="--i:${index}">
+        <a class="cat-media" href="#shop" data-cat-shop-id="${esc(cat.id)}"
+           data-cursor="explore" tabindex="-1" aria-hidden="true">
+          <div class="arch brand-panel" data-cat-id="${esc(cat.id)}" data-cat-image="${esc(cat.image_url || '')}"></div>
+          <span class="cat-veil"></span>
           ${cat.tagline ? `<span class="tag">${esc(cat.tagline)}</span>` : ''}
-        </div>
+        </a>
         <h3>${esc(cat.name)}</h3>
         <p>${esc(cat.description || '')}</p>
         <a href="#shop" class="arrow" data-cat-shop-id="${esc(cat.id)}">
@@ -3795,8 +5643,11 @@
     const items = (block && block.items) || [];
     setText('whyHeading', block && block.heading);
     if(grid){
-      grid.innerHTML = items.map(item => `
-        <div class="why-item">${icon(item.icon, 1.6)}
+      // Numbered chapters rather than four identical icon cards.
+      grid.innerHTML = items.map((item, index) => `
+        <div class="why-item" data-reveal style="--i:${index}">
+          <span class="why-num">${String(index + 1).padStart(2, '0')}</span>
+          ${icon(item.icon, 1.6)}
           <h4>${esc(item.title)}</h4>
           <p>${esc(item.body)}</p>
         </div>`).join('');
@@ -3981,6 +5832,11 @@
 
     // The FAQ accordion is bound after its items exist.
     bindFaqAccordion();
+
+    // Copy has landed: headlines can be wrapped for their masked reveal and
+    // the hero is free to play. Guarded, so the storefront still works if the
+    // motion module is ever removed.
+    if(window.HS && HS.contentReady) HS.contentReady();
   }
 
   /* ================= Checkout: delivery address =================
@@ -5060,6 +6916,496 @@
       }
     });
   });
+</script>
+<script>
+/* =======================================================================
+   HAIRSHALO MOTION MODULE
+   -----------------------------------------------------------------------
+   The whole choreography, in one place and behind one global (HS). It owns:
+
+     · the cinematic opening and the hand-off to the hero
+     · one IntersectionObserver for every scroll reveal on the page
+     · one rAF loop for the header state, the progress rule and parallax
+     · the pointer: custom cursor, magnetic calls to action
+     · the add-to-bag micro-interaction
+
+   Three rules it keeps to:
+
+     1. No library. Everything here is CSS transitions, WAAPI and two
+        observers; nothing polls and nothing animates a layout property.
+     2. It never owns content. Product cards, copy and images are still
+        rendered by the code above; this module only observes what appears.
+     3. It fails open. The base "hidden" state for a reveal is applied by
+        html.hs-js, which this file sets — so if it throws or never runs,
+        every word on the page is still visible.
+   ======================================================================= */
+(function(){
+  'use strict';
+
+  var docEl = document.documentElement;
+  var reduced = window.matchMedia
+    && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  var finePointer = window.matchMedia
+    && window.matchMedia('(hover: hover) and (pointer: fine)').matches;
+
+  // Only now do reveals get their hidden starting state.
+  if(!reduced) docEl.classList.add('hs-js');
+
+  var HS = window.HS = {};
+
+  /* ---------------- 01 · SCROLL REVEALS ----------------
+     One observer for the whole document. Elements are unobserved the moment
+     they arrive, so the set shrinks as you scroll rather than growing. */
+  var revealObserver = null;
+  if('IntersectionObserver' in window && !reduced){
+    revealObserver = new IntersectionObserver(function(entries){
+      for(var i = 0; i < entries.length; i++){
+        if(!entries[i].isIntersecting) continue;
+        entries[i].target.classList.add('is-in');
+        revealObserver.unobserve(entries[i].target);
+      }
+    }, { rootMargin: '0px 0px -12% 0px', threshold: 0.08 });
+  }
+
+  var REVEAL_SELECTOR = '[data-reveal],[data-mask-text],.section-rule,.strand,.hs-divider';
+
+  function watch(node){
+    if(!node || node.nodeType !== 1) return;
+    if(node.dataset && node.dataset.hsWatched) return;
+    if(node.dataset) node.dataset.hsWatched = '1';
+    if(!revealObserver){ node.classList.add('is-in'); return; }
+    revealObserver.observe(node);
+  }
+
+  function scan(root){
+    var scope = root || document;
+    if(scope.matches && scope.matches(REVEAL_SELECTOR)) watch(scope);
+    var found = scope.querySelectorAll(REVEAL_SELECTOR);
+    for(var i = 0; i < found.length; i++) watch(found[i]);
+  }
+  HS.scan = scan;
+
+  /* Stagger: siblings inside a [data-reveal-group] are numbered so the CSS
+     transition-delay can cascade. Done here rather than in every renderer. */
+  function stagger(group){
+    var kids = group.children;
+    for(var i = 0; i < kids.length; i++){
+      if(!kids[i].style.getPropertyValue('--i')) kids[i].style.setProperty('--i', i);
+    }
+  }
+  function staggerAll(){
+    var groups = document.querySelectorAll('[data-reveal-group]');
+    for(var i = 0; i < groups.length; i++) stagger(groups[i]);
+  }
+
+  /* ---------------- 02 · MASKED HEADLINES ----------------
+     A heading marked [data-mask-text] has its text moved inside one
+     overflow mask so it can rise from its own baseline. textContent in,
+     textContent out: nothing here can turn copy into markup. */
+  function maskHeading(el){
+    var text = (el.textContent || '').trim();
+    if(!text) return;                       // nothing written yet
+    if(el.dataset.hsMasked === text) return;  // already wrapped, unchanged
+    el.textContent = '';
+    var mask = document.createElement('span');
+    mask.className = 'tl';
+    var inner = document.createElement('span');
+    inner.className = 'tl-i';
+    inner.textContent = text;
+    mask.appendChild(inner);
+    el.appendChild(mask);
+    el.dataset.hsMasked = text;
+  }
+  function maskAll(){
+    if(reduced) return;
+    var heads = document.querySelectorAll('[data-mask-text]');
+    for(var i = 0; i < heads.length; i++) maskHeading(heads[i]);
+  }
+
+  /* ---------------- 03 · THE OPENING ----------------
+     Roughly: 0-1s brand atmosphere, 1-2s the wordmark resolving behind a
+     light sweep, then the curtain lifts. Whether it runs at all was decided
+     before first paint by the inline script at the top of <body>. */
+  var introDone = false;
+  var contentIn = false;
+
+  function releaseHero(){
+    if(!introDone || !contentIn) return;
+    var hero = document.getElementById('hero');
+    if(hero) hero.classList.add('is-in');
+  }
+
+  HS.contentReady = function(){
+    contentIn = true;
+    maskAll();
+    staggerAll();
+    scan();
+    // Mobile drawer links cascade in behind the panel.
+    var links = document.querySelectorAll('#mobileNavLinks a');
+    for(var i = 0; i < links.length; i++) links[i].style.setProperty('--i', i);
+    releaseHero();
+  };
+
+  function runIntro(){
+    var intro = document.getElementById('hsIntro');
+    if(docEl.getAttribute('data-intro') !== 'run' || !intro){
+      // Skipped this visit (returning within the session, or reduced motion):
+      // take the curtain out of the document rather than leaving an inert
+      // fixed-position node behind.
+      docEl.classList.remove('hs-lock');
+      if(intro && intro.parentNode) intro.parentNode.removeChild(intro);
+      introDone = true;
+      releaseHero();
+      return;
+    }
+    var word = document.getElementById('hsIntroWord');
+    if(word){
+      var letters = 'HAIRSHALO';
+      for(var i = 0; i < letters.length; i++){
+        var s = document.createElement('span');
+        s.textContent = letters[i];
+        s.style.setProperty('--i', i);
+        /* A whisper of rotation, alternating and easing off toward the centre
+           of the word, so the line assembles like fabric settling rather than
+           nine identical objects sliding up in formation. */
+        var lean = (i % 2 ? 1 : -1) * (0.8 + Math.abs(i - 4) * 0.35);
+        s.style.setProperty('--r', lean.toFixed(2) + 'deg');
+        word.appendChild(s);
+      }
+    }
+    window.setTimeout(function(){
+      // The page becomes scrollable as the curtain starts to lift, not after.
+      docEl.classList.remove('hs-lock');
+      intro.classList.add('is-out');
+      introDone = true;
+      releaseHero();
+      window.setTimeout(function(){
+        if(intro.parentNode) intro.parentNode.removeChild(intro);
+        docEl.removeAttribute('data-intro');
+      }, 1300);
+    }, 2000);
+  }
+
+  /* A hero that never receives content (API down) must still appear. */
+  window.setTimeout(function(){
+    if(!contentIn){ contentIn = true; releaseHero(); }
+  }, 3200);
+
+  /* ---------------- 04 · SCROLL LOOP ----------------
+     One passive listener, one rAF tick: the header state, the progress rule
+     and every parallax element are updated together. This is the only
+     scroll handler on the page. */
+  var header = document.getElementById('siteHeader');
+  var progress = document.getElementById('hsProgress');
+  var parallax = [];
+  var ticking = false;
+
+  function collectParallax(){
+    parallax = [];
+    if(reduced || window.innerWidth < 900) return;
+    var nodes = document.querySelectorAll('[data-parallax]');
+    for(var i = 0; i < nodes.length; i++){
+      parallax.push({ el: nodes[i], f: parseFloat(nodes[i].dataset.parallax) || 0 });
+    }
+  }
+
+  function onTick(){
+    ticking = false;
+    var y = window.pageYOffset || docEl.scrollTop || 0;
+
+    if(header) header.classList.toggle('scrolled', y > 20);
+
+    if(progress){
+      var span = (docEl.scrollHeight - window.innerHeight) || 1;
+      progress.style.setProperty('--p', Math.min(1, Math.max(0, y / span)).toFixed(4));
+    }
+
+    if(parallax.length){
+      var mid = window.innerHeight / 2;
+      for(var i = 0; i < parallax.length; i++){
+        var item = parallax[i];
+        var r = item.el.getBoundingClientRect();
+        if(r.bottom < -200 || r.top > window.innerHeight + 200) continue;
+        var shift = (r.top + r.height / 2 - mid) * item.f;
+        item.el.style.transform = 'translate3d(0,' + shift.toFixed(2) + 'px,0)';
+      }
+    }
+  }
+
+  function requestTick(){
+    if(ticking) return;
+    ticking = true;
+    window.requestAnimationFrame(onTick);
+  }
+
+  window.addEventListener('scroll', requestTick, { passive: true });
+  window.addEventListener('resize', function(){ collectParallax(); requestTick(); }, { passive: true });
+
+  /* ---------------- 05 · PRODUCT GRIDS ----------------
+     Cards are rendered by the catalog code, repeatedly — on filter, sort and
+     "show more". A small MutationObserver on the three grids that actually
+     change is what keeps the motion system applied to markup this module
+     never sees created. Three observers, not one per card. */
+  function observeGrid(id){
+    var grid = document.getElementById(id);
+    if(!grid || !('MutationObserver' in window)) return;
+    var mo = new MutationObserver(function(records){
+      // A grid re-renders on every filter, sort and "show more". Cards that
+      // were never revealed are still being observed, so they are released
+      // here rather than accumulating for the life of the page.
+      for(var i = 0; i < records.length; i++){
+        var gone = records[i].removedNodes;
+        for(var j = 0; j < gone.length; j++) release(gone[j]);
+      }
+      decorateCards(grid);
+    });
+    mo.observe(grid, { childList: true });
+    decorateCards(grid);
+  }
+
+  function release(node){
+    if(!revealObserver || !node || node.nodeType !== 1) return;
+    revealObserver.unobserve(node);
+    var inner = node.querySelectorAll ? node.querySelectorAll(REVEAL_SELECTOR) : [];
+    for(var i = 0; i < inner.length; i++) revealObserver.unobserve(inner[i]);
+  }
+
+  function decorateCards(grid){
+    var cards = grid.children;
+    for(var i = 0; i < cards.length; i++){
+      var card = cards[i];
+      if(!card.classList || !card.classList.contains('prod-card')) continue;
+      if(card.dataset.hsCard) continue;
+      card.dataset.hsCard = '1';
+      // Position in the grid drives the cascade; it restarts at every row so
+      // a long grid never ends up with a two-second delay on the last card.
+      card.style.setProperty('--i', i % 4);
+      card.setAttribute('data-reveal', 'rise');
+      watch(card);
+    }
+  }
+
+  /* Skeletons, so the grids hold their space while the catalog is fetched
+     instead of collapsing and then shoving the page down. */
+  function skeletons(id, count){
+    var grid = document.getElementById(id);
+    if(!grid || grid.children.length) return;
+    var html = '';
+    for(var i = 0; i < count; i++){
+      html += '<div class="prod-card prod-skeleton" aria-hidden="true">'
+            + '<div class="sk-media"></div><div class="sk-line w40"></div>'
+            + '<div class="sk-line w75"></div><div class="sk-line w30"></div></div>';
+    }
+    grid.innerHTML = html;
+  }
+
+  /* ---------------- 06 · CURSOR ----------------
+     Fine pointers only, and inert until the mouse genuinely moves. The dot is
+     written straight to the pointer position (any smoothing there reads as
+     lag); only the ring eases behind it, and that loop stops as soon as it has
+     caught up, so a still cursor costs nothing. */
+  function initCursor(){
+    if(!finePointer || reduced) return;
+
+    var ring = document.createElement('div');
+    ring.className = 'hs-cursor-ring';
+    ring.innerHTML = '<i></i><b></b>';
+    var label = ring.querySelector('b');
+    var dot = document.createElement('div');
+    dot.className = 'hs-cursor';
+    document.body.appendChild(ring);
+    document.body.appendChild(dot);
+    docEl.classList.add('hs-cursor-on');
+
+    var tx = 0, ty = 0, rx = 0, ry = 0, raf = 0, live = false;
+
+    function frame(){
+      var dx = tx - rx, dy = ty - ry;
+      rx += dx * 0.2;
+      ry += dy * 0.2;
+      ring.style.transform = 'translate3d(' + rx.toFixed(2) + 'px,' + ry.toFixed(2) + 'px,0)';
+      // Settled: stop. Re-armed by the next move.
+      if(Math.abs(dx) < 0.1 && Math.abs(dy) < 0.1){ raf = 0; return; }
+      raf = window.requestAnimationFrame(frame);
+    }
+
+    document.addEventListener('pointermove', function(e){
+      if(e.pointerType && e.pointerType !== 'mouse') return;
+      tx = e.clientX;
+      ty = e.clientY;
+      dot.style.transform = 'translate3d(' + tx + 'px,' + ty + 'px,0)';
+      if(!live){
+        // First movement, or coming back into the window: place the ring
+        // rather than letting it fly in from wherever it was left.
+        live = true;
+        rx = tx; ry = ty;
+        ring.style.transform = 'translate3d(' + tx + 'px,' + ty + 'px,0)';
+        docEl.classList.add('hs-cursor-live');
+      }
+      if(!raf) raf = window.requestAnimationFrame(frame);
+    }, { passive: true });
+
+    /* Hover state is resolved when the pointer crosses into a new element —
+       no polling and no elementFromPoint on every frame. */
+    var LABELS = { view: 'View', open: 'Open', explore: 'Explore' };
+    var TEXTY = 'input,textarea,select,[contenteditable]';
+    document.addEventListener('mouseover', function(e){
+      var el = e.target;
+      if(!el || !el.closest) return;
+      docEl.classList.toggle('hs-cursor-native', !!el.closest(TEXTY));
+      var target = el.closest('[data-cursor]');
+      var key = target ? target.getAttribute('data-cursor') : '';
+      var text = LABELS[key];
+      label.textContent = text || '';
+      ring.classList.toggle('is-label', !!text);
+      ring.classList.toggle('tone-wine', key === 'explore');
+      dot.classList.toggle('is-muted', !!text);
+    });
+
+    document.addEventListener('mousedown', function(){ ring.classList.add('is-press'); });
+    document.addEventListener('mouseup', function(){ ring.classList.remove('is-press'); });
+
+    // Off the window, or the window loses focus: take the cursor with it.
+    function park(){
+      docEl.classList.remove('hs-cursor-live');
+      ring.classList.remove('is-press');
+      live = false;
+    }
+    document.addEventListener('mouseleave', park);
+    window.addEventListener('blur', park);
+  }
+
+  /* ---------------- 07 · MAGNETIC ----------------
+     A few pixels of pull on the primary calls to action, and nothing else.
+     Never on touch: there is no pointer to answer. */
+  function initMagnetic(){
+    if(!finePointer || reduced) return;
+    var nodes = document.querySelectorAll('[data-magnetic]');
+    for(var i = 0; i < nodes.length; i++) bindMagnet(nodes[i]);
+  }
+
+  function bindMagnet(el){
+    if(el.dataset.hsMagnet) return;
+    el.dataset.hsMagnet = '1';
+    var frame = 0;
+    el.addEventListener('pointermove', function(e){
+      if(e.pointerType !== 'mouse') return;
+      if(frame) return;
+      frame = window.requestAnimationFrame(function(){
+        frame = 0;
+        var r = el.getBoundingClientRect();
+        var dx = (e.clientX - (r.left + r.width / 2)) * 0.22;
+        var dy = (e.clientY - (r.top + r.height / 2)) * 0.28;
+        var cap = 7;
+        el.classList.add('is-pulling');
+        el.style.setProperty('--mx', Math.max(-cap, Math.min(cap, dx)).toFixed(2) + 'px');
+        el.style.setProperty('--my', Math.max(-cap, Math.min(cap, dy)).toFixed(2) + 'px');
+      });
+    }, { passive: true });
+    el.addEventListener('pointerleave', function(){
+      el.classList.remove('is-pulling');
+      el.style.setProperty('--mx', '0px');
+      el.style.setProperty('--my', '0px');
+    });
+  }
+
+  /* ---------------- 08 · ADD TO BAG ----------------
+     Visual only. The basket itself is changed by the delegated handler in the
+     cart script and by the PDP's own button, so there is exactly one code
+     path that can alter what you are buying — this one never touches it.
+
+     The click only NOMINATES a photograph to fly. The flight is started by
+     the cart count actually changing, so a click that was refused (already at
+     the stock limit) shows the toast and no thumbnail. */
+  var pendingFly = null;
+
+  function initAddToBag(){
+    document.addEventListener('click', function(e){
+      var trigger = e.target.closest('[data-add], #pdpAdd');
+      if(!trigger || trigger.closest('.prod-placeholder')) return;
+
+      if(trigger.classList.contains('quick-add')){
+        trigger.classList.add('is-added');
+        window.setTimeout(function(){ trigger.classList.remove('is-added'); }, 1200);
+      }
+      if(reduced) return;
+
+      var card = trigger.closest('.prod-card') || trigger.closest('.pdp');
+      var source = card && card.querySelector('.prod-photo:not(.alt), .pdp-gallery-main img');
+      var target = document.getElementById('cartBtn');
+      if(!source || !target || !source.animate) return;
+      pendingFly = { source: source, target: target, at: Date.now() };
+    });
+
+    // The count reacts to whatever changed it — quick add, the bag drawer, a
+    // line removed — because it watches the number rather than the click.
+    var count = document.getElementById('cartCount');
+    if(count && 'MutationObserver' in window && !reduced){
+      new MutationObserver(function(){
+        count.classList.remove('pop');
+        void count.offsetWidth;            // restart the keyframes
+        count.classList.add('pop');
+        if(pendingFly && Date.now() - pendingFly.at < 1000){
+          flyToBag(pendingFly.source, pendingFly.target);
+        }
+        pendingFly = null;
+      }).observe(count, { childList: true, characterData: true, subtree: true });
+    }
+  }
+
+  function flyToBag(source, target){
+    var from = source.getBoundingClientRect();
+    var to = target.getBoundingClientRect();
+    if(!from.width || !from.height) return;
+
+    var ghost = document.createElement('img');
+    ghost.className = 'hs-fly';
+    ghost.src = source.currentSrc || source.src;
+    ghost.alt = '';
+    ghost.style.left = from.left + 'px';
+    ghost.style.top = from.top + 'px';
+    ghost.style.width = from.width + 'px';
+    ghost.style.height = from.height + 'px';
+    document.body.appendChild(ghost);
+
+    var dx = (to.left + to.width / 2) - (from.left + from.width / 2);
+    var dy = (to.top + to.height / 2) - (from.top + from.height / 2);
+
+    var anim = ghost.animate([
+      { transform: 'translate(0,0) scale(1)', opacity: 0.95 },
+      { transform: 'translate(' + (dx * 0.55) + 'px,' + (dy * 0.45 - 40) + 'px) scale(0.42)',
+        opacity: 0.9, offset: 0.62 },
+      { transform: 'translate(' + dx + 'px,' + dy + 'px) scale(0.06)', opacity: 0 }
+    ], { duration: 680, easing: 'cubic-bezier(.65,0,.35,1)' });
+
+    anim.onfinish = anim.oncancel = function(){
+      if(ghost.parentNode) ghost.parentNode.removeChild(ghost);
+    };
+  }
+
+  /* ---------------- 09 · START ---------------- */
+  function boot(){
+    skeletons('bestSellersGrid', 4);
+    skeletons('shopGrid', 8);
+    observeGrid('bestSellersGrid');
+    observeGrid('shopGrid');
+    maskAll();
+    staggerAll();
+    scan();
+    collectParallax();
+    requestTick();
+    initCursor();
+    initMagnetic();
+    initAddToBag();
+    runIntro();
+  }
+
+  if(document.readyState === 'loading'){
+    document.addEventListener('DOMContentLoaded', boot);
+  } else {
+    boot();
+  }
+})();
 </script>
 </body>
 </html>
