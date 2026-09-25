@@ -48,9 +48,12 @@
     --cream:#FAF5EE;
     --blush:#E7C7B4;
     --gold:#AD8752;
+    /* Gold as TEXT on the ivory grounds: the accent itself is 2.6:1 there;
+       this is the same hue darkened to pass WCAG AA (4.7:1 on every ivory). */
+    --gold-ink:#7A5F3A;
     --wine:#5C2431;
     --text:#3A2E27;
-    --text-soft:#7A6A5F;
+    --text-soft:#716258;   /* was #7A6A5F: 4.1-4.45:1 on the ivories, now 4.6:1+ */
     --line:rgba(43,27,20,0.12);
     --radius:22px;
     --ease:cubic-bezier(.22,.61,.36,1);
@@ -88,7 +91,7 @@
   .wrap{max-width:var(--container);margin:0 auto;padding:0 var(--gutter,32px);}
   .eyebrow{
     font-size:12px;letter-spacing:.16em;text-transform:uppercase;
-    color:var(--gold);font-weight:600;
+    color:var(--gold-ink);font-weight:600;
   }
   .btn{
     display:inline-flex;align-items:center;justify-content:center;gap:8px;
@@ -221,7 +224,7 @@
     box-shadow:0 20px 40px -20px rgba(43,27,20,.3);
     display:flex;align-items:center;gap:12px;max-width:230px;
   }
-  .hero-float .stars{color:var(--gold);font-size:13px;letter-spacing:1px;}
+  .hero-float .stars{color:var(--gold-ink);font-size:13px;letter-spacing:1px;}
   .hero-float p{font-size:12px;color:var(--text-soft);margin-top:3px;line-height:1.4;}
 
   /* ---------- Trust strip ---------- */
@@ -301,14 +304,14 @@
   .prod-info .cat{font-size:11px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.06em;}
   .prod-info h3{font-family:'Fraunces',serif;font-size:16.5px;font-weight:500;margin:5px 0 6px;}
   .prod-rating{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);margin-bottom:6px;}
-  .prod-rating .stars{color:var(--gold);letter-spacing:1px;}
+  .prod-rating .stars{color:var(--gold-ink);letter-spacing:1px;}
   .prod-rating.no-reviews{display:block;font-size:12px;color:var(--text-soft);opacity:.75;margin-bottom:6px;}
   .pdp-reviews{margin-top:26px;border-top:1px solid var(--line);padding-top:22px;}
   .pdp-reviews h3{font-size:18px;font-weight:500;margin-bottom:14px;}
   .review-item{padding:14px 0;border-bottom:1px solid var(--line);}
   .review-item:last-child{border-bottom:none;}
   .review-head{display:flex;align-items:center;gap:10px;margin-bottom:6px;flex-wrap:wrap;}
-  .review-head .stars{color:var(--gold);letter-spacing:1px;font-size:13px;}
+  .review-head .stars{color:var(--gold-ink);letter-spacing:1px;font-size:13px;}
   .review-head strong{font-size:14px;font-weight:500;}
   .review-verified{font-size:11px;text-transform:uppercase;letter-spacing:.06em;
     color:var(--wine);background:rgba(140,90,60,.10);padding:2px 8px;border-radius:20px;}
@@ -402,7 +405,7 @@
     background:none;margin-left:10px;
   }
   .cart-item-rm:hover{color:var(--wine);}
-  .cart-line-note{font-size:11px;color:var(--gold);margin-top:4px;}
+  .cart-line-note{font-size:11px;color:var(--gold-ink);margin-top:4px;}
 
   /* ---------- Coupon + totals in the checkout ---------- */
   .coupon-row{display:flex;gap:8px;margin-bottom:10px;}
@@ -477,7 +480,7 @@
     font-size:11.5px;color:var(--text-soft);margin-top:5px;letter-spacing:.02em;
   }
   .prod-stock{font-size:11px;letter-spacing:.06em;text-transform:uppercase;margin-top:6px;}
-  .prod-stock.low{color:var(--gold);}
+  .prod-stock.low{color:var(--gold-ink);}
   .prod-stock.out{color:var(--text-soft);}
   .prod-media.is-sold-out::before{
     content:'Out of Stock';position:absolute;z-index:3;left:50%;top:50%;
@@ -561,7 +564,7 @@
   .pdp-details ul{margin:8px 0 2px;padding-left:18px;font-size:13px;color:var(--text-soft);line-height:1.7;}
   .pdp-details p{margin:8px 0 2px;font-size:13px;color:var(--text-soft);line-height:1.7;white-space:pre-line;}
   .pdp-stock{font-size:12px;font-weight:700;margin-top:12px;letter-spacing:.03em;}
-  .pdp-stock.ok{color:#4C8C5C;} .pdp-stock.low{color:var(--gold);} .pdp-stock.out{color:var(--wine);}
+  .pdp-stock.ok{color:#4C8C5C;} .pdp-stock.low{color:var(--gold-ink);} .pdp-stock.out{color:var(--wine);}
   .pdp-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap;}
   .pdp-actions .btn{flex:1;min-width:150px;justify-content:center;}
   @media (max-width:860px){
@@ -643,7 +646,7 @@
     scroll-snap-align:start;flex:0 0 calc(33.333% - 16px);
     background:#fff;border:1px solid var(--line);border-radius:20px;padding:30px;
   }
-  .testi-card .stars{color:var(--gold);font-size:14px;letter-spacing:2px;margin-bottom:14px;}
+  .testi-card .stars{color:var(--gold-ink);font-size:14px;letter-spacing:2px;margin-bottom:14px;}
   .testi-card p{font-size:14.5px;line-height:1.75;color:var(--text);margin-bottom:20px;}
   .testi-person{display:flex;align-items:center;gap:12px;}
   .testi-avatar{width:38px;height:38px;border-radius:50%;background:linear-gradient(140deg,#E7C7B4,#8C5A3C);}
@@ -840,7 +843,7 @@
   .modal-close{position:absolute;top:20px;right:20px;width:32px;height:32px;border-radius:50%;background:var(--line);display:flex;align-items:center;justify-content:center;}
   .modal-close svg{width:15px;height:15px;}
   .modal-head{margin-bottom:22px;}
-  .modal-head span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold);}
+  .modal-head span{font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--gold-ink);}
   .modal-head h3{font-family:'Fraunces',serif;font-size:22px;font-weight:500;margin-top:6px;}
   .quiz-progress{display:flex;gap:6px;margin-bottom:26px;}
   .quiz-progress span{height:4px;flex:1;background:var(--line);border-radius:100px;overflow:hidden;}
@@ -1842,7 +1845,7 @@
     text-align:center;
   }
   .sig-inner{display:flex;flex-direction:column;align-items:center;}
-  .sig-eyebrow{color:var(--gold);}
+  .sig-eyebrow{color:var(--gold-ink);}
   .sig-title{
     font-family:'Fraunces',serif;font-weight:400;
     font-size:var(--display);line-height:.95;letter-spacing:-.025em;
@@ -1919,7 +1922,7 @@
   }
   .det-grid{display:grid;grid-template-columns:.9fr 1.1fr;gap:clamp(40px,7vw,120px);align-items:start;}
   .det-intro{position:sticky;top:120px;}
-  .det-eyebrow{color:var(--gold);}
+  .det-eyebrow{color:var(--gold-ink);}
   .det-h2{
     font-family:'Fraunces',serif;font-weight:400;
     font-size:var(--h2-cine);line-height:.98;letter-spacing:-.02em;
@@ -1946,7 +1949,7 @@
     min-height:76px;padding:14px 0;
   }
   .det-sum::-webkit-details-marker{display:none;}
-  .det-num{font-family:'Fraunces',serif;font-size:14px;color:var(--gold);font-variant-numeric:tabular-nums;}
+  .det-num{font-family:'Fraunces',serif;font-size:14px;color:var(--gold-ink);font-variant-numeric:tabular-nums;}
   .det-name{font-family:'Fraunces',serif;font-size:clamp(20px,1.9vw,28px);font-weight:400;line-height:1.2;
     transition:transform var(--t-mid) var(--e);}
   .det-row[open] .det-name{transform:translateX(6px);}
@@ -1997,7 +2000,7 @@
   /* ==================== FIND YOUR MATCH (AI) ==================== */
   .ai-section{background:#F7F1E8;}
   .ai-section .section-head h2{font-family:'Fraunces',serif;font-weight:400;font-size:var(--h2-cine);line-height:1;letter-spacing:-.02em;}
-  .ai-badge{background:transparent;border:1px solid var(--line);color:var(--gold);letter-spacing:.2em;text-transform:uppercase;font-size:10.5px;}
+  .ai-badge{background:transparent;border:1px solid var(--line);color:var(--gold-ink);letter-spacing:.2em;text-transform:uppercase;font-size:10.5px;}
   .ai-grid{gap:0;border-top:1px solid var(--line);}
   .ai-card{
     background:transparent;border:0;border-radius:0;box-shadow:none;
@@ -2538,7 +2541,7 @@
     padding:clamp(20px,3vh,32px) 0;border-bottom:1px solid rgba(43,27,20,.14);color:var(--ink);
     transition:background-color .6s var(--e-film);
   }
-  .cr-num{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--gold);}
+  .cr-num{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--gold-ink);}
   .cr-name{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(30px,4.2vw,70px);line-height:1;letter-spacing:-.03em;
     transition:transform .8s var(--e-film), color .6s var(--e-film);}
   .cr-note{font-size:14px;line-height:1.6;color:var(--text-soft);max-width:340px;}
@@ -2599,7 +2602,7 @@
   .prod-info{padding:20px 2px 0;transition:transform .9s var(--e-film);}
   .prod-card:hover .prod-info{transform:translateY(-4px);}
   .prod-kicker{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;}
-  .prod-num{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--gold);}
+  .prod-num{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--gold-ink);}
   .prod-info .cat{font-size:10.5px;letter-spacing:.24em;}
   .prod-info h3{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(21px,1.8vw,30px);line-height:1.08;
     letter-spacing:-.015em;margin:0 0 10px;transition:transform .9s var(--e-film);}
@@ -2687,7 +2690,7 @@
   .det-sum{grid-template-columns:64px minmax(0,1fr) 48px;min-height:clamp(84px,11vh,112px);padding:18px 0 18px 18px;}
   .det-num{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.2em;color:var(--text-soft);
     transition:color .6s var(--e-film), transform .8s var(--e-film);}
-  .det-row[open] .det-num{color:var(--gold);transform:translateY(-6px);}
+  .det-row[open] .det-num{color:var(--gold-ink);transform:translateY(-6px);}
   .det-name{font-family:'Inter',sans-serif;font-weight:500;text-transform:uppercase;letter-spacing:.08em;
     font-size:clamp(17px,1.9vw,28px);}
   .det-icon{border:0;width:48px;height:48px;}
@@ -3052,7 +3055,7 @@
   .wy-item{position:relative;padding:0 0 5vh 64px;opacity:.26;transition:opacity .9s var(--e-film);}
   .wy-item.is-past{opacity:.14;}
   .wy-item.is-on{opacity:1;}
-  .wy-n{position:absolute;left:0;top:.5em;font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--gold);}
+  .wy-n{position:absolute;left:0;top:.5em;font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--gold-ink);}
   .wy-item h3{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(34px,3.2vw,52px);line-height:1;
     letter-spacing:-.03em;transform-origin:0 50%;transition:font-size .9s var(--e-film), color .9s var(--e-film);}
   .wy-item.is-on h3{font-size:clamp(52px,6.2vw,108px);color:var(--ink);}
@@ -3078,7 +3081,7 @@
   .ds-atmos{left:auto;right:-10%;background:radial-gradient(closest-side,rgba(255,255,255,.55),transparent);}
   .ds-title{color:var(--ink);}
   .ds-title em{color:var(--wine);}
-  .discover .cine-eyebrow{color:var(--gold);}
+  .discover .cine-eyebrow{color:var(--gold-ink);}
   .ds-window{left:18%;right:24%;width:auto;top:-8vh;bottom:-8vh;background:transparent;box-shadow:none;overflow:visible;border-radius:0;}
   .ds-window::after{display:none;}
   .ds-frame{background-color:#EDE3D6;
@@ -3088,10 +3091,10 @@
   .ds-lines #dsDot{fill:var(--wine);}
   .ds-lines #dsDotRing{stroke:rgba(122,46,62,.5);}
   .ds-note{color:var(--ink);}
-  .ds-n{color:var(--gold);}
+  .ds-n{color:var(--gold-ink);}
   .ds-k{color:var(--text-soft);}
   .ds-note.is-on .ds-v{color:var(--ink);}
-  .ds-end-kicker{color:var(--gold);}
+  .ds-end-kicker{color:var(--gold-ink);}
   .ds-end-name{color:var(--ink);}
   .ds-end-meta{color:var(--text-soft);}
   .discover .fc-cta{color:var(--ink);border-bottom-color:rgba(122,46,62,.45);}
@@ -3281,6 +3284,11 @@
   .ts-anno{display:none;}
   .ts-end{grid-column:1 / -1;display:flex;flex-direction:column;align-items:flex-start;gap:10px;}
   .ts-end[hidden]{display:none;}
+  /* `hidden` means hidden. Component rules that set display (.btn, .promo,
+     .tag, .ck-save, .shop-more, .foot-social…) were overriding it, so empty
+     or not-applicable elements showed — an empty promo bar, a "save this
+     address" box for signed-out guests. */
+  [hidden]{display:none !important;}
   .ts-end-kicker{font-size:10.5px;letter-spacing:.36em;text-transform:uppercase;color:var(--champagne);}
   .ts-end-name{font-family:'Fraunces',serif;font-size:clamp(30px,3.2vw,52px);line-height:1;letter-spacing:-.02em;}
   .texture-study .fc-cta{color:var(--ivory);}
@@ -3377,6 +3385,60 @@
   @media (max-width:980px) and (min-aspect-ratio:7/10){
     .motion-ready .texture-study{--zs:1.9;}
   }
+
+
+  /* ======================================================================
+     THE STORY'S JOINS — hair as the thread between scenes
+     ====================================================================== */
+  /* Statement → texture study: the same curls the texture study opens on
+     drift in from the right edge as the words cross, so the typography
+     scene is never an empty stage. Only when the campaign photograph is
+     present; otherwise the strands carry it as before. */
+  .stmt-hair{display:none;}
+  .stmt-hair.is-set{display:block;position:absolute;top:0;bottom:0;right:0;width:min(46vw,680px);
+    background-size:cover;background-position:88% 52%;background-repeat:no-repeat;opacity:.42;
+    -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 60%);mask-image:linear-gradient(90deg,transparent 0,#000 60%);}
+  .motion-ready .stmt-hair.is-set{will-change:transform,opacity;
+    opacity:calc(clamp(0, (var(--sv,.5) - .12) * 1.6, 1) * .55);
+    transform:translate3d(calc((1 - clamp(0, (var(--sv,.5) - .08) * 1.5, 1)) * 9vw),0,0) scale(1.06);}
+  .statement .wrap{position:relative;z-index:1;}
+  @media (max-width:760px){
+    .stmt-hair.is-set{width:72vw;opacity:.28;}
+    .motion-ready .stmt-hair.is-set{opacity:calc(clamp(0, (var(--sv,.5) - .12) * 1.6, 1) * .32);
+      transform:translate3d(calc((1 - clamp(0, (var(--sv,.5) - .08) * 1.5, 1)) * 6vw),0,0) scale(1.04);}
+  }
+
+  /* Texture study → next scene, when there is no product to hand over to:
+     the hair stays on screen, warm light rises over it, the words leave, and
+     the frame settles into the dark the next scene opens on. No cut, no
+     empty frame. */
+  .ts-exit{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;
+    /* Dark only where the next scene joins (the bottom edge); the hair stays
+       faintly visible above it, so the frame never goes empty. */
+    background:linear-gradient(0deg,#0D0907 0%,rgba(13,9,7,.82) 24%,rgba(13,9,7,.42) 62%,rgba(13,9,7,.22) 100%);}
+  .motion-ready .texture-study:not(.has-product) .ts-bloom{
+    opacity:min(clamp(0, (var(--pp,0) - .7) * 6, 1), clamp(0, (1 - var(--pp,0)) * 4.5, 1));}
+  .motion-ready .texture-study:not(.has-product) .ts-copy{opacity:calc(1 - clamp(0, (var(--pp,0) - .86) * 8, 1));}
+  .motion-ready .texture-study:not(.has-product) .ts-exit{opacity:clamp(0, (var(--pp,0) - .84) * 6.5, 1);}
+
+  /* Transformation: an editorial split, not another giant title — the
+     texture study has just spoken in display type; this scene's weight is
+     the full-bleed stage below it. */
+  .transform .wrap.tf-head{grid-template-columns:minmax(0,1fr) minmax(0,1fr);align-items:end;column-gap:clamp(24px,6vw,96px);}
+  .tf-title{font-size:clamp(44px,5.6vw,92px);line-height:.98;letter-spacing:-.03em;}
+  .tf-title em{padding-left:0;}
+  .transform .cine-lede{max-width:40ch;justify-self:end;}
+
+  /* Closing → newsletter: one closing scene. The gap between them closes,
+     and a single champagne line draws down from the call to action to the
+     signup as you arrive. */
+  .closing{padding-bottom:clamp(56px,9vh,110px);min-height:96vh;}
+  .nl-wrap .newsletter{border:0;padding-top:0;}
+  .nl-wrap .newsletter::before{content:'';display:block;width:1px;height:clamp(56px,9vh,110px);margin:0 auto 30px;
+    background:linear-gradient(180deg,var(--champagne),rgba(220,193,147,0));transform-origin:50% 0;}
+  .motion-ready .nl-wrap .newsletter::before{transform:scaleY(clamp(0, (var(--sp,1) - .05) * 1.6, 1));}
+  .motion-ready .nl-wrap .newsletter h2{opacity:clamp(.001, (var(--sp,1) - .25) * 2.5, 1);
+    translate:0 calc((1 - clamp(0, (var(--sp,1) - .25) * 2.5, 1)) * 18px);}
 
   /* ==================== Reduced motion — a still, finished stage ==================== */
   @media (prefers-reduced-motion: reduce){
@@ -3542,6 +3604,9 @@
   <a class="hero-cue" href="#flow" aria-label="Scroll to The Flow"><span>Scroll</span><i aria-hidden="true"></i></a>
 </section>
 
+<!-- The story, in order: the film (flow, statement, texture study,
+     transformation), then the collection (examine, details, shop), then
+     why and help, then the close. -->
 <!-- THE FLOW — a pinned scene. The section is taller than the screen and its
      stage sticks while you scroll through it, so scrolling plays a sequence
      instead of moving past a block: light, then strands of hair-light that
@@ -3571,6 +3636,92 @@
   </div>
 </section>
 
+<!-- EDITORIAL STATEMENT — the loudest moment on the page. -->
+<section class="cine statement" id="statement" data-tone="#0D0907" data-scroll aria-labelledby="stmtHeading">
+  <div class="stmt-fx" aria-hidden="true">
+    <canvas class="stmt-strands" data-fx="strands" data-mode="drift" aria-hidden="true"></canvas>
+    <div class="stmt-hair" id="stmtHair"></div>
+  </div>
+  <div class="wrap">
+    <span class="cine-eyebrow" data-reveal="up">Hairshalo</span>
+    <h2 class="stmt-title" id="stmtHeading">
+      <span class="stmt-line" data-reveal="up">Your hair.</span>
+      <span class="stmt-line stmt-em" data-reveal="up" style="--reveal-delay:160ms;">Your presence.</span>
+    </h2>
+  </div>
+</section>
+
+<!-- THE TEXTURE STUDY — a campaign frame, hair as the subject. One editorial
+     image, filmed: it opens as a full frame, the camera pushes slowly into
+     the curls until the hair fills the screen, three words arrive one at a
+     time, a thin line picks out a curl, light moves across it, and the
+     scene hands over to a real curl texture from the collection. Everything
+     is scroll-driven (--pp) and pure CSS on the one image — cropping, scale
+     and light only; the photograph itself is never altered. Every word
+     describes what is visible; none of it is a product claim, and the image
+     is credited as campaign imagery, never presented as a customer.
+     data-image: the production photograph — clean (no watermark), licensed,
+     2500px or larger, e.g. "assets/campaign/texture-study-hires.jpg". Empty
+     means no request is made and the section stays hidden; set, it is shown
+     only once the file has actually loaded. -->
+<section class="texture-study" id="textureStudy" data-tone="#24130E" data-scroll="pin" aria-labelledby="tsHeading" data-image="" hidden>
+  <div class="ts-pin">
+    <div class="ts-frame">
+      <div class="ts-img" role="img" aria-label="Editorial portrait: long, defined black curls falling around the face"></div>
+      <span class="ts-light" aria-hidden="true"></span>
+      <span class="ts-ground" aria-hidden="true"></span>
+      <span class="ts-bloom" aria-hidden="true"></span>
+      <div class="ts-product" id="tsProduct" aria-hidden="true"></div>
+      <span class="ts-credit">Campaign imagery</span>
+    </div>
+    <span class="ts-exit" aria-hidden="true"></span>
+    <div class="ts-copy">
+      <span class="cine-eyebrow">The texture study</span>
+      <h2 class="ts-title" id="tsHeading"><span class="ts-w ts-w1">Texture.</span> <span class="ts-w ts-w2"><em>Movement.</em></span> <span class="ts-w ts-w3">Volume.</span></h2>
+    </div>
+    <div class="ts-anno ts-a1" aria-hidden="true"><i></i><span>Defined curl, root to end</span></div>
+    <div class="ts-anno ts-a2" aria-hidden="true"><i></i><span>Natural volume</span></div>
+    <div class="ts-end" id="tsEnd" hidden>
+      <span class="ts-end-kicker">Curls, in the collection</span>
+      <span class="ts-end-name" id="tsEndName"></span>
+      <button type="button" class="fc-cta" id="tsEndCta">Explore the texture<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+    </div>
+  </div>
+</section>
+
+<!-- THE TRANSFORMATION — two real textures from the catalogue, with a light
+     seam that sweeps between them. It shows products, never a person: there is
+     no before/after result here to invent. Filled by the cinematic module from
+     live products; stays hidden unless two photographed textures exist. -->
+<section class="cine transform" id="transformation" data-tone="#0D0907" data-scroll hidden aria-labelledby="tfHeading">
+  <div class="wrap tf-head">
+    <span class="cine-eyebrow" data-reveal="up">The Transformation</span>
+    <h2 class="tf-title" id="tfHeading" data-reveal="split" data-split>One hair.<br><em>Two worlds.</em></h2>
+    <p class="cine-lede" data-reveal="up" style="--reveal-delay:220ms;">Two textures from the collection. Draw the light across and change one into the other.</p>
+  </div>
+  <!-- Full bleed. Each side is its own lit set; the product photograph is
+       multiplied into that light. Moving the seam rescales both pieces, shifts
+       the room's colour temperature and bends the strands of light that
+       gather around the seam (canvas, drawn by the cinematic layer). -->
+  <div class="tf-stage" id="tfStage" data-reveal="fade" style="--tf:50;">
+    <span class="tf-atmos tf-atmos-a" aria-hidden="true"></span>
+    <span class="tf-atmos tf-atmos-b" aria-hidden="true"></span>
+    <figure class="tf-frame tf-a">
+      <div class="tf-img" id="tfImgA" role="img"></div>
+      <figcaption class="tf-cap"><span class="tf-tex" id="tfTexA"></span><span class="tf-name" id="tfNameA"></span></figcaption>
+    </figure>
+    <figure class="tf-frame tf-b">
+      <div class="tf-img" id="tfImgB" role="img"></div>
+      <figcaption class="tf-cap"><span class="tf-tex" id="tfTexB"></span><span class="tf-name" id="tfNameB"></span></figcaption>
+    </figure>
+    <canvas class="tf-strands" data-fx="strands" data-mode="seam" aria-hidden="true"></canvas>
+    <span class="tf-seam" aria-hidden="true"><i></i></span>
+    <span class="tf-hint" aria-hidden="true">Drag to transform</span>
+    <input class="tf-range" id="tfRange" type="range" min="0" max="100" value="50" step="1"
+           aria-label="Move between the two textures">
+  </div>
+</section>
+
 <!-- SIGNATURE — the turn from the cinematic stage into the shop. The ivory
      rises over the dark like a curtain, and one strand of light crosses the
      seam between them. -->
@@ -3583,6 +3734,47 @@
     <span class="sig-eyebrow" data-reveal="up">The Collection</span>
     <h2 class="sig-title" id="sigHeading" data-reveal="split" data-split>Find your<br><em>signature.</em></h2>
     <p class="sig-lede" data-reveal="up" style="--reveal-delay:260ms;">Every piece in the collection, ready to explore.</p>
+  </div>
+</section>
+
+<!-- EXAMINE THE PIECE — a product film. One real piece, told through its own
+     photographs (one colourway, in the shop's own order): the camera enters,
+     pushes into the texture, moves around it, travels down its length and
+     settles. Each stage lights one real attribute from the catalogue, joined
+     to the piece by a line. Built by the cinematic layer; stays hidden unless
+     a product has at least three photographs and real attributes to show.
+     Under reduced motion it is a still, stacked sequence. -->
+<section class="cine discover" id="discover" data-tone="#EDE3D6" data-scroll="pin" hidden aria-labelledby="dsHeading">
+  <div class="ds-pin">
+    <span class="ds-atmos" aria-hidden="true"></span>
+    <div class="ds-head">
+      <span class="cine-eyebrow">Examine the piece</span>
+      <h2 class="ds-title" id="dsHeading">Up<br><em>close.</em></h2>
+    </div>
+    <div class="ds-window" id="dsWindow"></div>
+    <svg class="ds-lines" aria-hidden="true" focusable="false"><line id="dsLine" x1="0" y1="0" x2="0" y2="0"/><circle id="dsDot" r="5" cx="-20" cy="-20"/><circle id="dsDotRing" r="14" cx="-20" cy="-20"/></svg>
+    <ol class="ds-notes" id="dsNotes"></ol>
+    <div class="ds-end" id="dsEnd">
+      <span class="ds-end-kicker">The piece</span>
+      <span class="ds-end-name" id="dsEndName"></span>
+      <span class="ds-end-meta" id="dsEndMeta"></span>
+      <button type="button" class="fc-cta" id="dsEndCta">Explore this piece<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="ds-count" aria-hidden="true"><span id="dsCount">01</span><i></i><span id="dsTotal">05</span></div>
+  </div>
+</section>
+
+<!-- DETAILS THAT MAKE THE DIFFERENCE — native <details>, one row per real
+     facet of the live catalogue. A facet the shop holds no data for is simply
+     not rendered, so this can never describe an option that does not exist. -->
+<section class="details-sec" id="details" data-tone="#F2EADF" hidden aria-labelledby="detHeading">
+  <div class="wrap det-grid">
+    <div class="det-intro">
+      <span class="det-eyebrow" data-reveal="up">The Detail</span>
+      <h2 class="det-h2" id="detHeading" data-reveal="up">Details<br>that make<br><em>the difference.</em></h2>
+      <p class="det-lede" data-reveal="up" style="--reveal-delay:140ms;">Everything the collection is made from, and every choice within it — drawn straight from what is in stock.</p>
+    </div>
+    <div class="det-list" id="detList"></div>
   </div>
 </section>
 
@@ -3667,128 +3859,38 @@
   </div>
 </section>
 
-<!-- EXAMINE THE PIECE — a product film. One real piece, told through its own
-     photographs (one colourway, in the shop's own order): the camera enters,
-     pushes into the texture, moves around it, travels down its length and
-     settles. Each stage lights one real attribute from the catalogue, joined
-     to the piece by a line. Built by the cinematic layer; stays hidden unless
-     a product has at least three photographs and real attributes to show.
-     Under reduced motion it is a still, stacked sequence. -->
-<section class="cine discover" id="discover" data-tone="#EDE3D6" data-scroll="pin" hidden aria-labelledby="dsHeading">
-  <div class="ds-pin">
-    <span class="ds-atmos" aria-hidden="true"></span>
-    <div class="ds-head">
-      <span class="cine-eyebrow">Examine the piece</span>
-      <h2 class="ds-title" id="dsHeading">Up<br><em>close.</em></h2>
-    </div>
-    <div class="ds-window" id="dsWindow"></div>
-    <svg class="ds-lines" aria-hidden="true" focusable="false"><line id="dsLine" x1="0" y1="0" x2="0" y2="0"/><circle id="dsDot" r="5" cx="-20" cy="-20"/><circle id="dsDotRing" r="14" cx="-20" cy="-20"/></svg>
-    <ol class="ds-notes" id="dsNotes"></ol>
-    <div class="ds-end" id="dsEnd">
-      <span class="ds-end-kicker">The piece</span>
-      <span class="ds-end-name" id="dsEndName"></span>
-      <span class="ds-end-meta" id="dsEndMeta"></span>
-      <button type="button" class="fc-cta" id="dsEndCta">Explore this piece<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
-    </div>
-    <div class="ds-count" aria-hidden="true"><span id="dsCount">01</span><i></i><span id="dsTotal">05</span></div>
+<!-- EDITORIAL -->
+<!-- An editorial spread on a mocha stage: the photograph bleeds off the left
+     edge and drifts against the scroll; the words arrive after it, one beat
+     at a time — eyebrow, headline, body, call to action. -->
+<section class="section spread" id="editorial" data-tone="#231813" data-scroll>
+  <div class="spread-media">
+    <span class="sp-light" aria-hidden="true"></span>
+    <div class="arch brand-panel" id="editorialArch" data-reveal="wipe"></div>
+    <span class="tag sp-tag" id="editorialArchTag" hidden></span>
+  </div>
+  <div class="editorial-copy">
+    <span class="eyebrow" id="editorialEyebrow" data-reveal="up" style="--reveal-delay:250ms;"></span>
+    <h2 id="editorialHeading" data-reveal="split" data-split style="--reveal-delay:380ms;"></h2>
+    <div id="editorialBody" data-reveal="up" style="--reveal-delay:620ms;"></div>
+    <a class="btn btn-outline" id="editorialCta" href="#collections" data-reveal="up" style="--reveal-delay:780ms;" hidden></a>
   </div>
 </section>
 
-<!-- THE TRANSFORMATION — two real textures from the catalogue, with a light
-     seam that sweeps between them. It shows products, never a person: there is
-     no before/after result here to invent. Filled by the cinematic module from
-     live products; stays hidden unless two photographed textures exist. -->
-<section class="cine transform" id="transformation" data-tone="#0D0907" data-scroll hidden aria-labelledby="tfHeading">
-  <div class="wrap tf-head">
-    <span class="cine-eyebrow" data-reveal="up">The Transformation</span>
-    <h2 class="tf-title" id="tfHeading" data-reveal="split" data-split>One hair.<br><em>Two worlds.</em></h2>
-    <p class="cine-lede" data-reveal="up" style="--reveal-delay:220ms;">Two textures from the collection. Draw the light across and change one into the other.</p>
-  </div>
-  <!-- Full bleed. Each side is its own lit set; the product photograph is
-       multiplied into that light. Moving the seam rescales both pieces, shifts
-       the room's colour temperature and bends the strands of light that
-       gather around the seam (canvas, drawn by the cinematic layer). -->
-  <div class="tf-stage" id="tfStage" data-reveal="fade" style="--tf:50;">
-    <span class="tf-atmos tf-atmos-a" aria-hidden="true"></span>
-    <span class="tf-atmos tf-atmos-b" aria-hidden="true"></span>
-    <figure class="tf-frame tf-a">
-      <div class="tf-img" id="tfImgA" role="img"></div>
-      <figcaption class="tf-cap"><span class="tf-tex" id="tfTexA"></span><span class="tf-name" id="tfNameA"></span></figcaption>
-    </figure>
-    <figure class="tf-frame tf-b">
-      <div class="tf-img" id="tfImgB" role="img"></div>
-      <figcaption class="tf-cap"><span class="tf-tex" id="tfTexB"></span><span class="tf-name" id="tfNameB"></span></figcaption>
-    </figure>
-    <canvas class="tf-strands" data-fx="strands" data-mode="seam" aria-hidden="true"></canvas>
-    <span class="tf-seam" aria-hidden="true"><i></i></span>
-    <span class="tf-hint" aria-hidden="true">Drag to transform</span>
-    <input class="tf-range" id="tfRange" type="range" min="0" max="100" value="50" step="1"
-           aria-label="Move between the two textures">
-  </div>
-</section>
-
-<!-- DETAILS THAT MAKE THE DIFFERENCE — native <details>, one row per real
-     facet of the live catalogue. A facet the shop holds no data for is simply
-     not rendered, so this can never describe an option that does not exist. -->
-<section class="details-sec" id="details" data-tone="#F2EADF" hidden aria-labelledby="detHeading">
-  <div class="wrap det-grid">
-    <div class="det-intro">
-      <span class="det-eyebrow" data-reveal="up">The Detail</span>
-      <h2 class="det-h2" id="detHeading" data-reveal="up">Details<br>that make<br><em>the difference.</em></h2>
-      <p class="det-lede" data-reveal="up" style="--reveal-delay:140ms;">Everything the collection is made from, and every choice within it — drawn straight from what is in stock.</p>
+<!-- WHY HAIRSHALO — the brand story, one statement at a time. The words are
+     Back Office → Content → Why customers choose us; each is paired with a
+     large photograph of real hair from the catalogue that bleeds across the
+     page. Scrolling moves through the statements (pinned scene); under
+     reduced motion they are simply listed. -->
+<section class="why-story" id="whySection" data-tone="#EFE6D8" data-scroll="pin" aria-labelledby="whyHeading">
+  <div class="wy-pin">
+    <div class="wy-visuals" id="wyVisuals" aria-hidden="true"></div>
+    <div class="wy-copy">
+      <span class="det-eyebrow">Why Hairshalo</span>
+      <h2 class="wy-heading" id="whyHeading"></h2>
+      <div class="wy-viewport"><ol class="wy-list" id="whyGrid"></ol></div>
     </div>
-    <div class="det-list" id="detList"></div>
-  </div>
-</section>
-
-<!-- EDITORIAL STATEMENT — the loudest moment on the page. -->
-<section class="cine statement" id="statement" data-tone="#0D0907" data-scroll aria-labelledby="stmtHeading">
-  <div class="stmt-fx" aria-hidden="true">
-    <canvas class="stmt-strands" data-fx="strands" data-mode="drift" aria-hidden="true"></canvas>
-  </div>
-  <div class="wrap">
-    <span class="cine-eyebrow" data-reveal="up">Hairshalo</span>
-    <h2 class="stmt-title" id="stmtHeading">
-      <span class="stmt-line" data-reveal="up">Your hair.</span>
-      <span class="stmt-line stmt-em" data-reveal="up" style="--reveal-delay:160ms;">Your presence.</span>
-    </h2>
-  </div>
-</section>
-
-<!-- THE TEXTURE STUDY — a campaign frame, hair as the subject. One editorial
-     image, filmed: it opens as a full frame, the camera pushes slowly into
-     the curls until the hair fills the screen, three words arrive one at a
-     time, a thin line picks out a curl, light moves across it, and the
-     scene hands over to a real curl texture from the collection. Everything
-     is scroll-driven (--pp) and pure CSS on the one image — cropping, scale
-     and light only; the photograph itself is never altered. Every word
-     describes what is visible; none of it is a product claim, and the image
-     is credited as campaign imagery, never presented as a customer.
-     data-image: the production photograph — clean (no watermark), licensed,
-     2500px or larger, e.g. "assets/campaign/texture-study-hires.jpg". Empty
-     means no request is made and the section stays hidden; set, it is shown
-     only once the file has actually loaded. -->
-<section class="texture-study" id="textureStudy" data-tone="#24130E" data-scroll="pin" aria-labelledby="tsHeading" data-image="" hidden>
-  <div class="ts-pin">
-    <div class="ts-frame">
-      <div class="ts-img" role="img" aria-label="Editorial portrait: long, defined black curls falling around the face"></div>
-      <span class="ts-light" aria-hidden="true"></span>
-      <span class="ts-ground" aria-hidden="true"></span>
-      <span class="ts-bloom" aria-hidden="true"></span>
-      <div class="ts-product" id="tsProduct" aria-hidden="true"></div>
-      <span class="ts-credit">Campaign imagery</span>
-    </div>
-    <div class="ts-copy">
-      <span class="cine-eyebrow">The texture study</span>
-      <h2 class="ts-title" id="tsHeading"><span class="ts-w ts-w1">Texture.</span> <span class="ts-w ts-w2"><em>Movement.</em></span> <span class="ts-w ts-w3">Volume.</span></h2>
-    </div>
-    <div class="ts-anno ts-a1" aria-hidden="true"><i></i><span>Defined curl, root to end</span></div>
-    <div class="ts-anno ts-a2" aria-hidden="true"><i></i><span>Natural volume</span></div>
-    <div class="ts-end" id="tsEnd" hidden>
-      <span class="ts-end-kicker">Curls, in the collection</span>
-      <span class="ts-end-name" id="tsEndName"></span>
-      <button type="button" class="fc-cta" id="tsEndCta">Explore the texture<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
-    </div>
+    <div class="wy-count" aria-hidden="true"><span id="wyNow">01</span><i></i><span id="wyAll">04</span></div>
   </div>
 </section>
 
@@ -3827,24 +3929,6 @@
   </div>
 </section>
 
-<!-- EDITORIAL -->
-<!-- An editorial spread on a mocha stage: the photograph bleeds off the left
-     edge and drifts against the scroll; the words arrive after it, one beat
-     at a time — eyebrow, headline, body, call to action. -->
-<section class="section spread" id="editorial" data-tone="#231813" data-scroll>
-  <div class="spread-media">
-    <span class="sp-light" aria-hidden="true"></span>
-    <div class="arch brand-panel" id="editorialArch" data-reveal="wipe"></div>
-    <span class="tag sp-tag" id="editorialArchTag" hidden></span>
-  </div>
-  <div class="editorial-copy">
-    <span class="eyebrow" id="editorialEyebrow" data-reveal="up" style="--reveal-delay:250ms;"></span>
-    <h2 id="editorialHeading" data-reveal="split" data-split style="--reveal-delay:380ms;"></h2>
-    <div id="editorialBody" data-reveal="up" style="--reveal-delay:620ms;"></div>
-    <a class="btn btn-outline" id="editorialCta" href="#collections" data-reveal="up" style="--reveal-delay:780ms;" hidden></a>
-  </div>
-</section>
-
 <!-- BEFORE / AFTER — hidden until the shop uploads its own pair. -->
 <section class="section" id="beforeAfter" hidden>
   <div class="wrap">
@@ -3860,23 +3944,6 @@
         <div class="ba-handle" id="baHandle"></div>
       </div>
     </div>
-  </div>
-</section>
-
-<!-- WHY HAIRSHALO — the brand story, one statement at a time. The words are
-     Back Office → Content → Why customers choose us; each is paired with a
-     large photograph of real hair from the catalogue that bleeds across the
-     page. Scrolling moves through the statements (pinned scene); under
-     reduced motion they are simply listed. -->
-<section class="why-story" id="whySection" data-tone="#EFE6D8" data-scroll="pin" aria-labelledby="whyHeading">
-  <div class="wy-pin">
-    <div class="wy-visuals" id="wyVisuals" aria-hidden="true"></div>
-    <div class="wy-copy">
-      <span class="det-eyebrow">Why Hairshalo</span>
-      <h2 class="wy-heading" id="whyHeading"></h2>
-      <div class="wy-viewport"><ol class="wy-list" id="whyGrid"></ol></div>
-    </div>
-    <div class="wy-count" aria-hidden="true"><span id="wyNow">01</span><i></i><span id="wyAll">04</span></div>
   </div>
 </section>
 
@@ -3924,7 +3991,7 @@
 </section>
 
 <!-- NEWSLETTER -->
-<div class="wrap">
+<div class="wrap nl-wrap" data-scroll>
   <div class="newsletter" data-reveal="scale">
     <h2 id="newsletterHeading"></h2>
     <p id="newsletterBody"></p>
@@ -6590,7 +6657,7 @@
     </div>
 
     <div class="ck-form-error" id="ckFormError" hidden></div>
-    <p id="checkoutNote" class="tryon-note" style="margin-bottom:16px;">Connecting to the live backend to place a real order...</p>
+    <p id="checkoutNote" class="tryon-note" style="margin-bottom:16px;" role="status" hidden></p>
     <button type="submit" class="btn btn-primary" style="width:100%;" id="checkoutSubmit">Place Order</button>
     <!-- A notice, not a tick-box: nothing is recorded by ticking, so a box
          here would be an "I agree" that does nothing. Placing the order is
@@ -7566,9 +7633,11 @@
     e.preventDefault();
     if(cart.length === 0){ showToast('Your bag is empty'); return; }
     refreshTotals();
-    checkoutNote.textContent = apiConnected
-      ? 'Order will be placed on the live backend.'
+    // Only said when it matters to the customer; "the live backend" was
+    // developer wording showing on every checkout.
+    checkoutNote.textContent = apiConnected ? ''
       : 'Our store is temporarily unreachable — orders cannot be placed right now.';
+    checkoutNote.hidden = apiConnected;
     ckClearErrors();
     openModal(checkoutModal, checkoutOverlay);
     // Opened first, populated after: the country list and address book are one
@@ -7781,7 +7850,9 @@
 
     // Top-level categories are the collection cards; subcategories appear as
     // filters inside the shop once a card is chosen.
-    const visible = (categories || []).filter(c => c.is_active && !c.parent_id);
+    // A collection with nothing published in it is left out: a card that
+    // opens onto an empty shop says the shop sells something it does not.
+    const visible = (categories || []).filter(c => c.is_active && !c.parent_id && c.product_count > 0);
     /* An editorial index rather than a wall of cards: a numbered line per
        collection, set large, with its photograph surfacing on hover. A
        collection with no photograph yet is simply its name — never an empty
@@ -8088,7 +8159,7 @@
     // The marquee is the collection names again, as texture. Top-level only,
     // so it matches the cards above it rather than listing every subcategory.
     Motion.ribbon((categories || [])
-      .filter(c => c.is_active && !c.parent_id)
+      .filter(c => c.is_active && !c.parent_id && c.product_count > 0)
       .map(c => c.name));
     // Held until the opening panels start parting, so the headline unrolls
     // into the gap. Runs immediately when there is no opening sequence —
@@ -10106,6 +10177,8 @@
       var probe = new Image();
       probe.onload = function(){
         sec.querySelector('.ts-img').style.backgroundImage = "url('" + cssUrl(src) + "')";
+        var lead = document.getElementById('stmtHair');
+        if(lead){ lead.style.backgroundImage = "url('" + cssUrl(src) + "')"; lead.classList.add('is-set'); }
         sec.hidden = false;
         if(M && M.scan) M.scan(sec);
       };

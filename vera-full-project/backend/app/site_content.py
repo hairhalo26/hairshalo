@@ -172,7 +172,7 @@ DEFAULTS: Dict[str, dict] = {
                         "can check on the product page."),
         "sort_order": 80,
         "payload": {
-            "heading": "Why Hairshalo",
+            "heading": "Plainly, and up close.",
             "items": [
                 {"icon": "check", "title": "Stated plainly",
                  "body": ("Every piece lists its hair type — human hair or synthetic fibre — "
