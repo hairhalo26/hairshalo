@@ -635,11 +635,6 @@
   }
 
   /* ---------- Why choose ---------- */
-  .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
-  .why-item{background:var(--cream);padding:34px 26px;}
-  .why-item svg{width:26px;height:26px;stroke:var(--wine);margin-bottom:18px;}
-  .why-item h3{font-family:'Fraunces',serif;font-size:17px;font-weight:500;margin-bottom:8px;}
-  .why-item p{font-size:13.5px;color:var(--text-soft);line-height:1.6;}
 
   /* ---------- Testimonials ---------- */
   .testi-track{display:flex;gap:24px;overflow-x:auto;scroll-snap-type:x mandatory;padding-bottom:8px;}
@@ -935,7 +930,7 @@
     .hero-float{position:static;margin-top:20px;max-width:none;}
     
     .prod-grid{grid-template-columns:repeat(2,1fr);}
-    .why-grid{grid-template-columns:repeat(2,1fr);}
+    
     .editorial{grid-template-columns:1fr;gap:36px;}
     
     .testi-card{flex:0 0 85%;}
@@ -946,7 +941,7 @@
   }
   @media (max-width:560px){
     :root{--gutter:20px;}
-    .prod-grid,.why-grid{grid-template-columns:1fr 1fr;}
+    .prod-grid{grid-template-columns:1fr 1fr;}
     .foot-grid{grid-template-columns:1fr;gap:30px;}
     .nl-form{flex-direction:column;}
     /* The logo lockup is a mark plus one unbreakable word, where the previous
@@ -2278,6 +2273,9 @@
   .motion-ready [data-reveal="split"]{opacity:1;transform:none;}
   .motion-ready [data-reveal="split"] .m-word-i{transform:translateY(112%);}
   .motion-ready [data-reveal="split"].revealed .m-word-i{transform:none;}
+  /* Split headlines never take the reveal's inset(0) clip: it cropped the
+     descenders of display italics ("yours" read as "vours"). */
+  .motion-ready [data-reveal="split"],.motion-ready [data-reveal="split"].revealed{clip-path:none;}
 
   .section-head h2,
   #faq .section-head h2{font-family:'Fraunces',serif;font-weight:400;font-size:var(--h2-edit);
@@ -2734,12 +2732,6 @@
   .spread :focus-visible{outline-color:var(--champagne);}
 
   /* ---------- Why — an editorial row, not feature boxes ---------- */
-  .why-grid{background:none;border:0;border-radius:0;gap:clamp(20px,3vw,48px);counter-reset:why;overflow:visible;}
-  .why-item{background:none;padding:28px 0 0;border-top:1px solid rgba(43,27,20,.18);counter-increment:why;}
-  .why-item::before{content:counter(why, decimal-leading-zero);display:block;font-family:'Fraunces',serif;
-    font-style:italic;font-size:clamp(34px,3.4vw,54px);line-height:1;color:var(--gold);margin-bottom:22px;}
-  .why-item > svg{display:none;}
-  .why-item h3{font-size:clamp(20px,1.7vw,26px);font-weight:400;}
 
   /* ---------- Reviews — pull quotes, not cards ---------- */
   .testi-track{gap:clamp(24px,3vw,56px);}
@@ -2780,7 +2772,7 @@
     -webkit-mask-image:radial-gradient(closest-side,#000 30%,rgba(0,0,0,.4) 62%,transparent 100%);
             mask-image:radial-gradient(closest-side,#000 30%,rgba(0,0,0,.4) 62%,transparent 100%);}
   /* Only ever a real photograph: with none loaded there is nothing to show. */
-  .closing-photo.brand-panel,.closing-photo:not(.product-photo){display:none;}
+  .closing-photo.brand-panel,.closing-photo:not([style*="background-image"]){display:none;}
   .closing-strands{position:absolute;inset:0;width:100%;height:100%;}
   .motion-ready .closing-photo{translate:0 calc((var(--sv,.5) - .5) * -90px);}
   .motion-ready .closing-light{translate:calc((var(--sv,.5) - .5) * -40px) 0;}
@@ -2875,8 +2867,6 @@
     .spread{grid-template-columns:1fr;}
     .spread-media{min-height:112vw;}
     .spread .editorial-copy{padding:48px var(--gutter,20px) 80px;}
-
-    .why-grid{grid-template-columns:1fr 1fr;}
 
     .faq-layout{grid-template-columns:1fr;gap:28px;}
     .faq-head{position:static;}
@@ -3014,6 +3004,239 @@
     .ds-count{bottom:auto;top:10vh;left:auto;right:var(--gutter,20px);}
     .motion-ready .discover:not(.is-still){margin-top:-6vh;}
     .ai-card.is-campaign{min-height:380px;}
+  }
+
+  /* ======================================================================
+     ROUND 4 — story over effect
+     ====================================================================== */
+
+  /* Every light section paints its own ground. The scroll-driven page tone
+     is a background wash, never what keeps dark type legible — when it
+     lagged behind a scroll, a light section sat on the previous dark tone
+     and read as an empty black screen. */
+  #collections{background:#F7F1E7;}
+  #bestsellers{background:#FAF5EE;}
+  #shop{background:#F4EDE2;}
+  #testimonials{background:#F6EFE5;}
+  #faq{background:#FAF5EE;}
+  .wrap:has(> #promoPanel), .ribbon{background-color:#F7F1E7;}
+  .ribbon{background:var(--ink);}
+
+  /* ---------- WHY HAIRSHALO — the brand story ---------- */
+  .why-story{position:relative;background:#EFE6D8;color:var(--ink);overflow:clip;}
+  .motion-ready .why-story:not(.is-still){height:calc((var(--wy-n,4) + .6) * 82vh);}
+  .wy-pin{position:relative;height:100vh;height:100svh;overflow:hidden;}
+  .motion-ready .why-story:not(.is-still) .wy-pin{position:sticky;top:0;}
+  /* The photographs: real hair, blended into the section's own ground so
+     the studio white vanishes and the hair itself fills the space, feathered
+     at the edges, running under the words. */
+  .wy-visuals{position:absolute;top:-6%;bottom:-6%;right:-6%;width:72%;pointer-events:none;
+    -webkit-mask-image:radial-gradient(ellipse 72% 68% at 58% 50%,#000 46%,rgba(0,0,0,.5) 72%,transparent 100%);
+            mask-image:radial-gradient(ellipse 72% 68% at 58% 50%,#000 46%,rgba(0,0,0,.5) 72%,transparent 100%);}
+  .wy-shot{position:absolute;inset:0;background-color:#EFE6D8;background-blend-mode:multiply;
+    background-size:cover;background-position:center;will-change:transform,opacity;}
+  .motion-ready .why-story:not(.is-still) .wy-shot{opacity:0;}
+  .motion-ready .why-story:not(.is-still) .wy-shot:first-child{opacity:1;}
+  .wy-copy{position:absolute;z-index:2;top:0;bottom:0;left:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));
+    width:min(46vw,620px);padding-top:16vh;display:flex;flex-direction:column;}
+  /* A soft ivory field behind the words, so the hair can pass under them. */
+  .wy-copy::before{content:'';position:absolute;z-index:-1;top:-10%;bottom:-10%;left:-40vw;right:-18%;
+    background:linear-gradient(90deg,#EFE6D8 62%,rgba(239,230,216,.86) 80%,rgba(239,230,216,0));pointer-events:none;}
+  .wy-heading{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(20px,1.7vw,26px);
+    letter-spacing:-.01em;color:var(--text-soft);margin:18px 0 6vh;}
+  .wy-list{list-style:none;margin:0;padding:0;transition:transform 1.1s var(--e-film);}
+  .wy-item{position:relative;padding:0 0 5vh 64px;opacity:.26;transition:opacity .9s var(--e-film);}
+  .wy-item.is-past{opacity:.14;}
+  .wy-item.is-on{opacity:1;}
+  .wy-n{position:absolute;left:0;top:.5em;font-family:'Fraunces',serif;font-style:italic;font-size:16px;color:var(--gold);}
+  .wy-item h3{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(34px,3.2vw,52px);line-height:1;
+    letter-spacing:-.03em;transform-origin:0 50%;transition:font-size .9s var(--e-film), color .9s var(--e-film);}
+  .wy-item.is-on h3{font-size:clamp(52px,6.2vw,108px);color:var(--ink);}
+  .wy-item p{font-size:16px;line-height:1.75;color:var(--text-soft);max-width:420px;margin-top:18px;
+    max-height:0;overflow:hidden;opacity:0;transition:max-height .9s var(--e-film), opacity .9s var(--e-film);}
+  .wy-item.is-on p{max-height:9em;opacity:1;}
+  .wy-count{position:absolute;z-index:3;left:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));bottom:7vh;
+    display:flex;align-items:center;gap:14px;font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--text-soft);}
+  .wy-count i{display:block;width:56px;height:1px;background:rgba(43,27,20,.2);position:relative;overflow:hidden;}
+  .wy-count i::after{content:'';position:absolute;inset:0;background:var(--wine);transform-origin:0 50%;transform:scaleX(var(--wy-t,0));}
+  /* Reduced motion: every statement, readable, with the first photograph. */
+  .why-story.is-still{height:auto;}
+  .why-story.is-still .wy-pin{height:auto;padding:clamp(90px,14vh,160px) 0;}
+  .why-story.is-still .wy-copy{position:relative;width:auto;padding:0 max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));}
+  .why-story.is-still .wy-copy::before,.why-story.is-still .wy-count{display:none;}
+  .why-story.is-still .wy-item{opacity:1;}
+  .why-story.is-still .wy-item p{max-height:none;opacity:1;}
+  .why-story.is-still .wy-visuals{opacity:.35;}
+
+  /* ---------- EXAMINE THE PIECE — on a light set, the hair itself ---------- */
+  .discover{background:#EDE3D6;color:var(--ink);}
+  .motion-ready .discover:not(.is-still){clip-path:none;margin-top:0;}
+  .ds-atmos{left:auto;right:-10%;background:radial-gradient(closest-side,rgba(255,255,255,.55),transparent);}
+  .ds-title{color:var(--ink);}
+  .ds-title em{color:var(--wine);}
+  .discover .cine-eyebrow{color:var(--gold);}
+  .ds-window{left:18%;right:24%;width:auto;top:-8vh;bottom:-8vh;background:transparent;box-shadow:none;overflow:visible;border-radius:0;}
+  .ds-window::after{display:none;}
+  .ds-frame{background-color:#EDE3D6;
+    -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 58%,rgba(0,0,0,.55) 78%,transparent 100%);
+            mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 58%,rgba(0,0,0,.55) 78%,transparent 100%);}
+  .ds-lines line{stroke:var(--wine);stroke-opacity:.7;}
+  .ds-lines #dsDot{fill:var(--wine);}
+  .ds-lines #dsDotRing{stroke:rgba(122,46,62,.5);}
+  .ds-note{color:var(--ink);}
+  .ds-n{color:var(--gold);}
+  .ds-k{color:var(--text-soft);}
+  .ds-note.is-on .ds-v{color:var(--ink);}
+  .ds-end-kicker{color:var(--gold);}
+  .ds-end-name{color:var(--ink);}
+  .ds-end-meta{color:var(--text-soft);}
+  .discover .fc-cta{color:var(--ink);border-bottom-color:rgba(122,46,62,.45);}
+  .discover :focus-visible{outline-color:var(--wine);}
+  .ds-count{color:var(--text-soft);}
+  .ds-count i{background:rgba(43,27,20,.2);}
+  .ds-count i::after{background:var(--wine);}
+  /* The notes sit on a quiet field so the hair can pass behind them. */
+  .ds-notes::before,.ds-end::before{content:'';position:absolute;z-index:-1;inset:-40px -60px -40px -80px;
+    background:radial-gradient(closest-side,rgba(237,227,214,.92),rgba(237,227,214,0));pointer-events:none;}
+  .discover.is-still .ds-frame{-webkit-mask-image:none;mask-image:none;}
+
+  /* ---------- TRANSFORMATION — two hair states, unmistakable ---------- */
+  .tf-img.is-texture{background-size:cover !important;background-position:center !important;transform-origin:center !important;}
+  .tf-a .tf-img.is-texture{background-color:#ECE3D6 !important;}
+  .tf-b .tf-img.is-texture{background-color:#C79E7F !important;}
+  .tf-a::after{background:radial-gradient(70% 80% at 70% 45%,transparent 45%,rgba(20,12,8,.5) 100%);}
+  .tf-b::after{background:radial-gradient(70% 80% at 30% 45%,transparent 45%,rgba(20,12,8,.5) 100%);}
+  .tf-cap{top:auto;bottom:7%;color:var(--ivory);}
+  .tf-tex,.tf-name{color:var(--ivory);text-shadow:0 2px 30px rgba(13,9,7,.75), 0 0 2px rgba(13,9,7,.4);}
+  .tf-name{color:rgba(244,236,224,.85);}
+  .tf-atmos-b{height:48%;background:linear-gradient(transparent,rgba(13,9,7,.72));}
+  .tf-seam::before{width:2px;left:-1px;background:linear-gradient(180deg,rgba(243,221,176,.2),var(--champagne-hi) 12%,var(--champagne-hi) 88%,rgba(243,221,176,.2));
+    box-shadow:0 0 24px 4px rgba(243,221,176,.55), 0 0 2px 1px rgba(13,9,7,.6);}
+  .tf-seam i{background:rgba(13,9,7,.7);border-color:var(--champagne-hi);}
+  .tf-hint{top:6%;bottom:auto;text-shadow:0 1px 16px rgba(13,9,7,.8);}
+
+  /* ---------- The Hairshalo Difference — hair across the spread ---------- */
+  .spread #editorialArch.is-texture{inset:0 -12% 0 0;background-color:#B8977A !important;background-size:cover !important;
+    background-position:center !important;
+    -webkit-mask-image:linear-gradient(90deg,#000 50%,rgba(0,0,0,.6) 74%,transparent 100%);
+            mask-image:linear-gradient(90deg,#000 50%,rgba(0,0,0,.6) 74%,transparent 100%);}
+  .spread #editorialArch.is-texture::after{background:linear-gradient(0deg,rgba(35,24,19,.55),transparent 40%);}
+  .spread .sp-light{display:none;}
+  .spread:has(#editorialArch.is-texture) .editorial-copy{position:relative;z-index:1;}
+
+  @media (max-width:980px){
+    .wy-copy{width:auto;right:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));}
+  }
+  @media (max-width:699px){
+    .motion-ready .why-story:not(.is-still){height:calc((var(--wy-n,4) + .6) * 78vh);}
+    .wy-visuals{top:-4%;bottom:auto;height:62%;right:-10%;left:-10%;width:auto;
+      -webkit-mask-image:radial-gradient(ellipse 60% 60% at 50% 48%,#000 50%,transparent 100%);
+              mask-image:radial-gradient(ellipse 60% 60% at 50% 48%,#000 50%,transparent 100%);}
+    .wy-copy{top:auto;bottom:0;height:52%;padding-top:0;left:var(--gutter,20px);right:var(--gutter,20px);}
+    .wy-copy::before{inset:-12% -20px 0;background:linear-gradient(0deg,#EFE6D8 70%,rgba(239,230,216,0));}
+    .wy-heading{margin:10px 0 3vh;font-size:17px;}
+    .wy-item{padding-left:40px;position:absolute;left:0;right:0;top:0;opacity:0;}
+    .wy-item.is-on{opacity:1;}
+    .wy-item.is-past{opacity:0;}
+    .wy-item.is-on h3{font-size:clamp(40px,11vw,56px);}
+    .wy-list{position:relative;transform:none !important;}
+    .wy-count{bottom:auto;top:12vh;left:auto;right:var(--gutter,20px);}
+    .why-story.is-still .wy-item{position:relative;}
+    .ds-window{left:-6%;right:-6%;top:8vh;bottom:26vh;}
+    .spread #editorialArch.is-texture{inset:0;-webkit-mask-image:linear-gradient(0deg,transparent 0,#000 35%);mask-image:linear-gradient(0deg,transparent 0,#000 35%);}
+  }
+
+  /* ---------- Hero performance ----------
+     Measured in real Chrome: the SVG glow filter on the travelling lights
+     and the rotating weave repainted the whole hero every frame (14 fps at
+     rest). The lights keep their brightness through stroke and opacity; the
+     weave holds still. Visually the same strands, at full frame rate. */
+  .fx-trails .light,.hv-l{filter:none;stroke-width:1.6;}
+  .motion-full .fx-trails .weave,.motion-full .hv-weave{animation:none;}
+
+  /* ======================================================================
+     ROUND 4 — fixes from the live browser tour
+     ====================================================================== */
+  /* Leaving the hero no longer fades it to an empty black screen: it
+     recedes a little and stays present until The Flow takes over. */
+  .hero-grid{opacity:calc(1 - min(var(--hero-scroll,0),1) * .3);}
+  .hero.is-leaving .hero-grid{filter:blur(calc(min(var(--hero-scroll,0),1) * 1.5px));}
+  .hero{padding-bottom:clamp(64px,9vh,110px);}
+
+  /* The Flow: real hair texture surfaces in low light — not a bright oval. */
+  .fp-img.is-texture{inset:-4% -8%;background-color:#7E604C !important;background-size:cover !important;
+    -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 30%,rgba(0,0,0,.55) 62%,transparent 100%);
+            mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 30%,rgba(0,0,0,.55) 62%,transparent 100%);}
+  .fp-img.is-texture::after{background:radial-gradient(closest-side,rgba(243,221,176,.12),rgba(13,9,7,.35) 90%);}
+  .flow-product:has(.fp-img.is-texture) .fp-light{
+    background:radial-gradient(closest-side,rgba(220,193,147,.14),transparent);}
+
+  /* Examine the piece: the hair stays clear of the notes, and the line
+     reads over dark hair. */
+  .ds-window{right:30%;}
+  .ds-notes::before,.ds-end::before{inset:-60px -80px -60px -120px;
+    background:radial-gradient(closest-side,rgba(237,227,214,.97) 55%,rgba(237,227,214,0));}
+  .ds-lines line{stroke:var(--ink);stroke-opacity:.85;stroke-width:1.4;}
+  .ds-lines #dsDot{fill:var(--ivory);stroke:var(--ink);stroke-width:1.5;}
+  .ds-lines #dsDotRing{stroke:rgba(244,236,224,.85);stroke-width:1.2;}
+
+  /* Transformation: the curl side lifted so its texture reads as clearly
+     as the straight. */
+  .tf-b .tf-img.is-texture{background-color:#DCC2A8 !important;}
+  .tf-b::after{background:radial-gradient(70% 80% at 30% 45%,transparent 50%,rgba(20,12,8,.38) 100%);}
+
+  /* Closing: real hair, low and warm, behind the last line. */
+  .closing-photo.is-texture{top:0;bottom:0;right:-6vw;width:58vw;opacity:.5;background-color:#8A6A55 !important;
+    background-size:cover !important;
+    -webkit-mask-image:radial-gradient(ellipse 50% 50% at 55% 50%,#000 25%,rgba(0,0,0,.4) 62%,transparent 100%);
+            mask-image:radial-gradient(ellipse 50% 50% at 55% 50%,#000 25%,rgba(0,0,0,.4) 62%,transparent 100%);}
+
+  /* Italic descenders at display sizes need more room inside word masks. */
+  .m-word{padding-bottom:.34em;margin-bottom:-.34em;}
+
+  /* The offer and the newsletter: editorial bands, not boxed template cards. */
+  .promo{border-radius:0;background:var(--noir);padding:clamp(40px,6vh,64px) clamp(24px,4vw,56px);
+    border-top:1px solid var(--line-dark);border-bottom:1px solid var(--line-dark);}
+  .promo h3{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(28px,2.8vw,44px);line-height:1.05;letter-spacing:-.02em;}
+  .newsletter{border:0;border-top:1px solid var(--line-dark);background:transparent;padding:clamp(56px,9vh,96px) 0 0;}
+  .newsletter h2{font-size:clamp(36px,4vw,64px);letter-spacing:-.025em;}
+
+  /* Why story, stabilised: every statement keeps the same box (the active
+     one grows by transform, its words fade in place), so the list's shift
+     is exact; and the list slides inside its own clipped viewport, never
+     over the heading. */
+  .wy-viewport{position:relative;flex:1;overflow:hidden;
+    -webkit-mask-image:linear-gradient(180deg,#000 0,#000 78%,transparent 100%);
+            mask-image:linear-gradient(180deg,#000 0,#000 78%,transparent 100%);}
+  .wy-item h3,.wy-item.is-on h3{font-size:clamp(46px,5.4vw,92px);transform:scale(.52);
+    transition:transform 1s var(--e-film), color .9s var(--e-film);}
+  .wy-item.is-on h3{transform:none;}
+  .wy-item{padding-bottom:3vh;}
+  .wy-item p,.wy-item.is-on p{max-height:none;overflow:visible;margin-top:12px;}
+  .wy-item p{opacity:0;transition:opacity .8s var(--e-film);}
+  .wy-item.is-on p{opacity:1;}
+  .wy-item:not(.is-on){margin-bottom:-4.2em;}
+  .why-story.is-still .wy-viewport{-webkit-mask-image:none;mask-image:none;overflow:visible;}
+  .why-story.is-still .wy-item h3{transform:none;}
+  .why-story.is-still .wy-item:not(.is-on){margin-bottom:0;}
+  @media (max-width:699px){
+    .wy-item h3,.wy-item.is-on h3{font-size:clamp(40px,11vw,56px);transform:none;}
+    .wy-item:not(.is-on){margin-bottom:0;}
+    .wy-viewport{-webkit-mask-image:none;mask-image:none;}
+  }
+
+  /* The Flow's texture: feathered further, on a darker ground. */
+  .fp-img.is-texture{background-color:#5E4636 !important;
+    -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 18%,rgba(0,0,0,.5) 50%,transparent 86%);
+            mask-image:radial-gradient(ellipse 50% 50% at 50% 50%,#000 18%,rgba(0,0,0,.5) 50%,transparent 86%);}
+
+  @media (max-width:699px){
+    /* The outgoing statement leaves quickly, so two never overlap. */
+    .wy-item:not(.is-on){transition-duration:.2s;}
+    /* The spread's hair: less zoomed, on a lighter ground, so it reads. */
+    .spread-media{min-height:92vw;}
+    .spread #editorialArch.is-texture{background-color:#CDB396 !important;background-size:160% auto !important;}
+    .spread #editorialArch.is-texture::after{background:linear-gradient(0deg,rgba(35,24,19,.35),transparent 40%);}
   }
 
   /* ==================== Reduced motion — a still, finished stage ==================== */
@@ -3312,7 +3535,7 @@
      to the piece by a line. Built by the cinematic layer; stays hidden unless
      a product has at least three photographs and real attributes to show.
      Under reduced motion it is a still, stacked sequence. -->
-<section class="cine discover" id="discover" data-tone="#0D0907" data-scroll="pin" hidden aria-labelledby="dsHeading">
+<section class="cine discover" id="discover" data-tone="#EDE3D6" data-scroll="pin" hidden aria-labelledby="dsHeading">
   <div class="ds-pin">
     <span class="ds-atmos" aria-hidden="true"></span>
     <div class="ds-head">
@@ -3464,11 +3687,20 @@
   </div>
 </section>
 
-<!-- WHY CHOOSE — Back Office → Content → Why customers choose us -->
-<section class="section" id="whySection" data-tone="#F6EFE5">
-  <div class="wrap">
-    <div class="section-head" data-reveal="up"><h2 id="whyHeading"></h2></div>
-    <div class="why-grid" id="whyGrid" data-reveal-group data-reveal-step="95"></div>
+<!-- WHY HAIRSHALO — the brand story, one statement at a time. The words are
+     Back Office → Content → Why customers choose us; each is paired with a
+     large photograph of real hair from the catalogue that bleeds across the
+     page. Scrolling moves through the statements (pinned scene); under
+     reduced motion they are simply listed. -->
+<section class="why-story" id="whySection" data-tone="#EFE6D8" data-scroll="pin" aria-labelledby="whyHeading">
+  <div class="wy-pin">
+    <div class="wy-visuals" id="wyVisuals" aria-hidden="true"></div>
+    <div class="wy-copy">
+      <span class="det-eyebrow">Why Hairshalo</span>
+      <h2 class="wy-heading" id="whyHeading"></h2>
+      <div class="wy-viewport"><ol class="wy-list" id="whyGrid"></ol></div>
+    </div>
+    <div class="wy-count" aria-hidden="true"><span id="wyNow">01</span><i></i><span id="wyAll">04</span></div>
   </div>
 </section>
 
@@ -7303,6 +7535,9 @@
     const resolved = resolveMediaUrl(url);
     const probe = new Image();
     probe.onload = () => {
+      // A frame already given a texture close-up keeps it, whichever of the
+      // two photographs happens to finish loading last.
+      if(fit === 'contain' && node.classList.contains('is-texture')) return;
       if(fit === 'contain'){
         node.style.backgroundImage = `url('${cssUrl(resolved)}')`;
         node.style.backgroundSize = 'contain';
@@ -7431,11 +7666,16 @@
     const items = (block && block.items) || [];
     setText('whyHeading', block && block.heading);
     if(grid){
-      grid.innerHTML = items.map(item => `
-        <div class="why-item" data-reveal="up">${icon(item.icon, 1.6)}
+      grid.innerHTML = items.map((item, i) => `
+        <li class="wy-item">
+          <span class="wy-n" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>
           <h3>${esc(item.title)}</h3>
           <p>${esc(item.body)}</p>
-        </div>`).join('');
+        </li>`).join('');
+      // The scene sizes itself to however many statements there are.
+      document.getElementById('whySection').style.setProperty('--wy-n', items.length);
+      document.getElementById('wyAll').textContent = String(items.length).padStart(2, '0');
+      document.dispatchEvent(new CustomEvent('hairshalo:why'));
     }
     toggleSection('whySection', items.length > 0);
   }
@@ -8864,7 +9104,7 @@
 
       function count(){
         var n = Number(canvas.getAttribute('data-count')) || (mode === 'flow' ? 34 : mode === 'seam' ? 18 : 22);
-        return (M.tier && M.tier() === 'full') ? n : Math.round(n * 0.5);
+        return (M.tier && M.tier() === 'full') ? n : Math.round(n * 0.7);
       }
       function size(){
         var r = canvas.getBoundingClientRect();
@@ -8940,7 +9180,7 @@
           seamPrev = tf;
           sx = W * tf / 100;
         }
-        var env = mode === 'flow' ? .25 + .75 * smooth(0, .22, p) : 1;
+        var env = mode === 'flow' ? .45 + .55 * smooth(0, .22, p) : 1;
 
         ctx.clearRect(0, 0, W, H);
         ctx.lineCap = 'round';
@@ -9141,7 +9381,12 @@
       [[a, 'A'], [b, 'B']].forEach(function(pair){
         var p = pair[0], k = pair[1];
         var img = document.getElementById('tfImg' + k);
-        if(typeof applyBackdrop === 'function') applyBackdrop(img, p.image_url, 'contain');
+        // The texture itself, not the packaging: each side is filled with
+        // the piece's own close-up photograph when it has one.
+        var shots = discoverFrames(p);
+        var close = shots.length >= 3 ? shots[2].url : p.image_url;
+        img.classList.toggle('is-texture', close !== p.image_url);
+        if(typeof applyBackdrop === 'function') applyBackdrop(img, close, close !== p.image_url ? 'cover' : 'contain');
         img.setAttribute('aria-label', p.name + ', ' + p.texture);
         document.getElementById('tfTex' + k).textContent  = p.texture;
         document.getElementById('tfName' + k).textContent = p.name;
@@ -9266,7 +9511,11 @@
       var box = document.getElementById('flowProduct');
       var img = document.getElementById('flowProductImg');
       if(box && img && flowPick){
-        applyBackdrop(img, flowPick.image_url, 'contain');
+        // Hair texture surfaces from the strands: the piece's own close-up,
+        // not its packaging in a pool of light (the hero already does that).
+        var flowShots = discoverFrames(flowPick);
+        if(flowShots.length >= 3){ img.classList.add('is-texture'); applyBackdrop(img, flowShots[2].url, 'cover'); }
+        else applyBackdrop(img, flowPick.image_url, 'contain');
         img.setAttribute('aria-label', flowPick.name);
         document.getElementById('flowCapName').textContent = flowPick.name;
         document.getElementById('flowCapMeta').textContent =
@@ -9277,10 +9526,23 @@
       }
       var closePick = list.find(function(p){ return p !== flowPick; }) || flowPick;
       var closing = document.getElementById('closingPhoto');
-      if(closing && closePick) applyBackdrop(closing, closePick.image_url, 'contain');
+      if(closing && closePick){
+        var closeShots = discoverFrames(closePick);
+        if(closeShots.length >= 3){ closing.classList.add('is-texture'); applyBackdrop(closing, closeShots[2].url, 'cover'); }
+        else applyBackdrop(closing, closePick.image_url, 'contain');
+      }
       renderDiscover(products, taken.concat([flowPick, closePick].filter(Boolean)
         .map(function(p){ return fileOf(p.image_url); })));
       renderCampaign(products);
+      whyPhotos(products);
+      // The campaign frames use each piece's close-up; the spread takes one
+      // they did not.
+      var campaignUsed = Array.prototype.map.call(document.querySelectorAll('.ai-photo'), function(el){
+        return el.style.backgroundImage;
+      }).join(' ');
+      spreadTexture(products.slice().reverse(), campaignUsed ? products.map(function(p){
+        var s = discoverFrames(p); return s.length >= 3 && campaignUsed.indexOf(fileOf(s[2].url)) !== -1 ? s[2].url : '';
+      }).filter(Boolean) : []);
     }
 
     /* ---------- Examine the piece: a product film ----------
@@ -9288,21 +9550,25 @@
        photographs — one colourway, the shop's order — and each stage lights
        one real attribute. Nothing is described that the catalogue does not
        say, and no view is shown that was not photographed. */
-    /* One move per stage, matched to how the shop's photographs run: an
-       overall view, then the length, a texture close-up, a detail, and
-       another angle. */
+    /* The examination, in order: the piece enters, the camera pushes into
+       its texture, moves around a detail, travels its length, then steps
+       back to the whole piece. Each stage uses the shop's own photograph for
+       that view (see STAGE_SHOTS), and one camera move. */
     var CAMERA = [
-      // enters the frame from below, slightly close, and settles
-      { a:{s:1.2,  x:0,  y:7,  r:0},  b:{s:1,    x:0,  y:0,  r:0},  dot:[50,38] },
+      // enters from below, close, and settles on the front
+      { a:{s:1.24, x:0,  y:9,  r:0},  b:{s:1,    x:0,  y:0,  r:0},  dot:[50,40] },
+      // pushes hard into the texture and drifts across it
+      { a:{s:1.08, x:-5, y:2,  r:0},  b:{s:1.55, x:5,  y:-3, r:0},  dot:[46,50] },
+      // moves around the detail
+      { a:{s:1.18, x:4,  y:2,  r:10}, b:{s:1.18, x:-4, y:-2, r:-10},dot:[56,46] },
       // travels down the length
-      { a:{s:1.1,  x:0,  y:9,  r:0},  b:{s:1.1,  x:0,  y:-9, r:0},  dot:[50,70] },
-      // pushes in and drifts across the texture
-      { a:{s:1.04, x:-4, y:1,  r:0},  b:{s:1.3,  x:4,  y:-2, r:0},  dot:[44,52] },
-      // moves around it
-      { a:{s:1.1,  x:3,  y:2,  r:9},  b:{s:1.1,  x:-3, y:-2, r:-9}, dot:[58,46] },
-      // steps back
-      { a:{s:1.06, x:0,  y:0,  r:0},  b:{s:.96,  x:0,  y:0,  r:0},  dot:[52,48] }
+      { a:{s:1.2,  x:0,  y:12, r:0},  b:{s:1.2,  x:0,  y:-12,r:0},  dot:[50,66] },
+      // steps back to the whole piece
+      { a:{s:1.3,  x:0,  y:0,  r:0},  b:{s:.94,  x:0,  y:0,  r:0},  dot:[50,46] }
     ];
+    // Which of a colourway's photographs serves each stage. The shop's sets
+    // run: overall view, full length, texture close-up, detail, extra.
+    var STAGE_SHOTS = [0, 2, 3, 1, 0];
     function lerp(a, b, t){ return a + (b - a) * t; }
     function ease(t){ return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 
@@ -9312,9 +9578,9 @@
       var shades = (p.colours || []).filter(function(c){ return c && c.is_active !== false; }).length;
       return [
         ['Hair type', clean(p.hair_type)],
-        ['Length', lengths.join(' · ')],
         ['Texture', clean(p.texture)],
         ['Construction', clean(p.construction)],
+        ['Length', lengths.join(' · ')],
         ['Colours', shades > 1 ? shades + ' shades' : '']
       ].filter(function(f){ return f[1]; });
     }
@@ -9341,7 +9607,10 @@
       });
       if(!best){ sec.hidden = true; return; }
 
-      var frames = discoverFrames(best), facts = discoverFacts(best);
+      var shots = discoverFrames(best), facts = discoverFacts(best);
+      // Stages whose photograph exists; the last returns to the first view.
+      var frames = STAGE_SHOTS.filter(function(i){ return i < shots.length; })
+        .map(function(i){ return shots[i]; });
       var n = Math.min(frames.length, facts.length, CAMERA.length);
       var win = document.getElementById('dsWindow');
       var notes = document.getElementById('dsNotes');
@@ -9457,6 +9726,113 @@
         card.classList.add('is-campaign');
       });
       document.querySelector('.ai-section').classList.add('has-campaign');
+    }
+
+    /* ---------- Why Hairshalo: the brand story ----------
+       Statements come from the Back Office (renderWhy); photographs are the
+       catalogue's own detail shots of real hair, a different piece per
+       statement where possible. Scrolling the pinned scene moves through
+       them: the active statement grows and the list shifts, the photograph
+       dissolves to the next and drifts like a slow camera. */
+    var whyShots = [];
+    function whyPhotos(products){
+      var seen = {};
+      whyShots = [];
+      products.forEach(function(p){
+        var shots = discoverFrames(p);
+        var tex = clean(p.texture).toLowerCase();
+        if(shots.length < 4 || seen[tex]) return;
+        seen[tex] = 1;
+        // A straight piece's fourth shot is the whole weft — a black block at
+        // this size; its close-up of the ends reads as hair.
+        whyShots.push(/straight/i.test(tex) ? shots[2].url : shots[3].url);
+      });
+      if(whyShots.length < 2){
+        whyShots = products.map(function(p){ return p.image_url; }).filter(Boolean);
+      }
+      paintWhyVisuals();
+    }
+    function paintWhyVisuals(){
+      var box = document.getElementById('wyVisuals');
+      var items = document.querySelectorAll('#whyGrid .wy-item');
+      if(!box || !items.length || !whyShots.length || typeof resolveMediaUrl !== 'function') return;
+      box.innerHTML = Array.prototype.map.call(items, function(_, i){
+        var url = whyShots[i % whyShots.length];
+        return '<div class="wy-shot" style="background-image:url(\'' + cssUrl(resolveMediaUrl(url)) + '\')"></div>';
+      }).join('');
+      wireWhy();
+    }
+    var whyWired = false;
+    function wireWhy(){
+      var sec = document.getElementById('whySection');
+      if(!sec) return;
+      if(still){ sec.classList.add('is-still'); return; }
+      if(whyWired) return;
+      whyWired = true;
+      var list = document.getElementById('whyGrid'), now = document.getElementById('wyNow');
+      var last = -1;
+      function paint(){
+        var items = list.children, shots = document.querySelectorAll('#wyVisuals .wy-shot');
+        var n = items.length;
+        if(!n) return;
+        var p = sec.__pp != null ? sec.__pp : 0;
+        var span = p * n, active = Math.min(Math.floor(span), n - 1);
+        var t = Math.min(Math.max(span - active, 0), 1);
+        for(var i = 0; i < shots.length; i++){
+          var o = i === active ? 1 : 0;
+          if(i === active + 1 && t > .78) o = (t - .78) / .22;
+          if(i === active && t > .78 && active < n - 1) o = 1 - (t - .78) / .22;
+          var k = Math.min(Math.max(span - i, 0), 1);
+          shots[i].style.opacity = o.toFixed(3);
+          shots[i].style.transform = 'translate3d(' + ((i % 2 ? -1 : 1) * (2 - k * 4)).toFixed(2) + '%,' +
+            (3 - k * 6).toFixed(2) + '%,0) scale(' + (1.14 - k * .1).toFixed(3) + ')';
+        }
+        if(active !== last){
+          last = active;
+          Array.prototype.forEach.call(items, function(el, i){
+            el.classList.toggle('is-on', i === active);
+            el.classList.toggle('is-past', i < active);
+          });
+          now.textContent = String(active + 1).padStart(2, '0');
+          // The list climbs so the statement in play sits at the same height.
+          // Measured from the first statement, not the column: the heading
+          // above the list must never be climbed over.
+          var target = items[active];
+          list.style.transform = 'translate3d(0,' + (items[0].offsetTop - target.offsetTop) + 'px,0)';
+        }
+        sec.style.setProperty('--wy-t', t.toFixed(3));
+      }
+      var on = false;
+      function tick(){ paint(); }
+      new IntersectionObserver(function(entries){
+        var vis = entries[0].isIntersecting;
+        if(vis && !on){ on = true; M.on(tick); }
+        else if(!vis && on){ on = false; M.off(tick); }
+      }, {rootMargin:'10% 0px'}).observe(sec);
+      window.addEventListener('resize', function(){ last = -1; }, {passive:true});
+      paint();
+    }
+    document.addEventListener('hairshalo:why', function(){
+      if(whyShots.length) paintWhyVisuals(); else wireWhy();
+    });
+
+    /* The Hairshalo Difference: when the Back Office has no photograph for
+       it, the spread is filled with a real close-up of hair that bleeds off
+       the edge and into the words, rather than a product in a pool of light
+       (which the hero and The Flow already do). */
+    function spreadTexture(products, avoid){
+      var arch = document.getElementById('editorialArch');
+      var content = typeof siteContent !== 'undefined' ? siteContent : {};
+      if(!arch || (content.editorial && content.editorial.image_url)) return;
+      var pick = null;
+      products.some(function(p){
+        var shots = discoverFrames(p);
+        if(shots.length >= 3 && avoid.indexOf(shots[2].url) === -1){ pick = shots[2].url; return true; }
+        return false;
+      });
+      if(!pick || typeof applyBackdrop !== 'function') return;
+      arch.classList.add('is-texture');
+      applyBackdrop(arch, pick, 'cover');
     }
 
     function build(products){
