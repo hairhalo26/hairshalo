@@ -237,18 +237,6 @@
   .section-head p{color:var(--text-soft);font-size:15px;max-width:360px;margin-top:10px;}
 
   /* ---------- Categories ---------- */
-  .cat-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:26px;}
-  .cat-card{position:relative;}
-  .cat-card .arch{aspect-ratio:3/3.6;transition:transform .5s var(--ease);}
-  .cat-card:hover .arch{transform:translateY(-6px);}
-  .cat-card h3{font-family:'Fraunces',serif;font-size:19px;font-weight:500;margin-top:16px;}
-  .cat-card p{font-size:13px;color:var(--text-soft);margin-top:4px;}
-  .cat-card .arrow{
-    display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;
-    margin-top:10px;color:var(--wine);
-  }
-  .cat-card .arrow svg{width:13px;height:13px;transition:transform .3s var(--ease);}
-  .cat-card:hover .arrow svg{transform:translateX(4px);}
 
   /* ---------- Promo banner ---------- */
   .promo{
@@ -945,11 +933,11 @@
     .burger span{height:1.6px;background:var(--ink);border-radius:2px;}
     .hero-grid{grid-template-columns:1fr;gap:44px;}
     .hero-float{position:static;margin-top:20px;max-width:none;}
-    .cat-grid{grid-template-columns:repeat(2,1fr);}
+    
     .prod-grid{grid-template-columns:repeat(2,1fr);}
     .why-grid{grid-template-columns:repeat(2,1fr);}
     .editorial{grid-template-columns:1fr;gap:36px;}
-    .editorial .order-2{order:-1;}
+    
     .testi-card{flex:0 0 85%;}
     .foot-grid{grid-template-columns:repeat(2,1fr);}
     .promo{padding:44px 30px;}
@@ -958,7 +946,7 @@
   }
   @media (max-width:560px){
     :root{--gutter:20px;}
-    .cat-grid,.prod-grid,.why-grid{grid-template-columns:1fr 1fr;}
+    .prod-grid,.why-grid{grid-template-columns:1fr 1fr;}
     .foot-grid{grid-template-columns:1fr;gap:30px;}
     .nl-form{flex-direction:column;}
     /* The logo lockup is a mark plus one unbreakable word, where the previous
@@ -1174,8 +1162,7 @@
     transform:translateX(-120%);
   }
   .arch.revealed::before{animation:sheenSweep 1.5s var(--ease) .35s;}
-  .cat-card:hover .arch::before,
-  .hero-visual:hover .arch::before{animation:sheenSweep 1.1s var(--ease);}
+    .hero-visual:hover .arch::before{animation:sheenSweep 1.1s var(--ease);}
   @keyframes sheenSweep{
     from{transform:translateX(-120%);}
     to  {transform:translateX(120%);}
@@ -1197,12 +1184,11 @@
   .m-tilt.is-tilting .m-tilt-inner{transition:transform .1s linear, box-shadow .3s var(--ease);}
   .m-tilt:hover .m-tilt-inner{box-shadow:0 34px 60px -34px rgba(43,27,20,.5);}
 
-  /* Two components already owned `transform` on :hover, at a specificity the
-     plain .m-tilt-inner rule loses to. Rather than weaken the originals, the
-     tilt is restated for each at a weight that wins — and each keeps its own
-     original lift as the --tilt-lift fallback, so the pre-existing hover
-     behaviour survives untouched on touch screens, where no tilt is wired. */
-  .cat-card.m-tilt:hover .arch,
+  /* The AI card already owned `transform` on :hover, at a specificity the
+     plain .m-tilt-inner rule loses to. Rather than weaken the original, the
+     tilt is restated at a weight that wins — keeping the original lift as the
+     --tilt-lift fallback, so the pre-existing hover behaviour survives
+     untouched on touch screens, where no tilt is wired. */
   .ai-card.m-tilt-inner:hover{
     transform:
       rotateX(var(--tilt-x,0deg))
@@ -1844,57 +1830,11 @@
   .cine-eyebrow::before,.sig-eyebrow::before,.det-eyebrow::before{
     content:'';width:34px;height:1px;background:currentColor;opacity:.7;
   }
-  .cine-h2{
-    font-family:'Fraunces',serif;font-weight:400;
-    font-size:var(--h2-cine);line-height:.98;letter-spacing:-.02em;
-    color:var(--ivory);margin:26px 0 26px;
-  }
-  .cine-h2 em,.sig-title em,.det-h2 em,.closing-title em,.ai-section h2 em{font-style:italic;color:var(--champagne);}
+  
+  .sig-title em,.det-h2 em,.closing-title em,.ai-section h2 em{font-style:italic;color:var(--champagne);}
   .cine-lede{font-size:clamp(16px,1.25vw,19px);line-height:1.7;color:var(--ivory-soft);max-width:440px;}
 
-  /* ==================== THE FLOW ==================== */
-  .flow{padding-bottom:clamp(120px,18vh,200px);}
-  /* The dark stage dissolves into the ivory of the collection below. */
-  .flow::after{
-    content:'';position:absolute;left:0;right:0;bottom:0;height:34%;z-index:0;pointer-events:none;
-    background:linear-gradient(180deg,rgba(239,230,216,0) 0%,rgba(239,230,216,.12) 55%,#EFE6D8 100%);
-  }
-  .flow-fx{position:absolute;inset:0;z-index:0;pointer-events:none;}
-  .flow-grid{display:grid;grid-template-columns:1fr 1.05fr;gap:clamp(40px,6vw,96px);align-items:center;}
-  .flow-stage{position:relative;aspect-ratio:600/720;max-height:78vh;justify-self:center;width:100%;max-width:560px;}
-  .flow-backlight{
-    position:absolute;inset:6% 4%;border-radius:50%;
-    background:radial-gradient(closest-side,rgba(220,193,147,.26),rgba(201,154,130,.08) 60%,transparent);
-    filter:blur(10px);
-  }
-  .flow-hair{position:absolute;inset:0;width:100%;height:100%;overflow:visible;}
-  .flow-hair .hair{
-    fill:none;stroke:url(#hsHairGrad);stroke-width:1.1;stroke-linecap:round;
-    vector-effect:non-scaling-stroke;
-  }
-  .flow-hair .flow-light{
-    fill:none;stroke:var(--champagne-hi);stroke-width:2.4;stroke-linecap:round;
-    vector-effect:non-scaling-stroke;filter:url(#hsHairGlow);
-    stroke-dasharray:.08 1.4;stroke-dashoffset:1.1;opacity:0;
-  }
-  /* Drawn in, strand by strand, as the section arrives — then lit. */
-  .motion-ready .flow .hair{stroke-dasharray:1;stroke-dashoffset:1;}
-  .motion-ready .flow.is-live .hair{
-    animation:hsDraw 2.2s var(--e) forwards;
-    animation-delay:calc(var(--i,0) * 70ms);
-  }
-  .motion-ready .flow.is-live .flow-light{
-    animation:hsTravel var(--dur,6s) linear infinite;
-    animation-delay:calc(1.6s + var(--i,0) * 1.4s);
-  }
-  .motion-full .flow.is-live .flow-mass{
-    transform-origin:30% 12%;
-    animation:hsHairSway 9s ease-in-out infinite alternate;
-  }
-  @keyframes hsHairSway{
-    from{ transform:rotate(-1.4deg) skewX(-.6deg); }
-    to  { transform:rotate(1.2deg)  skewX(.8deg); }
-  }
+  /* THE FLOW is styled in the art-direction layer below (a pinned scene). */
 
   /* ==================== SIGNATURE (into the shop) ==================== */
   .signature{
@@ -2097,14 +2037,7 @@
   /* ==================== CLOSING — MAKE IT YOURS ==================== */
   .closing{text-align:center;padding:clamp(130px,22vh,240px) 0 clamp(110px,18vh,190px);}
   .closing-fx{position:absolute;inset:0;z-index:0;pointer-events:none;}
-  .closing-halo{position:absolute;inset:0;width:100%;height:100%;}
-  .closing-halo .halo-ring{
-    fill:none;stroke:rgba(220,193,147,.22);stroke-width:1;vector-effect:non-scaling-stroke;
-  }
-  .closing-halo .halo-ring.r2{stroke:rgba(201,154,130,.14);}
-  .motion-ready .closing-halo .halo-ring{stroke-dasharray:1;stroke-dashoffset:1;}
-  .motion-ready .closing.is-live .halo-ring{animation:hsDraw 2.4s var(--e) forwards;}
-  .motion-ready .closing.is-live .halo-ring.r2{animation-delay:.3s;}
+
   .closing-inner{display:flex;flex-direction:column;align-items:center;}
   .closing .cine-eyebrow{justify-content:center;}
   .closing-title{
@@ -2165,8 +2098,8 @@
        arrives. Stacked, every reveal rises instead. */
     .motion-ready [data-reveal="left"],
     .motion-ready [data-reveal="right"]{transform:translateY(20px);}
-    .flow-grid,.det-grid{grid-template-columns:1fr;}
-    .flow-stage{max-width:460px;order:-1;}
+    .det-grid{grid-template-columns:1fr;}
+    
     .det-intro{position:static;}
     .ai-grid{grid-template-columns:1fr;}
     .ai-card{border-right:0;border-bottom:1px solid var(--line);}
@@ -2273,7 +2206,7 @@
   .chat-panel{z-index:191;}
   @media (pointer:coarse), (max-width:980px){
     #siteHeader .logo, .mobile-nav .logo, footer .logo{min-height:44px;}
-    .cat-card .arrow{display:inline-flex;align-items:center;min-height:44px;}
+    
     .shop-chip, .shop-sort, .view-product, .tryon-style-btn, .acct-tab-btn,
     .pw-toggle, .chat-quick button{min-height:44px;}
     .view-product{display:flex;align-items:center;justify-content:center;}
@@ -2297,10 +2230,9 @@
   @media (min-width:700px) and (max-width:980px){
     .hero-grid{grid-template-columns:1.05fr .95fr;gap:40px;}
     .hero-btns{margin-bottom:28px;}
-    .flow-grid{grid-template-columns:1fr 1fr;gap:40px;}
-    .flow-stage{order:0;max-width:none;}
+
     .editorial{grid-template-columns:.9fr 1fr;gap:40px;}
-    .cat-grid, .prod-grid{grid-template-columns:repeat(3,1fr);gap:20px;}
+     .prod-grid{grid-template-columns:repeat(3,1fr);gap:20px;}
     .ai-card{
       display:grid;grid-template-columns:52px 1fr auto;column-gap:24px;align-items:center;
       padding:30px 8px;
@@ -2309,6 +2241,649 @@
     .ai-card h3{margin:0 0 6px;}
     .ai-card p{grid-column:2;margin:0;}
     .ai-card button{grid-column:3;grid-row:1 / span 2;align-self:center;}
+  }
+
+  /* ======================================================================
+     ART DIRECTION — the campaign
+     ======================================================================
+     The storefront as a beauty film. Everything here refines the rules above
+     by cascade order; the markup hooks, dialogs, data and accessibility work
+     are unchanged. Scroll-linked values (--sp, --sv, --pp, --hero-scroll)
+     come from Motion's one scroll engine. Every rule that reads them lives
+     under .motion-ready, and the plain rules state the finished frame — so
+     reduced motion and a failed script both land on complete, still content.
+
+     Photographs: product shots are on studio white. Rather than frame that
+     white, each photo is blended INSIDE its own element (background-blend-
+     mode against a warm set colour) so the white becomes warm light, and a
+     radial mask feathers the frame's edge into the dark: a pool of light
+     with the piece standing in it. Element-level mix-blend-mode is avoided
+     on purpose; it depends on the compositor's backdrop, which misregisters
+     on scaled and transformed layers.
+  */
+  :root{
+    --mocha:#231813;
+    --set-cream:#EFE3D2;
+    --set-rose:#E3C9B0;
+    --e-film:cubic-bezier(.19,1,.22,1);
+    --e-silk:cubic-bezier(.65,.05,.25,1);
+    --display-hero:clamp(56px,7.8vw,142px);
+    --display-giant:clamp(64px,11.5vw,210px);
+    --h2-edit:clamp(42px,5.4vw,92px);
+  }
+
+  /* ---------- Type as an object ---------- */
+  .m-word{padding-bottom:.24em;margin-bottom:-.24em;padding-right:.04em;margin-right:-.04em;}
+  .m-word-i{transition:transform 1.25s var(--e-film) calc(var(--reveal-delay,0ms) + var(--word-delay,0ms));}
+  .motion-ready [data-reveal="split"]{opacity:1;transform:none;}
+  .motion-ready [data-reveal="split"] .m-word-i{transform:translateY(112%);}
+  .motion-ready [data-reveal="split"].revealed .m-word-i{transform:none;}
+
+  .section-head h2,
+  #faq .section-head h2{font-family:'Fraunces',serif;font-weight:400;font-size:var(--h2-edit);
+    line-height:.95;letter-spacing:-.028em;}
+  .section-head p{font-size:15px;line-height:1.75;max-width:340px;}
+  .motion-ready .section-head::after{display:none;}
+
+  /* Buttons: set like a fashion house — small caps, air, a sweep of light. */
+  .btn{font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;
+    padding:18px 32px;transition:background-color .5s var(--e-film), color .5s var(--e-film),
+    border-color .5s var(--e-film), transform .5s var(--e-film);}
+  .btn-outline{position:relative;overflow:hidden;}
+  .btn-outline::after{
+    content:'';position:absolute;top:0;left:-70%;width:45%;height:100%;pointer-events:none;
+    background:linear-gradient(100deg,transparent,rgba(243,221,176,.28),transparent);
+    transform:skewX(-18deg);transition:left .9s var(--e-film);
+  }
+  .btn-outline:hover::after{left:130%;}
+  .btn:hover{transform:scale(1.02);}
+
+  /* ---------- Opening: the wordmark ---------- */
+  .intro-panel{background:var(--noir);transition:transform 1.25s var(--e-silk) .18s;}
+  .intro-wave{position:absolute;inset:0;width:100%;height:100%;opacity:.9;
+    transition:opacity 1s var(--e-film), transform 1.6s var(--e-film);}
+  .intro-wave path{fill:none;stroke:rgba(220,193,147,.34);stroke-width:1;vector-effect:non-scaling-stroke;
+    stroke-dasharray:1;stroke-dashoffset:1;
+    transition:stroke-dashoffset 2.2s var(--e-film);transition-delay:calc(var(--i) * 70ms);}
+  .intro.is-in .intro-wave path{stroke-dashoffset:0;}
+  .intro.is-in .intro-wave{animation:introDrift 6s ease-in-out infinite alternate;}
+  @keyframes introDrift{ to{ transform:translate3d(-2%,1.5%,0) scaleY(1.06); } }
+  .intro.is-parting .intro-wave{opacity:0;}
+  .intro-mark{gap:22px;}
+  .intro.is-parting .intro-mark{opacity:1;transform:none;}
+  .intro-mark img{height:58px;filter:drop-shadow(0 0 18px rgba(220,193,147,.45));}
+  .intro.is-parting .intro-mark img,
+  .intro.is-parting .intro-rule{opacity:0;transition:opacity .5s var(--e-film);}
+  .intro-word{color:var(--ivory);font-size:clamp(34px,7.2vw,96px);letter-spacing:.22em;gap:.04em;
+    overflow:visible;text-shadow:0 0 42px rgba(220,193,147,.35);padding-left:.22em;}
+  .intro-word span{
+    transform:translate3d(calc(var(--d,0) * .32em),60%,0);opacity:0;filter:blur(10px);
+    transition:transform 1.4s var(--e-film), opacity 1s var(--e-film), filter 1.2s var(--e-film);
+  }
+  .intro.is-in .intro-word span{transform:none;opacity:1;filter:none;}
+  /* The word splits outward and dissolves as the panels part: the hero is
+     already on the same black behind it, so this is one continuous shot. */
+  .intro.is-parting .intro-word span{
+    transform:translate3d(calc(var(--d,0) * 1em),0,0) scale(1.12);opacity:0;filter:blur(12px);
+    transition-duration:1.2s;transition-delay:0s !important;
+  }
+  .intro-rule{background:linear-gradient(90deg,transparent,var(--champagne),transparent);width:min(320px,50vw);}
+
+  /* ---------- Header: reads the room ---------- */
+  #siteHeader{background:transparent;
+    transition:background-color .7s var(--e-film), border-color .7s var(--e-film), box-shadow .7s var(--e-film), color .7s;}
+  #siteHeader:not(.scrolled){box-shadow:none;border-bottom-color:transparent;}
+  @media (min-width:981px){ #siteHeader .logo{font-size:clamp(22px,1.9vw,28px);}
+    #siteHeader .logo-mark{height:clamp(30px,2.4vw,36px);} }
+  #siteHeader nav.main-nav a{transition:color .5s var(--e-film), transform .5s var(--e-film);display:inline-block;}
+  #siteHeader nav.main-nav a:hover{transform:translateY(-2px);}
+  #siteHeader nav.main-nav a::after{left:50%;transform:translateX(-50%);}
+  #siteHeader nav.main-nav a.is-active{color:var(--ivory);}
+  #siteHeader nav.main-nav a.is-active::after{width:100%;}
+  #siteHeader.is-light{
+    background:rgba(247,241,231,.84);border-bottom-color:rgba(43,27,20,.08);
+    box-shadow:0 18px 40px -34px rgba(43,27,20,.5);
+  }
+  #siteHeader.is-light .logo,
+  #siteHeader.is-light .icon-btn,
+  #siteHeader.is-light .nav-account,
+  #siteHeader.is-light nav.main-nav a.is-active{color:var(--ink);}
+  #siteHeader.is-light nav.main-nav a{color:rgba(43,27,20,.66);}
+  #siteHeader.is-light nav.main-nav a:hover{color:var(--ink);}
+  #siteHeader.is-light nav.main-nav a::after{background:var(--wine);}
+  #siteHeader.is-light .burger span{background:var(--ink);}
+  #siteHeader.is-light :focus-visible{outline-color:var(--wine);}
+
+  /* ---------- HERO — the campaign opening ---------- */
+  .hero{
+    margin-top:-75px;min-height:100vh;min-height:100svh;
+    padding:calc(75px + clamp(20px,5vh,56px)) 0 clamp(90px,13vh,150px);
+    background:
+      radial-gradient(60% 80% at 72% 46%, rgba(120,70,56,.24) 0%, transparent 62%),
+      radial-gradient(50% 60% at 8% 100%, rgba(122,46,62,.16) 0%, transparent 60%),
+      var(--noir);
+  }
+  .hero::after{height:28%;}
+  .hero-grid{grid-template-columns:minmax(0,1.02fr) minmax(0,.98fr);gap:0;align-items:center;}
+  .hero-copy{position:relative;z-index:3;padding-bottom:2vh;}
+  .hero .eyebrow{font-size:11px;letter-spacing:.42em;}
+  .hero-copy h1{
+    font-size:var(--display-hero);line-height:.88;letter-spacing:-.04em;font-weight:400;
+    margin:28px -24% 34px 0;text-wrap:balance;
+  }
+  .hero-copy h1 em{font-style:italic;letter-spacing:-.02em;}
+  .hero-copy p{max-width:390px;font-size:clamp(15px,1.1vw,17px);line-height:1.75;}
+  .hero-btns{margin-bottom:34px;}
+  .hero .chip{font-size:11px;letter-spacing:.06em;}
+
+  .hero-visual{position:relative;z-index:1;height:min(84vh,880px);min-height:520px;}
+  .hv-stage{position:absolute;inset:-4% -20% -6% -14%;}
+  /* The halo the set throws into the room. */
+  .hv-light{
+    position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(44% 50% at 50% 47%,
+      rgba(236,214,186,.34) 0%, rgba(201,154,130,.16) 42%, rgba(13,9,7,0) 72%);
+    transform:translate3d(calc(var(--hero-px,0) * -18px),calc(var(--hero-scroll,0) * -30px),0);
+  }
+  .hv-floor{
+    position:absolute;left:33%;right:33%;bottom:13%;height:5%;pointer-events:none;z-index:2;
+    background:radial-gradient(closest-side,rgba(40,22,14,.42),rgba(40,22,14,0));
+  }
+  /* The photograph itself: multiplied into the light, entering the scene
+     through a rising mask with a slow camera settle. */
+  .hero-visual .arch,
+  .motion-ready .hero-visual .arch[data-reveal]{
+    position:absolute;inset:2% 14% 5%;aspect-ratio:auto;border-radius:0;box-shadow:none;
+    background-color:#EBD9C1 !important;background-blend-mode:multiply;
+    background-size:auto 70% !important;background-position:50% 50% !important;background-repeat:no-repeat !important;
+    -webkit-mask-image:radial-gradient(closest-side,#000 34%,rgba(0,0,0,.62) 58%,rgba(0,0,0,.2) 80%,transparent 100%);
+            mask-image:radial-gradient(closest-side,#000 34%,rgba(0,0,0,.62) 58%,rgba(0,0,0,.2) 80%,transparent 100%);
+    transform:translate3d(calc(var(--hero-px,0) * 10px),0,0);
+  }
+  .hero-visual .arch::before{display:none;}
+  /* Light falling off across the set, inside the same feathered pool. */
+  .hero-visual .arch::after{display:block;content:'';position:absolute;inset:0;
+    background:radial-gradient(closest-side,rgba(255,250,242,.2) 0%,transparent 34%,rgba(92,58,40,.5) 92%);}
+  .motion-ready .hero-visual .arch[data-reveal]{
+    clip-path:inset(94% 0 0 0);transform:translate3d(0,9%,0) scale(1.14);opacity:1;
+    transition:clip-path 1.8s var(--e-film) .15s, transform 2.4s var(--e-film) .15s;
+  }
+  .motion-ready .hero-visual .arch[data-reveal].revealed{
+    clip-path:inset(0 0 0 0);transform:translate3d(calc(var(--hero-px,0) * 10px),0,0) scale(1);
+  }
+  .hero-visual .arch.brand-panel::after{display:flex;align-items:center;justify-content:center;content:"HAIRSHALO";
+    color:rgba(43,27,20,.4);letter-spacing:.4em;font-size:18px;}
+  /* A band of light crossing the set. It moves by background-position
+     inside its own feathered box, so at rest it is simply not there. */
+  .hv-sweep{
+    position:absolute;inset:2% 14% 5%;pointer-events:none;z-index:2;
+    background:linear-gradient(104deg,transparent 44%,rgba(255,247,232,.34) 50%,transparent 56%) no-repeat;
+    background-size:300% 100%;background-position:100% 0;
+    -webkit-mask-image:radial-gradient(closest-side,#000 40%,transparent 80%);
+            mask-image:radial-gradient(closest-side,#000 40%,transparent 80%);
+  }
+  .motion-full .hv-sweep{animation:hvSweep 11s var(--e-film) 2.6s infinite;}
+  .motion-lite .hv-sweep{animation:hvSweep 11s var(--e-film) 2.6s 1;}
+  @keyframes hvSweep{ 0%{background-position:100% 0;} 26%,100%{background-position:0% 0;} }
+  .hv-strands{position:absolute;left:-2%;right:-24%;top:-6%;bottom:-22%;width:126%;height:128%;
+    pointer-events:none;overflow:visible;transform:translate3d(0,calc(var(--hero-scroll,0) * -70px),0);}
+  .hv-s{fill:none;stroke:url(#hsStrandGrad);stroke-width:1;vector-effect:non-scaling-stroke;opacity:.7;}
+  .hv-l{fill:none;stroke:var(--champagne-hi);stroke-width:2;stroke-linecap:round;vector-effect:non-scaling-stroke;
+    stroke-dasharray:.07 1.4;stroke-dashoffset:1.1;opacity:0;filter:url(#hsTrailGlow);}
+  .motion-ready .hv-s{stroke-dasharray:1;stroke-dashoffset:1;animation:hsDraw 3s var(--e-film) forwards;
+    animation-delay:calc(1.1s + var(--i,0) * .14s);}
+  .motion-ready .hv-l{animation:hsTravel var(--dur,7s) linear infinite;animation-delay:calc(3.2s + var(--i,0) * 2.2s);}
+  .motion-full .hv-weave{animation:hsSilk 14s ease-in-out infinite alternate;transform-origin:50% 20%;}
+  .hv-tag{position:absolute;left:19%;bottom:17%;top:auto;z-index:4;color:var(--ink);
+    background:rgba(250,245,238,.9);padding:9px 16px;border-radius:100px;font-size:12px;font-weight:600;
+    display:flex;align-items:center;gap:6px;box-shadow:0 14px 30px -14px rgba(0,0,0,.6);}
+  .hv-tag svg{width:13px;height:13px;}
+  .hero-float{position:absolute;right:-6%;bottom:8%;z-index:5;max-width:260px;}
+  .hero-cue{
+    position:absolute;left:50%;bottom:22px;z-index:4;transform:translateX(-50%);
+    display:flex;flex-direction:column;align-items:center;gap:10px;min-width:44px;min-height:44px;
+    color:var(--ivory-faint);font-size:10px;letter-spacing:.4em;text-transform:uppercase;padding-left:.4em;
+  }
+  .hero-cue i{display:block;width:1px;height:46px;background:linear-gradient(var(--champagne),transparent);
+    transform-origin:top;}
+  .motion-ready .hero-cue i{animation:cueRun 2.6s var(--e-silk) infinite;}
+  @keyframes cueRun{ 0%{transform:scaleY(0);opacity:1;} 60%{transform:scaleY(1);opacity:1;} 100%{transform:scaleY(1);opacity:0;} }
+  .hero-cue:hover{color:var(--ivory);}
+
+  /* ---------- THE FLOW — a pinned scene ---------- */
+  .flow{padding:0;overflow:clip;}
+  .flow-pin{position:relative;min-height:100vh;min-height:100svh;overflow:hidden;
+    display:flex;align-items:center;padding:clamp(100px,14vh,160px) 0;}
+  .motion-ready .flow{height:300vh;}
+  .motion-ready .flow-pin{position:sticky;top:0;height:100vh;height:100svh;padding:0;}
+  .flow-atmos,.flow-strands{position:absolute;inset:0;width:100%;height:100%;pointer-events:none;}
+  .fa-key{position:absolute;right:-8%;top:-10%;width:78vw;height:120%;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(220,193,147,.22),rgba(201,154,130,.07) 55%,transparent);}
+  .fa-rim{position:absolute;left:-20%;bottom:-40%;width:70vw;height:90%;border-radius:50%;
+    background:radial-gradient(closest-side,rgba(122,46,62,.20),transparent);}
+  .motion-ready .fa-key{opacity:calc(.25 + var(--pp,0) * .75);
+    transform:translate3d(calc(var(--pp,0) * -6vw),calc((1 - var(--pp,0)) * 8vh),0) scale(calc(.85 + var(--pp,0) * .3));}
+  .motion-ready .fa-rim{transform:translate3d(calc(var(--pp,0) * 10vw),0,0);}
+
+  .flow-product{position:absolute;right:6vw;top:12vh;bottom:12vh;width:min(40vw,600px);pointer-events:none;}
+  .fp-light{position:absolute;inset:-10%;
+    background:radial-gradient(closest-side,rgba(236,214,186,.3),rgba(201,154,130,.1) 50%,transparent);}
+  .fp-img{position:absolute;inset:0;background-color:#EFE0CC !important;background-blend-mode:multiply;
+    background-size:auto 68% !important;background-position:center !important;background-repeat:no-repeat !important;
+    -webkit-mask-image:radial-gradient(closest-side,#000 50%,rgba(0,0,0,.5) 72%,transparent 100%);
+            mask-image:radial-gradient(closest-side,#000 50%,rgba(0,0,0,.5) 72%,transparent 100%);}
+  .fp-img::after{content:'';position:absolute;inset:0;
+    background:radial-gradient(closest-side,transparent 40%,rgba(80,50,34,.38) 90%);}
+  .fp-img.brand-panel{display:none;}
+  /* Surfacing through a soft-edged opening of light, not a hard circle. */
+  .motion-ready .flow-product{
+    --fr:clamp(0%, calc((var(--pp,1) - .3) * 240%), 96%);
+    -webkit-mask-image:radial-gradient(ellipse var(--fr) var(--fr) at 50% 50%, #000 calc(var(--fr) * .62), transparent var(--fr));
+            mask-image:radial-gradient(ellipse var(--fr) var(--fr) at 50% 50%, #000 calc(var(--fr) * .62), transparent var(--fr));
+  }
+  .motion-ready .fp-img{transform:scale(calc(1.28 - var(--pp,1) * .28));transform-origin:50% 60%;}
+
+  .flow-copy{position:relative;z-index:2;}
+  .flow-title{font-family:'Fraunces',serif;font-weight:400;color:var(--ivory);
+    font-size:var(--display-giant);line-height:.84;letter-spacing:-.045em;margin:26px 0 28px;}
+  .ft-l{display:block;}
+  .ft-2{padding-left:.9em;}
+  .flow-title em{font-style:italic;color:var(--champagne);}
+  .flow-lede{max-width:360px;}
+  .motion-ready .ft-1{translate:calc(var(--pp,0) * -5vw) 0;}
+  .motion-ready .ft-2{translate:calc(var(--pp,0) * 4vw) 0;}
+  .motion-ready .flow-copy{opacity:calc(1 - clamp(0, (var(--pp,0) - .5) * 2.4, .8));}
+  .motion-ready .flow-lede{opacity:min(clamp(0, (var(--pp,0) - .04) * 8, 1), clamp(0, (.68 - var(--pp,0)) * 5, 1));}
+
+  .flow-caption{position:absolute;z-index:3;left:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));
+    bottom:12vh;display:flex;flex-direction:column;align-items:flex-start;gap:10px;max-width:440px;}
+  .fc-kicker{font-size:10.5px;letter-spacing:.38em;text-transform:uppercase;color:var(--champagne);}
+  .fc-name{font-family:'Fraunces',serif;font-size:clamp(30px,3.4vw,56px);line-height:1;color:var(--ivory);letter-spacing:-.02em;}
+  .fc-meta{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ivory-soft);}
+  .fc-cta{display:inline-flex;align-items:center;gap:12px;min-height:44px;margin-top:6px;
+    font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ivory);
+    border-bottom:1px solid rgba(220,193,147,.5);}
+  .fc-cta svg{width:18px;height:18px;transition:transform .6s var(--e-film);}
+  .fc-cta:hover svg{transform:translateX(6px);}
+  .motion-ready .flow-caption{opacity:clamp(0, (var(--pp,1) - .7) * 5, 1);
+    translate:0 calc((1 - clamp(0, (var(--pp,1) - .7) * 5, 1)) * 30px);}
+  .motion-ready .flow-caption:focus-within{opacity:1;translate:none;}
+  .flow-meter{position:absolute;right:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));bottom:6vh;
+    width:120px;height:1px;background:var(--line-dark);z-index:3;}
+  .flow-meter i{display:block;height:100%;background:var(--champagne);transform-origin:0 50%;transform:scaleX(var(--pp,1));}
+
+  /* ---------- Curtains: the ivory rises over the dark ---------- */
+  .signature{position:relative;z-index:2;box-shadow:none;background:#EFE6D8;
+    padding:clamp(110px,18vh,200px) 0 clamp(80px,12vh,140px);text-align:left;}
+  .motion-ready .signature{margin-top:-14vh;
+    clip-path:inset(0 calc((1 - var(--sp,1)) * 5vw) 0 round calc((1 - var(--sp,1)) * 64px) calc((1 - var(--sp,1)) * 64px) 0 0);}
+  .sig-strand{position:absolute;left:0;top:-4px;width:100%;height:clamp(120px,18vh,220px);pointer-events:none;}
+  .sig-strand path{fill:none;stroke:rgba(122,46,62,.35);stroke-width:1;vector-effect:non-scaling-stroke;}
+  .sig-strand path + path{stroke:rgba(169,124,80,.45);}
+  .motion-ready .sig-strand path{stroke-dasharray:1;stroke-dashoffset:calc(1 - var(--sp,1));}
+  .sig-inner{align-items:flex-start;display:grid;grid-template-columns:1fr auto;column-gap:40px;}
+  .sig-eyebrow{grid-column:1 / -1;}
+  .sig-title{font-size:var(--display-giant);line-height:.84;letter-spacing:-.045em;margin:30px 0 0;}
+  .sig-title em{padding-left:.6em;display:inline-block;}
+  .sig-lede{align-self:end;max-width:260px;margin-bottom:.8em;}
+
+  /* ---------- Collections: an editorial index ---------- */
+  #collections{padding-top:clamp(60px,9vh,110px);}
+  .cat-index{border-top:1px solid rgba(43,27,20,.14);position:relative;}
+  .cat-row{
+    position:relative;display:grid;align-items:center;gap:24px;
+    grid-template-columns:56px minmax(0,1.3fr) minmax(0,1fr) 110px 48px;
+    padding:clamp(20px,3vh,32px) 0;border-bottom:1px solid rgba(43,27,20,.14);color:var(--ink);
+    transition:background-color .6s var(--e-film);
+  }
+  .cr-num{font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--gold);}
+  .cr-name{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(30px,4.2vw,70px);line-height:1;letter-spacing:-.03em;
+    transition:transform .8s var(--e-film), color .6s var(--e-film);}
+  .cr-note{font-size:14px;line-height:1.6;color:var(--text-soft);max-width:340px;}
+  .cr-count{font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--text-soft);text-align:right;}
+  .cr-arrow{width:48px;height:48px;border-radius:50%;border:1px solid rgba(43,27,20,.2);
+    display:flex;align-items:center;justify-content:center;transition:all .6s var(--e-film);}
+  .cr-arrow svg{width:18px;height:18px;transition:transform .6s var(--e-film);}
+  .cr-thumb{position:absolute;z-index:3;left:74%;top:50%;width:clamp(150px,15vw,230px);aspect-ratio:4/5;pointer-events:none;
+    background-color:var(--set-cream) !important;background-blend-mode:multiply;
+    background-size:auto 92% !important;background-position:center !important;background-repeat:no-repeat !important;
+    box-shadow:0 30px 60px -30px rgba(43,27,20,.6);
+    opacity:0;transform:translate(-50%,-50%) scale(.86) rotate(-3deg);clip-path:inset(100% 0 0 0);
+    transition:opacity .5s var(--e-film), transform .9s var(--e-film), clip-path .9s var(--e-film);}
+  .cr-thumb.brand-panel{display:none;}
+  /* The reveal leaves inset(0) on arrival, which would crop the floating
+     photograph to the row; these rows reveal on opacity and movement only. */
+  .motion-ready .cat-row[data-reveal],.motion-ready .cat-row[data-reveal].revealed{clip-path:none;}
+  .cat-row:hover .cr-thumb,.cat-row:focus-visible .cr-thumb{opacity:1;transform:translate(-50%,-50%) scale(1) rotate(-2deg);clip-path:inset(0 0 0 0);}
+  .cat-row:hover .cr-name,.cat-row:focus-visible .cr-name{transform:translateX(18px);color:var(--wine);}
+  .cat-row:hover .cr-arrow,.cat-row:focus-visible .cr-arrow{background:var(--ink);border-color:var(--ink);color:var(--cream);}
+  .cat-row:hover .cr-arrow svg{transform:translateX(4px);}
+  .cat-row:hover{background:linear-gradient(90deg,rgba(220,193,147,.14),transparent 70%);}
+
+  /* ---------- Product tiles: photographed, not placed ---------- */
+  .prod-grid{grid-template-columns:minmax(0,1.22fr) minmax(0,1fr) minmax(0,1fr);
+    column-gap:clamp(18px,2.4vw,40px);row-gap:clamp(48px,7vh,90px);align-items:start;}
+  .prod-grid .prod-card:nth-child(3n+2){margin-top:clamp(40px,8vh,96px);}
+  .prod-grid .prod-card:nth-child(3n){margin-top:clamp(16px,3vh,36px);}
+  .prod-card{background:transparent;border:0;box-shadow:none;border-radius:0;}
+  .prod-media{
+    position:relative;isolation:isolate;overflow:hidden;border-radius:2px;aspect-ratio:4/5;
+    background:radial-gradient(70% 60% at 50% 44%,#FAF3EA 0%,#EEE1CF 56%,#E0CBB2 100%);
+    transition:transform 1s var(--e-film), box-shadow 1s var(--e-film);cursor:pointer;
+  }
+  .prod-media.has-photo{
+    background-color:var(--set-cream) !important;background-blend-mode:multiply;
+    background-size:auto 84% !important;background-position:50% 46% !important;
+    transition:transform 1s var(--e-film), box-shadow 1s var(--e-film), background-size 1.4s var(--e-film);
+  }
+  /* The light on the set: bright where the piece stands, falling off to
+     the corners. Multiplied, so it shades the photograph like real light. */
+  .prod-media.has-photo::after{
+    display:block;content:'';position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:radial-gradient(64% 58% at 50% 44%,rgba(255,255,255,0) 34%,rgba(120,84,60,.14) 78%,rgba(90,60,42,.26) 100%);
+  }
+  .prod-floor{position:absolute;left:26%;right:26%;bottom:7%;height:6%;z-index:1;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(60,36,22,.24),transparent);
+    transition:transform 1s var(--e-film), opacity 1s var(--e-film);}
+  .prod-sweep{position:absolute;inset:0;z-index:2;pointer-events:none;
+    background:linear-gradient(104deg,transparent 40%,rgba(255,250,240,.32) 50%,transparent 60%);
+    transform:translateX(-130%);}
+  .media-alt{background-color:var(--set-cream);background-blend-mode:multiply;background-size:auto 84%;}
+  .media-vid{background:var(--set-cream);}
+  .prod-card:hover .prod-media{transform:scale(1.018);box-shadow:0 40px 70px -46px rgba(43,27,20,.55);}
+  .prod-card:hover .prod-media.has-photo{background-size:auto 92% !important;}
+  .prod-card:hover .prod-floor{transform:scaleX(1.18);opacity:.7;}
+  .prod-card:hover .prod-sweep{transform:translateX(130%);transition:transform 1.3s var(--e-film);}
+  .prod-info{padding:20px 2px 0;transition:transform .9s var(--e-film);}
+  .prod-card:hover .prod-info{transform:translateY(-4px);}
+  .prod-kicker{display:flex;align-items:baseline;gap:12px;margin-bottom:8px;}
+  .prod-num{font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--gold);}
+  .prod-info .cat{font-size:10.5px;letter-spacing:.24em;}
+  .prod-info h3{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(21px,1.8vw,30px);line-height:1.08;
+    letter-spacing:-.015em;margin:0 0 10px;transition:transform .9s var(--e-film);}
+  .prod-card:hover .prod-info h3{transform:translateX(6px);}
+  .prod-card .no-reviews{display:none;}
+  .prod-price{font-size:15px;font-weight:600;}
+  .view-product{
+    display:inline-flex;align-items:center;gap:12px;width:auto;min-height:44px;margin-top:10px;padding:0;
+    border:0;border-radius:0;background:none;color:var(--ink);opacity:.72;
+    font-size:11px;letter-spacing:.26em;text-transform:uppercase;position:relative;
+    transition:opacity .5s var(--e-film);
+  }
+  .view-product::after{content:'';position:absolute;left:0;right:30px;bottom:10px;height:1px;background:currentColor;
+    transform:scaleX(0);transform-origin:0 50%;transition:transform .7s var(--e-film);}
+  .view-product svg{width:18px;height:18px;transition:transform .7s var(--e-film);}
+  .view-product:hover{background:none;}
+  .prod-card:hover .view-product,.view-product:focus-visible{opacity:1;}
+  .prod-card:hover .view-product::after,.view-product:focus-visible::after{transform:scaleX(1);}
+  .prod-card:hover .view-product svg{transform:translateX(6px);}
+
+  /* ---------- THE TRANSFORMATION — full bleed ---------- */
+  .transform{padding:clamp(100px,16vh,180px) 0 0;}
+  .transform .wrap.tf-head{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,.5fr);column-gap:40px;align-items:end;max-width:var(--container,1240px);}
+  .transform .tf-head .cine-eyebrow{grid-column:1 / -1;}
+  .tf-title{font-family:'Fraunces',serif;font-weight:400;color:var(--ivory);font-size:var(--display-giant);
+    line-height:.84;letter-spacing:-.045em;margin:26px 0 0;}
+  .tf-title em{font-style:italic;color:var(--champagne);padding-left:.5em;display:inline-block;}
+  .transform .cine-lede{margin-bottom:1.4em;}
+  .tf-stage{
+    width:100%;height:min(88vh,62vw);aspect-ratio:auto;max-height:none;border-radius:0;
+    margin-top:clamp(40px,8vh,90px);background:#120C09;box-shadow:none;
+  }
+  .tf-img{background-color:var(--set-cream) !important;background-blend-mode:multiply;
+    background-size:auto 64% !important;background-repeat:no-repeat !important;
+    transition:transform .9s var(--e-film);}
+  .tf-a .tf-img{background-position:74% 66% !important;transform-origin:74% 66%;
+    transform:scale(calc(.92 + (100 - var(--tf)) / 100 * .2));}
+  .tf-b .tf-img{background-color:var(--set-rose) !important;background-position:26% 66% !important;transform-origin:26% 66%;
+    transform:scale(calc(.92 + var(--tf) / 100 * .2));}
+  .tf-stage.revealed .tf-img{transform:scale(calc(.92 + (100 - var(--tf)) / 100 * .2));}
+  .tf-stage.revealed .tf-b .tf-img{transform:scale(calc(.92 + var(--tf) / 100 * .2));}
+  /* Each set's light: the piece in the spotlight, the room falling to dark —
+     and the side losing ground dims as the other takes the stage. */
+  .tf-frame::after{content:'';position:absolute;inset:0;z-index:1;pointer-events:none;}
+  .tf-a::after{background:radial-gradient(48% 62% at 74% 62%,transparent 28%,rgba(30,18,12,.7) 100%);
+    opacity:calc(.55 + var(--tf) / 100 * .45);}
+  .tf-b::after{background:radial-gradient(48% 62% at 26% 62%,transparent 28%,rgba(30,18,12,.7) 100%);
+    opacity:calc(.55 + (100 - var(--tf)) / 100 * .45);}
+  .tf-atmos-a{position:absolute;z-index:2;top:-10%;bottom:-10%;width:44vw;left:calc(var(--tf) * 1%);
+    transform:translateX(-50%);pointer-events:none;opacity:.5;
+    background:radial-gradient(closest-side,rgba(243,221,176,.22),transparent);}
+  .tf-atmos-b{position:absolute;z-index:2;left:0;right:0;bottom:0;height:34%;pointer-events:none;
+    background:linear-gradient(transparent,rgba(13,9,7,.6));}
+  .tf-strands{position:absolute;inset:0;width:100%;height:100%;z-index:2;pointer-events:none;}
+  .tf-cap{position:absolute;top:6%;bottom:auto;z-index:3;background:none;padding:0;border-radius:0;max-width:40%;
+    -webkit-backdrop-filter:none;backdrop-filter:none;color:var(--ink);gap:10px;
+    transition:left .9s var(--e-film), right .9s var(--e-film);}
+  .tf-a .tf-cap{left:calc(var(--tf) * 1% + clamp(20px,3vw,48px));right:auto;text-align:left;align-items:flex-start;}
+  .tf-b .tf-cap{right:calc((100 - var(--tf)) * 1% + clamp(20px,3vw,48px));left:auto;text-align:right;align-items:flex-end;}
+  .tf-tex{font-family:'Fraunces',serif;font-style:italic;text-transform:none;letter-spacing:-.03em;
+    font-size:clamp(40px,6vw,108px);line-height:.9;color:var(--ink);}
+  .tf-name{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.22em;text-transform:uppercase;
+    color:rgba(43,27,20,.7);-webkit-line-clamp:2;}
+  .tf-seam::before{width:1px;left:-.5px;box-shadow:0 0 18px 3px rgba(243,221,176,.5);}
+  .tf-seam i{top:var(--hy,50%);width:72px;height:72px;margin:-36px 0 0 -36px;
+    background:rgba(13,9,7,.38);border:1px solid rgba(243,221,176,.7);
+    box-shadow:0 0 0 8px rgba(243,221,176,.08), 0 0 40px rgba(243,221,176,.35);
+    transition:top .7s var(--e-film), transform .6s var(--e-film), box-shadow .6s var(--e-film);}
+  .tf-stage.is-near .tf-seam i{transform:scale(1.14);box-shadow:0 0 0 12px rgba(243,221,176,.12), 0 0 60px rgba(243,221,176,.5);}
+  .tf-hint{position:absolute;left:calc(var(--tf) * 1%);bottom:7%;z-index:4;transform:translateX(-50%);
+    font-size:10.5px;letter-spacing:.36em;text-transform:uppercase;color:var(--ivory);pointer-events:none;
+    padding-left:.36em;white-space:nowrap;transition:opacity .8s var(--e-film);}
+  .tf-stage.is-used .tf-hint{opacity:0;}
+
+  /* ---------- Details — an information system ---------- */
+  .details-sec{padding:clamp(110px,18vh,200px) 0;}
+  @media (min-width:981px){ .det-grid{grid-template-columns:minmax(0,.8fr) minmax(0,1.2fr);} }
+  .det-h2{font-size:var(--h2-edit);line-height:.92;letter-spacing:-.035em;}
+  .det-list{border-top:1px solid rgba(43,27,20,.14);}
+  .det-row{border-bottom:1px solid rgba(43,27,20,.14);position:relative;}
+  .det-row::before{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--champagne);
+    transform:scaleY(0);transform-origin:top;transition:transform .8s var(--e-film);}
+  .det-row[open]::before{transform:scaleY(1);}
+  .det-row[open]{background:linear-gradient(90deg,rgba(220,193,147,.16),transparent 70%);}
+  .det-sum{grid-template-columns:64px minmax(0,1fr) 48px;min-height:clamp(84px,11vh,112px);padding:18px 0 18px 18px;}
+  .det-num{font-family:'Inter',sans-serif;font-size:11px;letter-spacing:.2em;color:var(--text-soft);
+    transition:color .6s var(--e-film), transform .8s var(--e-film);}
+  .det-row[open] .det-num{color:var(--gold);transform:translateY(-6px);}
+  .det-name{font-family:'Inter',sans-serif;font-weight:500;text-transform:uppercase;letter-spacing:.08em;
+    font-size:clamp(17px,1.9vw,28px);}
+  .det-icon{border:0;width:48px;height:48px;}
+  .det-icon::before,.det-icon::after{width:20px;height:1px;margin:-.5px 0 0 -10px;}
+  .det-row[open] .det-icon{background:transparent;}
+  .det-row[open] .det-icon::before,.det-row[open] .det-icon::after{background:var(--gold);}
+  .det-row[open] .det-icon::after{transform:rotate(180deg);}
+  .det-row[open] .det-icon{transform:rotate(180deg);transition:transform .8s var(--e-film);}
+  .det-body{padding:0 20px 34px 82px;}
+  .det-body p{font-size:16px;}
+  .det-chip{background:transparent;border-color:rgba(43,27,20,.18);}
+
+  /* ---------- Statement — type crossing light ---------- */
+  .statement{padding:clamp(140px,24vh,260px) 0;}
+  .stmt-fx canvas{position:absolute;inset:0;width:100%;height:100%;opacity:.75;}
+  .motion-ready .stmt-line:first-child{translate:calc((.5 - var(--sv,.5)) * 14vw) 0;}
+  .motion-ready .stmt-line + .stmt-line{translate:calc((var(--sv,.5) - .5) * 14vw) 0;}
+
+  /* ---------- The Hairshalo difference — an editorial spread ---------- */
+  .spread{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:center;
+    background:var(--mocha);color:var(--ivory);padding:0;min-height:100vh;overflow:hidden;}
+  .spread-media{position:relative;align-self:stretch;min-height:clamp(560px,100vh,1000px);}
+  .sp-light{position:absolute;inset:0;
+    background:radial-gradient(closest-side,rgba(236,214,186,.22),transparent 80%);}
+  .spread #editorialArch{position:absolute;inset:0 4%;aspect-ratio:auto;border-radius:0;box-shadow:none;
+    background-color:#EEDDC6 !important;background-blend-mode:multiply;background-size:auto 64% !important;
+    background-position:center !important;background-repeat:no-repeat !important;
+    -webkit-mask-image:radial-gradient(closest-side,#000 48%,rgba(0,0,0,.5) 72%,transparent 100%);
+            mask-image:radial-gradient(closest-side,#000 48%,rgba(0,0,0,.5) 72%,transparent 100%);}
+  .spread #editorialArch::before{display:none;}
+  .spread #editorialArch::after{display:block;content:'';position:absolute;inset:0;
+    background:radial-gradient(closest-side,transparent 38%,rgba(70,44,30,.4) 92%);}
+  .spread #editorialArch.brand-panel::after{content:"HAIRSHALO";display:flex;align-items:center;justify-content:center;
+    color:rgba(43,27,20,.4);letter-spacing:.4em;}
+  .motion-ready .spread #editorialArch{translate:0 calc((var(--sv,.5) - .5) * -80px);}
+  .motion-ready .spread .sp-light{translate:0 calc((var(--sv,.5) - .5) * 40px);}
+  .sp-tag{position:absolute;left:clamp(20px,4vw,56px);bottom:clamp(20px,5vh,56px);z-index:2;color:var(--ink);
+    background:rgba(250,245,238,.9);padding:9px 16px;border-radius:100px;font-size:12px;font-weight:600;}
+  .spread .editorial-copy{padding:clamp(72px,12vh,140px) clamp(24px,6vw,120px) clamp(72px,12vh,140px) clamp(24px,4vw,72px);max-width:680px;}
+  .spread .eyebrow{color:var(--champagne);letter-spacing:.34em;font-size:11px;}
+  .spread .editorial-copy h2{font-family:'Fraunces',serif;font-weight:400;color:var(--ivory);
+    font-size:clamp(44px,5.2vw,92px);line-height:.94;letter-spacing:-.035em;margin:24px 0 28px;}
+  .spread .editorial-copy p{color:var(--ivory-soft);font-size:16.5px;line-height:1.8;max-width:470px;}
+  .spread .btn-outline{border-color:rgba(244,236,224,.45);color:var(--ivory);margin-top:14px;}
+  .spread .btn-outline:hover{background:var(--ivory);color:var(--noir);border-color:var(--ivory);}
+  .spread :focus-visible{outline-color:var(--champagne);}
+
+  /* ---------- Why — an editorial row, not feature boxes ---------- */
+  .why-grid{background:none;border:0;border-radius:0;gap:clamp(20px,3vw,48px);counter-reset:why;overflow:visible;}
+  .why-item{background:none;padding:28px 0 0;border-top:1px solid rgba(43,27,20,.18);counter-increment:why;}
+  .why-item::before{content:counter(why, decimal-leading-zero);display:block;font-family:'Fraunces',serif;
+    font-style:italic;font-size:clamp(34px,3.4vw,54px);line-height:1;color:var(--gold);margin-bottom:22px;}
+  .why-item > svg{display:none;}
+  .why-item h3{font-size:clamp(20px,1.7vw,26px);font-weight:400;}
+
+  /* ---------- Reviews — pull quotes, not cards ---------- */
+  .testi-track{gap:clamp(24px,3vw,56px);}
+  .testi-card{background:none;box-shadow:none;border:0;border-radius:0;
+    border-top:1px solid rgba(43,27,20,.18);padding:30px 0 0;}
+  .testi-card .stars{font-size:12px;letter-spacing:4px;}
+  .testi-card p{font-family:'Fraunces',serif;font-style:italic;font-size:clamp(19px,1.6vw,24px);
+    line-height:1.45;letter-spacing:-.01em;color:var(--ink);}
+  .testi-avatar{display:none;}
+  .testi-person span{font-size:11px;letter-spacing:.24em;text-transform:uppercase;font-weight:600;}
+
+  /* ---------- FAQ — editorial navigation ---------- */
+  .faq-layout{display:grid;grid-template-columns:minmax(0,.85fr) minmax(0,1.15fr);gap:clamp(40px,7vw,120px);align-items:start;}
+  .faq-head{position:sticky;top:130px;}
+  .faq-head h2{font-family:'Fraunces',serif;font-weight:400;font-size:var(--h2-edit);line-height:.92;
+    letter-spacing:-.035em;margin-top:22px;}
+  .faq-wrap{max-width:none;border-top:1px solid rgba(43,27,20,.16);}
+  .faq-item{border-bottom:1px solid rgba(43,27,20,.16);}
+  .faq-icon{border:0;width:44px;height:44px;}
+  .faq-icon::before,.faq-icon::after{width:18px;height:1px;margin:-.5px 0 0 -9px;}
+  .faq-item.open .faq-icon{background:transparent;transform:rotate(180deg);transition:transform .8s var(--e-film);}
+  .faq-item.open .faq-icon::before,.faq-item.open .faq-icon::after{background:var(--wine);}
+  .faq-item.open .faq-q-text{color:var(--wine);}
+  .faq-q-text{transition:transform .8s var(--e-film), color .5s;}
+  .faq-q:hover .faq-q-text{transform:translateX(8px);}
+
+  /* ---------- CLOSING — the last shot ---------- */
+  .closing{min-height:110vh;display:flex;align-items:center;text-align:left;
+    padding:clamp(140px,22vh,240px) 0 clamp(120px,18vh,200px);}
+  .closing .wrap{width:100%;}
+  .closing-inner{align-items:flex-start;}
+  .closing .cine-eyebrow{justify-content:flex-start;}
+  .closing-light{position:absolute;right:-12vw;top:0;bottom:0;width:72vw;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(236,214,186,.18),rgba(201,154,130,.06) 55%,transparent);}
+  .closing-photo{position:absolute;right:0;top:6%;bottom:6%;width:50vw;opacity:.4;
+    background-color:#D9C2A6 !important;background-blend-mode:multiply;background-size:auto 70% !important;
+    background-position:center !important;background-repeat:no-repeat !important;
+    -webkit-mask-image:radial-gradient(closest-side,#000 30%,rgba(0,0,0,.4) 62%,transparent 100%);
+            mask-image:radial-gradient(closest-side,#000 30%,rgba(0,0,0,.4) 62%,transparent 100%);}
+  /* Only ever a real photograph: with none loaded there is nothing to show. */
+  .closing-photo.brand-panel,.closing-photo:not(.product-photo){display:none;}
+  .closing-strands{position:absolute;inset:0;width:100%;height:100%;}
+  .motion-ready .closing-photo{translate:0 calc((var(--sv,.5) - .5) * -90px);}
+  .motion-ready .closing-light{translate:calc((var(--sv,.5) - .5) * -40px) 0;}
+  .closing-title{font-size:clamp(76px,15vw,280px);line-height:.82;letter-spacing:-.05em;margin:30px 0 52px;
+    transform-origin:0 100%;}
+  .closing-title em{padding-left:.5em;display:inline-block;}
+  .motion-ready .closing-title{scale:calc(1 - clamp(0, (var(--sv,.5) - .5) * .7, .22));}
+  .closing-actions{justify-content:flex-start;}
+
+  /* ---------- Tablet ---------- */
+  @media (min-width:700px) and (max-width:980px){
+    .hero-copy h1{margin-right:-30%;}
+    .hero-visual{height:66vh;min-height:440px;}
+    .hero-float{display:none;}
+    .flow-product{width:44vw;right:3vw;}
+    .prod-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .prod-grid .prod-card:nth-child(3n+2){margin-top:44px;}
+    .prod-grid .prod-card:nth-child(3n){margin-top:18px;}
+    .cat-row{grid-template-columns:44px minmax(0,1fr) 90px 48px;}
+    .cr-note{display:none;}
+    .cr-thumb{left:70%;}
+    .spread{grid-template-columns:1fr 1fr;}
+    .tf-stage{height:70vw;}
+  }
+
+  /* ---------- Phone: its own compositions ---------- */
+  @media (max-width:699px){
+    .hero{padding-top:calc(75px + 18px);padding-bottom:84px;}
+    .hero-grid{grid-template-columns:1fr;}
+    /* The copy's pieces join the hero grid so the product can stand
+       between the headline and the words, overlapped by the type. */
+    .hero-copy{display:contents;}
+    .hero-copy > *{position:relative;z-index:3;}
+    .hero .eyebrow{order:1;}
+    .hero-copy h1{order:2;font-size:clamp(50px,14.5vw,76px);margin:18px 0 0;}
+    .hero-visual{order:3;height:min(112vw,520px);min-height:0;margin:-14vw calc(-1 * var(--gutter,20px)) 0;}
+    .hv-stage{inset:0 -8%;}
+    .hero-visual .arch,.motion-ready .hero-visual .arch[data-reveal]{inset:12% 20% 12%;}
+    .hv-tag{left:8%;bottom:10%;}
+    .hv-strands{top:0;bottom:4%;left:-6%;right:-6%;width:112%;height:96%;opacity:.55;}
+    .hero-float{display:none;}
+    .hero-copy p{order:4;margin-top:6px;}
+    .hero-btns{order:5;}
+    .hero-chips{order:6;}
+    .hero-cue{display:none;}
+
+    .motion-ready .flow{height:230vh;}
+    .flow-copy{align-self:flex-start;padding-top:14vh;}
+    .flow-title{font-size:clamp(58px,17vw,90px);}
+    .flow-product{left:8vw;right:8vw;width:auto;top:38vh;bottom:16vh;}
+    .flow-caption{left:var(--gutter,20px);right:var(--gutter,20px);bottom:5vh;}
+    .fc-name{font-size:30px;}
+    .flow-meter{display:none;}
+
+    .motion-ready .signature{margin-top:-8vh;}
+    .sig-inner{display:flex;flex-direction:column;}
+    .sig-title{font-size:clamp(58px,17vw,92px);}
+    .sig-lede{margin-top:22px;}
+
+    .cat-row{grid-template-columns:28px minmax(0,1fr) 64px;gap:14px;padding:18px 0;}
+    .cr-name{font-size:clamp(28px,8.4vw,40px);}
+    .cr-note,.cr-arrow{display:none;}
+    .cr-count{grid-column:2;grid-row:2;text-align:left;margin-top:-6px;}
+    .cr-thumb{position:static;grid-column:3;grid-row:1 / span 2;width:64px;opacity:1;transform:none;clip-path:none;box-shadow:none;}
+    .cat-row:hover .cr-thumb{transform:none;}
+
+    .prod-grid{grid-template-columns:repeat(2,minmax(0,1fr));column-gap:14px;row-gap:40px;}
+    .prod-grid .prod-card:nth-child(n){margin-top:0;}
+    .prod-grid .prod-card:first-child{grid-column:1 / -1;}
+    .prod-grid .prod-card:first-child .prod-media{aspect-ratio:1/1.05;}
+    .prod-grid .prod-card:nth-child(odd):not(:first-child){margin-top:34px;}
+    .prod-info h3{font-size:19px;}
+    .prod-grid .prod-card:first-child .prod-info h3{font-size:28px;}
+
+    .transform .wrap.tf-head{grid-template-columns:1fr;}
+    .tf-title{font-size:clamp(56px,16vw,88px);}
+    .tf-stage{height:128vw;max-height:680px;}
+    /* Anchored from the edges: a percentage position cannot push a photo
+       wider than half the stage out to its side. */
+    .tf-a .tf-img{background-position:right -44px top 62% !important;background-size:auto 50% !important;transform-origin:78% 62%;}
+    .tf-b .tf-img{background-position:left -44px top 62% !important;background-size:auto 50% !important;transform-origin:22% 62%;}
+    .tf-tex{font-size:clamp(30px,9vw,44px);}
+    .tf-cap{top:6%;max-width:46%;}
+    .tf-seam i{width:58px;height:58px;margin:-29px 0 0 -29px;}
+
+    .details-sec,.statement{padding:84px 0;}
+    .transform{padding-top:84px;}
+    .det-sum{grid-template-columns:36px minmax(0,1fr) 44px;padding-left:8px;gap:8px;}
+    .det-name{font-size:clamp(15px,4.4vw,19px);letter-spacing:.05em;}
+    .det-body{padding:0 10px 28px 50px;}
+
+    .spread{grid-template-columns:1fr;}
+    .spread-media{min-height:112vw;}
+    .spread .editorial-copy{padding:48px var(--gutter,20px) 80px;}
+
+    .why-grid{grid-template-columns:1fr 1fr;}
+
+    .faq-layout{grid-template-columns:1fr;gap:28px;}
+    .faq-head{position:static;}
+
+    .closing{min-height:auto;}
+    .closing-photo{width:110vw;right:-40vw;opacity:.4;}
+    .closing-light{width:120vw;right:-50vw;}
   }
 
   /* ==================== Reduced motion — a still, finished stage ==================== */
@@ -2379,7 +2954,7 @@
      and sits behind the copy. Every word and image still comes from the API. -->
 <section class="hero" data-tone="#0D0907">
   <div class="hero-fx" aria-hidden="true">
-    <canvas class="fx-particles" data-fx="particles"></canvas>
+    <canvas class="fx-particles" data-fx="particles" data-density=".45"></canvas>
     <svg class="fx-trails" viewBox="0 0 1440 900" preserveAspectRatio="xMidYMid slice" focusable="false">
       <defs>
         <linearGradient id="hsTrailGrad" x1="0" y1="1" x2="1" y2="0">
@@ -2425,10 +3000,39 @@
       <div class="hero-chips" id="heroChips" data-reveal="up"></div>
     </div>
     <div class="hero-visual">
-      <!-- Image comes from Back Office → Content → Homepage hero. Until one is
-           uploaded this stays the branded panel rather than borrowing a stock photo. -->
-      <div class="arch brand-panel" id="heroArch" data-reveal="wipe">
-        <span class="tag" id="heroArchTag" hidden></span>
+      <!-- A lit set, not a frame. The photograph is multiplied into a pool of
+           warm light, so the studio white of a product shot becomes the light
+           itself and the product appears to stand in the scene. Layers, back
+           to front: light, floor shadow, the product (entering through a
+           mask), a sweep of light across it, and hair-light strands that run
+           past its edge into the room. Image comes from Back Office → Content
+           → Homepage hero, else the shop's own product photograph. -->
+      <div class="hv-stage">
+        <span class="hv-light" aria-hidden="true"></span>
+        <span class="hv-floor" aria-hidden="true"></span>
+        <div class="arch brand-panel" id="heroArch" data-reveal="wipe"></div>
+        <span class="hv-sweep" aria-hidden="true"></span>
+        <svg class="hv-strands" viewBox="0 0 600 800" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+          <defs>
+            <linearGradient id="hsStrandGrad" x1="0" y1="0" x2="1" y2="1">
+              <stop offset="0" stop-color="#F3DDB0" stop-opacity="0"/>
+              <stop offset=".35" stop-color="#F3DDB0" stop-opacity=".85"/>
+              <stop offset="1" stop-color="#C99A82" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <g class="hv-weave">
+            <path class="hv-s" pathLength="1" style="--i:0" d="M300 170C250 330 420 470 360 620S520 780 690 830"/>
+            <path class="hv-s" pathLength="1" style="--i:1" d="M318 176C290 340 460 460 420 610S600 760 720 780"/>
+            <path class="hv-s" pathLength="1" style="--i:2" d="M282 180C210 350 360 500 300 660S420 800 560 900"/>
+            <path class="hv-s" pathLength="1" style="--i:3" d="M336 190C340 330 500 430 500 560S660 700 760 690"/>
+            <path class="hv-s" pathLength="1" style="--i:4" d="M270 200C170 380 300 540 220 700S300 840 380 920"/>
+            <path class="hv-s" pathLength="1" style="--i:5" d="M300 150C200 90 60 120 -60 60"/>
+            <path class="hv-s" pathLength="1" style="--i:6" d="M330 160C420 80 540 90 680 20"/>
+          </g>
+          <path class="hv-l" pathLength="1" style="--i:0;--dur:6.5s" d="M300 170C250 330 420 470 360 620S520 780 690 830"/>
+          <path class="hv-l" pathLength="1" style="--i:1;--dur:8s" d="M270 200C170 380 300 540 220 700S300 840 380 920"/>
+        </svg>
+        <span class="tag hv-tag" id="heroArchTag" hidden></span>
       </div>
       <!-- Filled with a real review when there is one; otherwise it states a
            fact about the product rather than quoting a customer who does not
@@ -2443,65 +3047,50 @@
       </div>
     </div>
   </div>
+  <a class="hero-cue" href="#flow" aria-label="Scroll to The Flow"><span>Scroll</span><i aria-hidden="true"></i></a>
 </section>
 
-<!-- THE FLOW — a fashion-film interlude. Line-drawn hair, lit by a light that
-     travels along its outline. Decorative art plus one line of copy; it makes
-     no claim about any product. -->
-<section class="cine flow" id="flow" data-tone="#0D0907" aria-labelledby="flowHeading">
-  <div class="flow-fx" aria-hidden="true">
-    <canvas class="fx-particles" data-fx="particles" data-density=".6"></canvas>
-  </div>
-  <div class="wrap flow-grid">
-    <div class="flow-copy">
-      <span class="cine-eyebrow" data-reveal="up">The Flow</span>
-      <h2 class="cine-h2" id="flowHeading" data-reveal="up">Hair,<br><em>in motion.</em></h2>
-      <p class="cine-lede" data-reveal="up" style="--reveal-delay:140ms;">Light, weight and fall — the quiet details you notice before anything else.</p>
+<!-- THE FLOW — a pinned scene. The section is taller than the screen and its
+     stage sticks while you scroll through it, so scrolling plays a sequence
+     instead of moving past a block: light, then strands of hair-light that
+     bend with the scroll, then a real product surfacing through them, then
+     its name. Scroll position drives it (--pp, 0→1); under reduced motion
+     it is simply the finished frame, unpinned. -->
+<section class="cine flow" id="flow" data-tone="#0D0907" data-scroll="pin" aria-labelledby="flowHeading">
+  <div class="flow-pin">
+    <div class="flow-atmos" aria-hidden="true"><span class="fa-key"></span><span class="fa-rim"></span></div>
+    <canvas class="flow-strands" data-fx="strands" data-mode="flow" aria-hidden="true"></canvas>
+    <div class="flow-product" id="flowProduct" hidden>
+      <span class="fp-light" aria-hidden="true"></span>
+      <div class="fp-img" id="flowProductImg" role="img"></div>
     </div>
-    <div class="flow-stage" aria-hidden="true">
-      <span class="flow-backlight"></span>
-      <svg class="flow-hair" viewBox="0 0 600 720" focusable="false">
-        <defs>
-          <linearGradient id="hsHairGrad" x1="0" y1="0" x2=".6" y2="1">
-            <stop offset="0" stop-color="#F3DDB0" stop-opacity=".9"/>
-            <stop offset=".55" stop-color="#DCC193" stop-opacity=".55"/>
-            <stop offset="1" stop-color="#C99A82" stop-opacity="0"/>
-          </linearGradient>
-          <filter id="hsHairGlow" x="-30%" y="-30%" width="160%" height="160%">
-            <feGaussianBlur stdDeviation="3" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <g class="flow-mass">
-          <path class="hair" pathLength="1" style="--i:0"  d="M160 90C150 260 250 420 330 660"/>
-          <path class="hair" pathLength="1" style="--i:1"  d="M168 92C170 270 290 430 372 664"/>
-          <path class="hair" pathLength="1" style="--i:2"  d="M176 94C190 280 320 440 410 660"/>
-          <path class="hair" pathLength="1" style="--i:3"  d="M184 96C210 285 350 445 446 652"/>
-          <path class="hair" pathLength="1" style="--i:4"  d="M192 98C228 288 380 448 480 640"/>
-          <path class="hair" pathLength="1" style="--i:5"  d="M200 100C246 290 408 448 512 624"/>
-          <path class="hair" pathLength="1" style="--i:6"  d="M208 102C262 290 432 444 540 604"/>
-          <path class="hair" pathLength="1" style="--i:7"  d="M216 104C278 288 454 438 562 580"/>
-          <path class="hair" pathLength="1" style="--i:8"  d="M224 106C292 284 472 428 580 552"/>
-          <path class="hair" pathLength="1" style="--i:9"  d="M172 100C160 300 230 470 300 690"/>
-          <path class="hair" pathLength="1" style="--i:10" d="M186 104C186 310 270 480 348 694"/>
-          <path class="hair" pathLength="1" style="--i:11" d="M200 108C212 318 312 486 394 690"/>
-          <path class="hair" pathLength="1" style="--i:12" d="M214 110C238 322 352 486 436 682"/>
-          <path class="hair" pathLength="1" style="--i:13" d="M228 112C262 322 390 482 474 670"/>
-        </g>
-        <!-- The light that travels the silhouette: outer edge, then inner. -->
-        <path class="flow-light" pathLength="1" style="--i:0;--dur:5.5s" d="M224 106C292 284 472 428 580 552"/>
-        <path class="flow-light" pathLength="1" style="--i:1;--dur:6.4s" d="M172 100C160 300 230 470 300 690"/>
-      </svg>
+    <div class="wrap flow-copy">
+      <span class="cine-eyebrow">The Flow</span>
+      <h2 class="flow-title" id="flowHeading"><span class="ft-l ft-1">Hair,</span> <span class="ft-l ft-2"><em>in motion.</em></span></h2>
+      <p class="cine-lede flow-lede">Light, weight and fall — the quiet details you notice before anything else.</p>
     </div>
+    <div class="flow-caption" id="flowCaption" hidden>
+      <span class="fc-kicker">From the collection</span>
+      <span class="fc-name" id="flowCapName"></span>
+      <span class="fc-meta" id="flowCapMeta"></span>
+      <button type="button" class="fc-cta" id="flowCapCta">Explore the piece<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="flow-meter" aria-hidden="true"><i></i></div>
   </div>
 </section>
 
-<!-- SIGNATURE — the turn from the cinematic stage into the shop. -->
-<section class="signature" id="signature" data-tone="#EFE6D8" aria-labelledby="sigHeading">
+<!-- SIGNATURE — the turn from the cinematic stage into the shop. The ivory
+     rises over the dark like a curtain, and one strand of light crosses the
+     seam between them. -->
+<section class="signature" id="signature" data-tone="#EFE6D8" data-scroll aria-labelledby="sigHeading">
+  <svg class="sig-strand" viewBox="0 0 1440 260" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+    <path pathLength="1" d="M-20 30C260 10 420 150 720 120S1180 -10 1460 70"/>
+    <path pathLength="1" d="M-20 60C300 40 460 190 760 150S1200 20 1460 110"/>
+  </svg>
   <div class="wrap sig-inner">
     <span class="sig-eyebrow" data-reveal="up">The Collection</span>
-    <h2 class="sig-title" id="sigHeading" data-reveal="up">Find your<br><em>signature.</em></h2>
-    <p class="sig-lede" data-reveal="up" style="--reveal-delay:140ms;">Every piece in the collection, ready to explore.</p>
+    <h2 class="sig-title" id="sigHeading" data-reveal="split" data-split>Find your<br><em>signature.</em></h2>
+    <p class="sig-lede" data-reveal="up" style="--reveal-delay:260ms;">Every piece in the collection, ready to explore.</p>
   </div>
 </section>
 
@@ -2520,7 +3109,7 @@
     <!-- One card per active category from /api/categories. Name, tagline,
          description and image are all edited in Back Office → Categories, and
          the count is the real number of published products in that category. -->
-    <div class="cat-grid" id="catGrid" data-reveal-group data-reveal-step="85"></div>
+    <div class="cat-index" id="catGrid" data-reveal-group data-reveal-step="70"></div>
   </div>
 </section>
 
@@ -2590,26 +3179,32 @@
      seam that sweeps between them. It shows products, never a person: there is
      no before/after result here to invent. Filled by the cinematic module from
      live products; stays hidden unless two photographed textures exist. -->
-<section class="cine transform" id="transformation" data-tone="#0D0907" hidden aria-labelledby="tfHeading">
-  <div class="wrap">
-    <div class="tf-head">
-      <span class="cine-eyebrow" data-reveal="up">The Transformation</span>
-      <h2 class="cine-h2" id="tfHeading" data-reveal="up">One hair.<br><em>Two worlds.</em></h2>
-      <p class="cine-lede" data-reveal="up" style="--reveal-delay:140ms;">Two textures from the collection. Move between them.</p>
-    </div>
-    <div class="tf-stage" id="tfStage" data-reveal="fade" style="--tf:50;">
-      <figure class="tf-frame tf-a">
-        <div class="tf-img" id="tfImgA" role="img"></div>
-        <figcaption class="tf-cap"><span class="tf-tex" id="tfTexA"></span><span class="tf-name" id="tfNameA"></span></figcaption>
-      </figure>
-      <figure class="tf-frame tf-b">
-        <div class="tf-img" id="tfImgB" role="img"></div>
-        <figcaption class="tf-cap"><span class="tf-tex" id="tfTexB"></span><span class="tf-name" id="tfNameB"></span></figcaption>
-      </figure>
-      <span class="tf-seam" aria-hidden="true"><i></i></span>
-      <input class="tf-range" id="tfRange" type="range" min="0" max="100" value="50" step="1"
-             aria-label="Move between the two textures">
-    </div>
+<section class="cine transform" id="transformation" data-tone="#0D0907" data-scroll hidden aria-labelledby="tfHeading">
+  <div class="wrap tf-head">
+    <span class="cine-eyebrow" data-reveal="up">The Transformation</span>
+    <h2 class="tf-title" id="tfHeading" data-reveal="split" data-split>One hair.<br><em>Two worlds.</em></h2>
+    <p class="cine-lede" data-reveal="up" style="--reveal-delay:220ms;">Two textures from the collection. Draw the light across and change one into the other.</p>
+  </div>
+  <!-- Full bleed. Each side is its own lit set; the product photograph is
+       multiplied into that light. Moving the seam rescales both pieces, shifts
+       the room's colour temperature and bends the strands of light that
+       gather around the seam (canvas, drawn by the cinematic layer). -->
+  <div class="tf-stage" id="tfStage" data-reveal="fade" style="--tf:50;">
+    <span class="tf-atmos tf-atmos-a" aria-hidden="true"></span>
+    <span class="tf-atmos tf-atmos-b" aria-hidden="true"></span>
+    <figure class="tf-frame tf-a">
+      <div class="tf-img" id="tfImgA" role="img"></div>
+      <figcaption class="tf-cap"><span class="tf-tex" id="tfTexA"></span><span class="tf-name" id="tfNameA"></span></figcaption>
+    </figure>
+    <figure class="tf-frame tf-b">
+      <div class="tf-img" id="tfImgB" role="img"></div>
+      <figcaption class="tf-cap"><span class="tf-tex" id="tfTexB"></span><span class="tf-name" id="tfNameB"></span></figcaption>
+    </figure>
+    <canvas class="tf-strands" data-fx="strands" data-mode="seam" aria-hidden="true"></canvas>
+    <span class="tf-seam" aria-hidden="true"><i></i></span>
+    <span class="tf-hint" aria-hidden="true">Drag to transform</span>
+    <input class="tf-range" id="tfRange" type="range" min="0" max="100" value="50" step="1"
+           aria-label="Move between the two textures">
   </div>
 </section>
 
@@ -2628,9 +3223,9 @@
 </section>
 
 <!-- EDITORIAL STATEMENT — the loudest moment on the page. -->
-<section class="cine statement" id="statement" data-tone="#0D0907" aria-labelledby="stmtHeading">
+<section class="cine statement" id="statement" data-tone="#0D0907" data-scroll aria-labelledby="stmtHeading">
   <div class="stmt-fx" aria-hidden="true">
-    <canvas class="fx-particles" data-fx="particles" data-density=".45"></canvas>
+    <canvas class="stmt-strands" data-fx="strands" data-mode="drift" aria-hidden="true"></canvas>
   </div>
   <div class="wrap">
     <span class="cine-eyebrow" data-reveal="up">Hairshalo</span>
@@ -2642,7 +3237,7 @@
 </section>
 
 <!-- AI FEATURES -->
-<section class="section ai-section" id="ai-features">
+<section class="section ai-section" id="ai-features" data-tone="#F7F1E8">
   <div class="wrap">
     <div class="section-head" data-reveal="up">
       <div>
@@ -2677,17 +3272,20 @@
 </section>
 
 <!-- EDITORIAL -->
-<section class="section" id="editorial" data-tone="#F8F2E9">
-  <div class="wrap editorial">
-    <div class="arch order-2 brand-panel" id="editorialArch" data-reveal="wipe" style="aspect-ratio:4/4.6;">
-      <span class="tag" id="editorialArchTag" hidden></span>
-    </div>
-    <div class="editorial-copy" data-reveal="right" style="--reveal-delay:150ms;">
-      <span class="eyebrow" id="editorialEyebrow"></span>
-      <h2 id="editorialHeading"></h2>
-      <div id="editorialBody"></div>
-      <a class="btn btn-outline" id="editorialCta" href="#collections" hidden></a>
-    </div>
+<!-- An editorial spread on a mocha stage: the photograph bleeds off the left
+     edge and drifts against the scroll; the words arrive after it, one beat
+     at a time — eyebrow, headline, body, call to action. -->
+<section class="section spread" id="editorial" data-tone="#231813" data-scroll>
+  <div class="spread-media">
+    <span class="sp-light" aria-hidden="true"></span>
+    <div class="arch brand-panel" id="editorialArch" data-reveal="wipe"></div>
+    <span class="tag sp-tag" id="editorialArchTag" hidden></span>
+  </div>
+  <div class="editorial-copy">
+    <span class="eyebrow" id="editorialEyebrow" data-reveal="up" style="--reveal-delay:250ms;"></span>
+    <h2 id="editorialHeading" data-reveal="split" data-split style="--reveal-delay:380ms;"></h2>
+    <div id="editorialBody" data-reveal="up" style="--reveal-delay:620ms;"></div>
+    <a class="btn btn-outline" id="editorialCta" href="#collections" data-reveal="up" style="--reveal-delay:780ms;" hidden></a>
   </div>
 </section>
 
@@ -2730,9 +3328,10 @@
 
 <!-- FAQ -->
 <section class="section" id="faq" data-tone="#FAF5EE">
-  <div class="wrap">
-    <div class="section-head" style="justify-content:center;text-align:center;flex-direction:column;align-items:center;">
-      <h2 id="faqHeading"></h2>
+  <div class="wrap faq-layout">
+    <div class="faq-head">
+      <span class="det-eyebrow" data-reveal="up">Before you choose</span>
+      <h2 id="faqHeading" data-reveal="split" data-split></h2>
     </div>
     <!-- Questions come from Back Office → Content → FAQ. An empty list hides
          the whole section rather than showing invented questions. -->
@@ -2741,20 +3340,20 @@
 </section>
 
 <!-- FINAL CTA — the closing frame, flowing straight into the footer. -->
-<section class="cine closing" id="closing" data-tone="#0D0907" aria-labelledby="closingHeading">
+<section class="cine closing" id="closing" data-tone="#0D0907" data-scroll aria-labelledby="closingHeading">
+  <!-- The closing shot. A real product photograph, dissolved into warm
+       light, behind slow strands; the title recedes as the footer arrives. -->
   <div class="closing-fx" aria-hidden="true">
-    <svg class="closing-halo" viewBox="0 0 1200 600" preserveAspectRatio="xMidYMid slice" focusable="false">
-      <ellipse class="halo-ring" cx="600" cy="300" rx="420" ry="190" pathLength="1"/>
-      <ellipse class="halo-ring r2" cx="600" cy="300" rx="520" ry="240" pathLength="1"/>
-    </svg>
-    <canvas class="fx-particles" data-fx="particles" data-density=".5"></canvas>
+    <div class="closing-photo" id="closingPhoto"></div>
+    <span class="closing-light"></span>
+    <canvas class="closing-strands" data-fx="strands" data-mode="drift" data-count="18"></canvas>
   </div>
   <div class="wrap closing-inner">
     <span class="cine-eyebrow" data-reveal="up">Hairshalo</span>
-    <h2 class="closing-title" id="closingHeading" data-reveal="up">Make it<br><em>yours.</em></h2>
-    <div class="closing-actions" data-reveal="up" style="--reveal-delay:160ms;">
-      <a class="btn btn-primary" href="#shop">Shop the collection</a>
-      <a class="btn btn-outline" href="#ai-features">Find your match</a>
+    <h2 class="closing-title" id="closingHeading" data-reveal="split" data-split>Make it<br><em>yours.</em></h2>
+    <div class="closing-actions" data-reveal="up" style="--reveal-delay:260ms;">
+      <a class="btn btn-primary" href="#shop">Explore the collection</a>
+      <a class="btn btn-outline" id="closingFitting" href="#faq">Book a fitting</a>
     </div>
   </div>
 </section>
@@ -3081,6 +3680,9 @@
 
       if(node !== document && node.matches && node.matches('[data-reveal-group]')) stagger(node);
       node.querySelectorAll('[data-reveal-group]').forEach(stagger);
+      // Editorial headlines rise word by word through their own masks, with
+      // the same splitter (and the same screen-reader care) as the hero.
+      if(CONFIG.splitText) node.querySelectorAll('[data-split]').forEach(function(el){ splitWords(el, false); });
 
       var obs = observer();
       node.querySelectorAll('[data-reveal]').forEach(function(el){
@@ -3210,7 +3812,8 @@
        real trouble never to hand it to innerHTML, and neither does this. The
        <em> and the <br>s it builds are walked into, not flattened. */
     function splitWords(el, byChar){
-      if(!el || el.dataset.mSplit === '1') return;
+      // Empty until the Back Office copy lands: split it then, not now.
+      if(!el || el.dataset.mSplit === '1' || !el.textContent.trim()) return;
       el.dataset.mSplit = '1';
 
       /* Splitting a headline into spans destroys it for a screen reader,
@@ -3257,8 +3860,11 @@
       })(el);
 
       var i = 0;
+      // A per-word offset, added to whatever entrance delay the element
+      // itself carries (--reveal-delay), so a headline can wait its turn in a
+      // sequence and still unroll word by word.
       el.querySelectorAll('.m-word-i').forEach(function(w){
-        w.style.setProperty('--reveal-delay', (i++ * (byChar ? 22 : 55)) + 'ms');
+        w.style.setProperty('--word-delay', (i++ * (byChar ? 22 : 70)) + 'ms');
       });
     }
 
@@ -3316,13 +3922,58 @@
 
     /* ---------------- Scroll-driven ---------------- */
 
+    /* Scroll-linked scenes. Any [data-scroll] element on screen carries
+         --sp  entry: 0 as its top meets the bottom of the viewport, 1 at the top
+         --sv  pass:  0 entering, 1 fully gone off the top
+         --pp  pin:   0→1 across a sticky scene ([data-scroll="pin"])
+       as CSS variables, plus the same numbers as el.__sp/__sv/__pp for the
+       canvas layer. Only elements an IntersectionObserver reports as near the
+       viewport are measured, so a long page costs a handful of rect reads per
+       frame, not one per section. Under reduced motion none of this runs and
+       every rule reading these variables falls back to its finished state. */
+    var scenes = new Set(), velocity = 0, velocityAt = 0, lastScrollY = 0;
+    function sceneVelocity(){
+      // px per frame, decaying once the scroll stops.
+      return velocity * Math.exp(-(performance.now() - velocityAt) / 220);
+    }
+    function measureScenes(){
+      var vh = window.innerHeight || 1;
+      scenes.forEach(function(el){
+        var r = el.getBoundingClientRect();
+        var sp = Math.min(Math.max((vh - r.top) / vh, 0), 1);
+        var sv = Math.min(Math.max((vh - r.top) / (vh + r.height), 0), 1);
+        el.__sp = sp; el.__sv = sv;
+        el.style.setProperty('--sp', sp.toFixed(3));
+        el.style.setProperty('--sv', sv.toFixed(3));
+        if(el.getAttribute('data-scroll') === 'pin'){
+          var span = Math.max(r.height - vh, 1);
+          var pp = Math.min(Math.max(-r.top / span, 0), 1);
+          el.__pp = pp;
+          el.style.setProperty('--pp', pp.toFixed(3));
+        }
+      });
+    }
+    function watchScenes(){
+      if(!('IntersectionObserver' in window)) return;
+      var io = new IntersectionObserver(function(entries){
+        entries.forEach(function(e){ e.isIntersecting ? scenes.add(e.target) : scenes.delete(e.target); });
+        measureScenes();
+      }, {rootMargin:'25% 0px 25% 0px'});
+      document.querySelectorAll('[data-scroll]').forEach(function(el){ io.observe(el); });
+    }
+
     function scrollFx(){
       if(reduce) return;
       var heroEl = document.querySelector('.hero');
       var ticking = false;
+      watchScenes();
+      lastScrollY = window.scrollY;
 
       function update(){
         ticking = false;
+        var y = window.scrollY;
+        velocity = y - lastScrollY; velocityAt = performance.now(); lastScrollY = y;
+        measureScenes();
         if(heroEl){
           var h = heroEl.offsetHeight || 1;
           var t = Math.min(Math.max(window.scrollY / h, 0), 1.4);
@@ -3587,9 +4238,20 @@
       var el = document.createElement('div');
       el.className = 'intro';
       el.setAttribute('aria-hidden','true');
+      // Fibre strands behind the word: drawn in, then lit, like light
+      // finding hair. Same stage-black as the hero, so the curtain parting is
+      // one continuous shot rather than a cut to a different room.
+      var wave = '';
+      for(var s = 0; s < 9; s++){
+        var y = 300 + (s - 4) * 14;
+        wave += '<path pathLength="1" style="--i:' + s + '" d="M-40 ' + (y + 40) +
+          'C260 ' + (y - 90 + s * 6) + ' 520 ' + (y + 120 - s * 8) + ' 800 ' + y +
+          'S1240 ' + (y - 110 + s * 10) + ' 1640 ' + (y - 30) + '"/>';
+      }
       el.innerHTML =
         '<div class="intro-panel intro-top"></div>' +
         '<div class="intro-panel intro-bottom"></div>' +
+        '<svg class="intro-wave" viewBox="0 0 1600 600" preserveAspectRatio="xMidYMid slice">' + wave + '</svg>' +
         '<div class="intro-mark">' +
           '<img src="assets/hairshalo-mark.png" alt="" width="46" height="60">' +
           '<div class="intro-word"></div>' +
@@ -3597,10 +4259,14 @@
         '</div>';
 
       var word = el.querySelector('.intro-word');
-      'HAIRSHALO'.split('').forEach(function(ch, i){
+      var letters = 'HAIRSHALO'.split('');
+      letters.forEach(function(ch, i){
         var span = document.createElement('span');
         span.appendChild(document.createTextNode(ch));
-        span.style.transitionDelay = (140 + i * 45) + 'ms';
+        span.style.transitionDelay = (160 + i * 55) + 'ms';
+        // Distance from the centre letter: the word arrives slightly spread
+        // and settles, then splits outward by the same measure as it leaves.
+        span.style.setProperty('--d', (i - (letters.length - 1) / 2).toFixed(1));
         word.appendChild(span);
       });
 
@@ -3627,8 +4293,8 @@
       el.classList.add('is-in');
       // The page is handed back the moment the panels START parting, so the
       // hero animates into the opening gap instead of after it.
-      setTimeout(function(){ el.classList.add('is-parting'); releaseIntro(); }, 1250);
-      setTimeout(tearDown, 2400);
+      setTimeout(function(){ el.classList.add('is-parting'); releaseIntro(); }, 1900);
+      setTimeout(tearDown, 3200);
       // Whatever happens above — a dropped transition, a backgrounded tab —
       // the overlay is gone and scrolling is back within four seconds.
       setTimeout(tearDown, 4000);
@@ -3920,7 +4586,8 @@
       // effects — so they pause with the tab and answer to the same
       // frame-rate watchdog instead of opening loops of their own.
       on:         on,
-      off:        off
+      off:        off,
+      velocity:   sceneVelocity
     };
   })();
 </script>
@@ -4146,11 +4813,44 @@
     shop.scrollIntoView({ behavior: document.documentElement.classList.contains('motion-ready') ? 'smooth' : 'auto' });
   });
 
-  // Sticky header shadow
+  /* The header reads the room it is in. Transparent over the hero, dark
+     glass once the page moves, and a light editorial version over the ivory
+     sections — decided by the data-tone of whatever section sits directly
+     under it. The link for the section in view carries an indicator. Not
+     motion, so it runs under reduced motion too. */
   const header = document.getElementById('siteHeader');
-  window.addEventListener('scroll', () => {
+  const toneIsLight = hex => {
+    const m = /^#?([0-9a-f]{6})$/i.exec(hex || '');
+    if(!m) return false;
+    const n = parseInt(m[1], 16);
+    return (0.2126 * (n >> 16) + 0.7152 * ((n >> 8) & 255) + 0.0722 * (n & 255)) / 255 > 0.5;
+  };
+  const sectionAt = (y, sel) => {
+    const hit = document.elementsFromPoint(window.innerWidth / 2, y)
+      .map(el => el.closest(sel)).find(Boolean);
+    return hit || null;
+  };
+  function readRoom(){
     header.classList.toggle('scrolled', window.scrollY > 20);
-  });
+    const under = sectionAt(header.getBoundingClientRect().bottom + 2, '[data-tone]');
+    header.classList.toggle('is-light', !!under && window.scrollY > 20 && toneIsLight(under.getAttribute('data-tone')));
+    const inView = sectionAt(window.innerHeight * 0.45, 'section[id]');
+    let marked = false;
+    document.querySelectorAll('nav.main-nav a').forEach(a => {
+      const on = !marked && !!inView && a.getAttribute('href') === '#' + inView.id;
+      if(on) marked = true;
+      a.classList.toggle('is-active', on);
+      if(on) a.setAttribute('aria-current', 'true'); else a.removeAttribute('aria-current');
+    });
+  }
+  let roomPending = false;
+  window.addEventListener('scroll', () => {
+    if(roomPending) return;
+    roomPending = true;
+    requestAnimationFrame(() => { roomPending = false; readRoom(); });
+  }, {passive:true});
+  window.addEventListener('resize', readRoom, {passive:true});
+  document.addEventListener('DOMContentLoaded', () => { readRoom(); setTimeout(readRoom, 1200); });
 
   // Toast
   const toast = document.getElementById('toast');
@@ -5428,7 +6128,7 @@
   /* ---- Real, sellable product card ----
      The badge comes from the database (admin-chosen). It is never derived
      from compare_at_price. */
-  function renderProductCard(product){
+  function renderProductCard(product, index){
     // Default to the first available, in-stock variant so Quick Add can send a
     // real variant_id; the backend rejects orders without one.
     const variants = product.variants || [];
@@ -5494,11 +6194,15 @@
     if(hoverVideo)      hoverAttrs = ` data-hover-media data-hover-video="${esc(resolveMediaUrl(hoverVideo.url))}"`;
     else if(hoverStill) hoverAttrs = ` data-hover-media data-hover-image="${esc(resolveMediaUrl(hoverStill.url))}"`;
 
+    // Position in the grid as it is rendered, set like a campaign index.
+    const num = typeof index === 'number' ? String(index + 1).padStart(2, '0') : '';
     return `
-      <div class="prod-card m-tilt" data-reveal="up" data-cursor="View" data-product-id="${esc(product.id)}">
-        <div class="prod-media m-tilt-inner${(soldOut && !onRequest) ? ' is-sold-out' : ''}" data-media data-image="${esc(product.image_url || '')}"${hoverAttrs}>
+      <div class="prod-card" data-reveal="up" data-cursor="View" data-product-id="${esc(product.id)}">
+        <div class="prod-media${(soldOut && !onRequest) ? ' is-sold-out' : ''}" data-media data-image="${esc(product.image_url || '')}"${hoverAttrs}>
           ${veraPlaceholderPanel('Product Image Coming Soon')}
+          <span class="prod-floor" aria-hidden="true"></span>
           <span class="media-sheen" aria-hidden="true"></span>
+          <span class="prod-sweep" aria-hidden="true"></span>
           ${badge ? `<span class="${badgeClass}">${esc(badge)}</span>` : ''}
           ${(soldOut || onRequest) ? '' : `<div class="quick-add" data-add
             data-id="${esc(product.id)}"
@@ -5509,13 +6213,13 @@
             data-price="${Number(unitPrice)}">Quick Add</div>`}
         </div>
         <div class="prod-info">
-          <span class="cat">${esc(product.category || '')}</span>
+          <div class="prod-kicker">${num ? `<span class="prod-num" aria-hidden="true">${num}</span>` : ''}<span class="cat">${esc(product.category || '')}</span></div>
           <h3>${esc(product.name)}</h3>
           ${ratingHtml(product)}
           <div class="prod-price">${priceHtml}</div>
           ${summary ? `<div class="prod-variant-summary">${esc(summary)}</div>` : ''}
           ${stockLine}
-          <button class="view-product" data-view-product="${esc(product.id)}">View Product</button>
+          <button class="view-product" data-view-product="${esc(product.id)}" aria-label="Explore ${esc(product.name)}">Explore<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
         </div>
       </div>`;
   }
@@ -5846,7 +6550,12 @@
   pdpEl('pdpOverlay').addEventListener('click', closeProductDetail);
 
   document.addEventListener('click', async (e) => {
-    const view = e.target.closest('[data-view-product]');
+    // The photograph is the obvious thing to click on a campaign tile, so it
+    // opens the piece too (Quick Add inside it keeps its own job). Pointer
+    // convenience only: the Explore button remains the keyboard route.
+    const tile = !e.target.closest('[data-add]') && e.target.closest('.prod-card .prod-media');
+    const view = e.target.closest('[data-view-product]')
+      || (tile ? tile.closest('.prod-card').querySelector('[data-view-product]') : null);
     const thumb = e.target.closest('[data-pdp-thumb]');
     const opt = e.target.closest('[data-pdp-opt]');
     if(view){
@@ -6396,6 +7105,10 @@
       secondary.href = safeHref(block.secondary_cta_href);
       secondary.hidden = !block.secondary_cta_label;
     }
+    // The closing scene offers the same fitting the hero does, wherever the
+    // Back Office points it.
+    const fitting = document.getElementById('closingFitting');
+    if(fitting && /fitting/i.test(block.secondary_cta_label || '')) fitting.href = safeHref(block.secondary_cta_href);
 
     const chips = document.getElementById('heroChips');
     if(chips){
@@ -6468,18 +7181,24 @@
     // Top-level categories are the collection cards; subcategories appear as
     // filters inside the shop once a card is chosen.
     const visible = (categories || []).filter(c => c.is_active && !c.parent_id);
-    grid.innerHTML = visible.map(cat => `
-      <div class="cat-card m-tilt" data-reveal="up">
-        <div class="arch brand-panel m-tilt-inner" data-cat-id="${esc(cat.id)}" data-cat-image="${esc(cat.image_url || '')}">
-          ${cat.tagline ? `<span class="tag">${esc(cat.tagline)}</span>` : ''}
-        </div>
-        <h3>${esc(cat.name)}</h3>
-        <p>${esc(cat.description || '')}</p>
-        <a href="#shop" class="arrow" data-cat-shop-id="${esc(cat.id)}">
-          ${cat.product_count ? `Explore ${cat.product_count} product${cat.product_count === 1 ? '' : 's'}` : 'Explore'}
-          <svg viewBox="0 0 24 24" fill="none" stroke-width="2"><path d="M5 12h14M13 5l7 7-7 7"/></svg>
-        </a>
-      </div>`).join('');
+    /* An editorial index rather than a wall of cards: a numbered line per
+       collection, set large, with its photograph surfacing on hover. A
+       collection with no photograph yet is simply its name — never an empty
+       placeholder panel. Each row is one link into the filtered shop. */
+    grid.innerHTML = visible.map((cat, i) => {
+      const note = cat.tagline || cat.description || '';
+      const count = cat.product_count
+        ? `${cat.product_count} piece${cat.product_count === 1 ? '' : 's'}` : '';
+      return `
+      <a href="#shop" class="cat-row" data-reveal="up" data-cat-shop-id="${esc(cat.id)}">
+        <span class="cr-num" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>
+        <span class="cr-name">${esc(cat.name)}</span>
+        ${note ? `<span class="cr-note">${esc(note)}</span>` : '<span class="cr-note"></span>'}
+        <span class="cr-count">${count}</span>
+        <span class="cr-thumb brand-panel" aria-hidden="true" data-cat-id="${esc(cat.id)}" data-cat-image="${esc(cat.image_url || '')}"></span>
+        <span class="cr-arrow" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M5 12h14M13 5l7 7-7 7"/></svg></span>
+      </a>`;
+    }).join('');
 
     grid.querySelectorAll('[data-cat-image]').forEach(node => {
       applyBackdrop(node, node.dataset.catImage);
@@ -7849,7 +8568,9 @@
   (function(){
     'use strict';
     var M = window.Motion;
-    if(!M || M.reduce || !M.on) return;
+    if(!M || !M.on) return;
+    // Reduced motion: the strands are drawn once, as a still; nothing loops.
+    var still = !!M.reduce;
 
     /* One pre-rendered glow, stamped for every mote. A radial gradient built
        per particle per frame is the expensive way to draw the same dot. */
@@ -7959,7 +8680,184 @@
       }, {passive:true});
     }
 
+    /* ---------- Strands: hair drawn in light ----------
+       Long, fine curves with a warm light travelling along some of them. One
+       renderer, three behaviours set by data-mode:
+         flow  gathers and falls as The Flow's scene plays (host --pp), and
+               bends with the speed of the scroll
+         seam  hugs the Transformation's divider and swings when it moves
+         drift slow diagonal movement behind the statement and the close
+       Shares Motion's ticker, runs only while on screen, and draws a single
+       still frame under reduced motion. */
+    function smooth(a, b, x){ var t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); }
+
+    function strands(canvas){
+      var ctx = canvas.getContext('2d');
+      if(!ctx) return;
+      var host  = canvas.closest('section') || canvas.parentElement;
+      var stage = canvas.closest('.tf-stage');
+      var mode  = canvas.getAttribute('data-mode') || 'drift';
+      var dpr   = Math.min(window.devicePixelRatio || 1, 1.5);
+      var W = 1, H = 1, lines = [], running = false, grad = null;
+      var vel = 0, seamPrev = 50, seamVel = 0, born = performance.now();
+      var SEG = mode === 'flow' ? 40 : 30;
+
+      function count(){
+        var n = Number(canvas.getAttribute('data-count')) || (mode === 'flow' ? 34 : mode === 'seam' ? 18 : 22);
+        return (M.tier && M.tier() === 'full') ? n : Math.round(n * 0.5);
+      }
+      function size(){
+        var r = canvas.getBoundingClientRect();
+        W = Math.max(1, r.width); H = Math.max(1, r.height);
+        canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
+        ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+        grad = mode === 'seam'
+          ? ctx.createLinearGradient(0, 0, 0, H)
+          : ctx.createLinearGradient(0, 0, W, 0);
+        grad.addColorStop(0,   'rgba(201,154,130,0)');
+        grad.addColorStop(.22, 'rgba(220,193,147,.85)');
+        grad.addColorStop(.55, 'rgba(243,221,176,1)');
+        grad.addColorStop(.85, 'rgba(220,193,147,.6)');
+        grad.addColorStop(1,   'rgba(201,154,130,0)');
+      }
+      function fill(){
+        var n = count();
+        lines = [];
+        for(var i = 0; i < n; i++){
+          lines.push({
+            f: n > 1 ? i / (n - 1) : .5,
+            amp: .025 + Math.random() * .07,
+            freq: .6 + Math.random() * 1.3,
+            ph: Math.random() * 6.283,
+            sp: .10 + Math.random() * .32,
+            w: .45 + Math.random() * 1.05,
+            a: .08 + Math.random() * .30,
+            light: i % 4 === 1,
+            lo: Math.random() * 1.3,
+            ls: .05 + Math.random() * .07
+          });
+        }
+      }
+
+      function point(L, u, t, p, v, sx){
+        if(mode === 'flow'){
+          // Scattered light, then gathered into one fall of hair as the
+          // scene plays; the ends drop with weight once gathered.
+          var g = smooth(.08, .55, p);
+          var base = .1 + L.f * .8;
+          var yc = base * (1 - g * .72) + .46 * g * .72;
+          var wave = Math.sin(u * L.freq * 6.283 + L.ph + t * L.sp) * L.amp * (1 - g * .45);
+          var bend = Math.sin(u * 3.1416) * v * .0035;
+          var fall = u * u * .16 * g;
+          return [-.06 * W + u * 1.12 * W, (yc + wave + bend + fall) * H];
+        }
+        if(mode === 'seam'){
+          var off  = (L.f - .5) * .38 * W;
+          var near = 1 - Math.abs(L.f - .5) * 2;          // 1 at the seam
+          var hug  = .3 + .7 * (1 - near);
+          var x = sx + off * hug * (.6 + .4 * Math.sin(u * 3.1416))
+                + Math.sin(u * L.freq * 6.283 + L.ph + t * L.sp) * L.amp * W * .45
+                + seamVel * Math.sin(u * 3.1416) * (.4 + near);
+          return [x, -.04 * H + u * 1.08 * H];
+        }
+        // drift
+        var y = (.12 + L.f * .8 - u * .22) * H
+              + Math.sin(u * L.freq * 6.283 + L.ph + t * L.sp * .6) * L.amp * H;
+        return [-.08 * W + u * 1.16 * W, y + Math.sin(u * 3.1416) * v * .002 * H];
+      }
+
+      function draw(now){
+        var t = (now - born) / 1000;
+        var p = host.__pp != null ? host.__pp : (host.__sv != null ? host.__sv : .6);
+        if(still) p = 1;
+        var v = M.velocity ? M.velocity() : 0;
+        vel += (Math.max(-60, Math.min(60, v)) - vel) * .12;
+        var sx = W / 2;
+        if(mode === 'seam'){
+          var tf = stage && stage.__tf != null ? stage.__tf : 50;
+          seamVel += ((tf - seamPrev) * W * .02 - seamVel) * .18;
+          seamVel *= .92;
+          seamPrev = tf;
+          sx = W * tf / 100;
+        }
+        var env = mode === 'flow' ? .25 + .75 * smooth(0, .22, p) : 1;
+
+        ctx.clearRect(0, 0, W, H);
+        ctx.lineCap = 'round';
+        ctx.strokeStyle = grad;
+        for(var i = 0; i < lines.length; i++){
+          var L = lines[i];
+          ctx.beginPath();
+          for(var k = 0; k <= SEG; k++){
+            var pt = point(L, k / SEG, t, p, vel, sx);
+            if(k) ctx.lineTo(pt[0], pt[1]); else ctx.moveTo(pt[0], pt[1]);
+          }
+          ctx.globalAlpha = L.a * env;
+          ctx.lineWidth = L.w;
+          ctx.stroke();
+        }
+        // Light travelling along a few strands: a short bright run with a
+        // soft bloom at its head.
+        if(!still){
+          ctx.globalCompositeOperation = 'lighter';
+          for(var j = 0; j < lines.length; j++){
+            var S = lines[j];
+            if(!S.light) continue;
+            var u = ((t * S.ls + S.lo) % 1.3) - .15;
+            if(u < 0 || u > 1) continue;
+            ctx.beginPath();
+            for(var q = 0; q <= 8; q++){
+              var pu = Math.max(0, u - .07 + q * .07 / 8);
+              var pq = point(S, pu, t, p, vel, sx);
+              if(q) ctx.lineTo(pq[0], pq[1]); else ctx.moveTo(pq[0], pq[1]);
+            }
+            ctx.globalAlpha = .55 * env;
+            ctx.lineWidth = S.w + .7;
+            ctx.strokeStyle = 'rgba(243,221,176,.9)';
+            ctx.stroke();
+            var head = point(S, u, t, p, vel, sx), d = 22 + S.w * 14;
+            ctx.globalAlpha = .5 * env;
+            ctx.drawImage(sprite, head[0] - d / 2, head[1] - d / 2, d, d);
+          }
+          ctx.globalCompositeOperation = 'source-over';
+          ctx.strokeStyle = grad;
+        }
+        ctx.globalAlpha = 1;
+      }
+      function frame(dt, now){ draw(now || performance.now()); }
+
+      function start(){
+        if(running) return;
+        running = true;
+        size(); fill();
+        M.on(frame);
+      }
+      function stop(){
+        if(!running) return;
+        running = false;
+        M.off(frame);
+      }
+      function paintStill(){ size(); fill(); draw(born + 4000); }
+
+      if(still){
+        paintStill();
+        window.addEventListener('resize', function(){ clearTimeout(canvas.__rt); canvas.__rt = setTimeout(paintStill, 200); }, {passive:true});
+        return;
+      }
+      if('IntersectionObserver' in window){
+        new IntersectionObserver(function(entries){
+          entries.forEach(function(e){ e.isIntersecting ? start() : stop(); });
+        }, {rootMargin:'60px 0px'}).observe(canvas);
+      } else { start(); }
+      window.addEventListener('resize', function(){
+        clearTimeout(canvas.__rt);
+        canvas.__rt = setTimeout(function(){ if(running){ size(); fill(); } }, 200);
+      }, {passive:true});
+    }
+
     function boot(){
+      document.querySelectorAll('canvas[data-fx="strands"]').forEach(strands);
+      if(still) return;
       document.querySelectorAll('canvas[data-fx="particles"]').forEach(particles);
     }
     if(document.readyState === 'loading') document.addEventListener('DOMContentLoaded', boot);
@@ -8100,6 +8998,7 @@
       stage.dataset.texA = texA; stage.dataset.texB = texB;
       function set(v){
         v = Math.max(0, Math.min(100, Number(v)));
+        stage.__tf = v;     // read by the seam strands each frame
         stage.style.setProperty('--tf', v.toFixed(2));
         range.value = Math.round(v);
         range.setAttribute('aria-valuetext',
@@ -8112,9 +9011,25 @@
       range.addEventListener('input', function(){
         cancelled = true;
         if(raf) cancelAnimationFrame(raf);
+        stage.classList.add('is-used');
         set(range.value);
       });
       set(50);
+
+      // The handle leans toward the pointer's height along the seam, so it
+      // is always under the hand that is about to take it.
+      stage.addEventListener('pointermove', function(e){
+        if(e.pointerType && e.pointerType !== 'mouse') return;
+        var r = stage.getBoundingClientRect();
+        var y = Math.min(Math.max((e.clientY - r.top) / r.height, .12), .88);
+        stage.style.setProperty('--hy', (y * 100).toFixed(1) + '%');
+        var near = Math.abs((e.clientX - r.left) / r.width * 100 - (stage.__tf || 50)) < 9;
+        stage.classList.toggle('is-near', near);
+      });
+      stage.addEventListener('pointerleave', function(){
+        stage.style.removeProperty('--hy');
+        stage.classList.remove('is-near');
+      });
 
       // First sight only: the second texture flows over the first, then the
       // seam comes to rest in the middle. The SECTION is observed — the stage
@@ -8123,6 +9038,8 @@
       var io = new IntersectionObserver(function(entries){
         if(!entries[0].isIntersecting) return;
         io.disconnect();
+        // Someone already took the handle: their position stands.
+        if(cancelled) return;
         var from = 100, to = 50, dur = 1600, t0 = 0;
         set(from);
         function tick(t){
@@ -8135,23 +9052,6 @@
         raf = requestAnimationFrame(tick);
       }, {threshold:.3});
       io.observe(sec);
-    }
-
-    /* ---------- Section life: the line art draws in when it arrives ---------- */
-    function live(){
-      var nodes = document.querySelectorAll('.flow, .closing');
-      if(still || !('IntersectionObserver' in window)){
-        nodes.forEach(function(n){ n.classList.add('is-live'); });
-        return;
-      }
-      var io = new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if(!e.isIntersecting) return;
-          e.target.classList.add('is-live');
-          io.unobserve(e.target);
-        });
-      }, {threshold:.18});
-      nodes.forEach(function(n){ io.observe(n); });
     }
 
     /* ---------- The statement: light crosses the type with the scroll ----------
@@ -8176,17 +9076,61 @@
       }, {passive:true});
     }
 
+    /* ---------- Real photographs for the film's set pieces ----------
+       The Flow surfaces one real product; the closing shot dissolves another
+       into its light. Neither repeats the hero's photograph when the
+       catalogue has alternatives, and with no photographed products both
+       simply stay empty — the strands and type carry the scene alone. */
+    function fileOf(url){ return String(url || '').split('/').pop(); }
+    function scenePhotos(products){
+      if(typeof applyBackdrop !== 'function') return;
+      var pool = products.filter(function(p){ return p.image_url; });
+      if(!pool.length) return;
+      // The hero's own choice, by the same rule applyProductPhotoFallbacks
+      // uses (its image loads asynchronously, so it cannot be read back yet).
+      var content = typeof siteContent !== 'undefined' ? siteContent : {};
+      var heroSet = content.hero && content.hero.image_url;
+      var heroPick = heroSet ? null : (pool.find(function(p){ return p.featured; })
+        || pool.find(function(p){ return p.bestseller; }) || pool[0]);
+      // …and the editorial spread's, which takes the first photograph the
+      // hero did not. Each set piece shows a different piece of the collection.
+      var taken = heroPick ? [fileOf(heroPick.image_url)] : [];
+      if(content.editorial && !content.editorial.image_url){
+        var ed = pool.find(function(p){ return taken.indexOf(fileOf(p.image_url)) === -1; });
+        if(ed) taken.push(fileOf(ed.image_url));
+      }
+      var fresh = pool.filter(function(p){ return taken.indexOf(fileOf(p.image_url)) === -1; });
+      var list = fresh.length ? fresh : pool;
+      var flowPick = list.find(function(p){ return /curl|wave|coil|kink/i.test(p.texture || ''); }) || list[0];
+
+      var box = document.getElementById('flowProduct');
+      var img = document.getElementById('flowProductImg');
+      if(box && img && flowPick){
+        applyBackdrop(img, flowPick.image_url, 'contain');
+        img.setAttribute('aria-label', flowPick.name);
+        document.getElementById('flowCapName').textContent = flowPick.name;
+        document.getElementById('flowCapMeta').textContent =
+          [flowPick.category, clean(flowPick.texture)].filter(Boolean).join(' · ');
+        document.getElementById('flowCapCta').setAttribute('data-view-product', flowPick.id);
+        box.hidden = false;
+        document.getElementById('flowCaption').hidden = false;
+      }
+      var closePick = list.find(function(p){ return p !== flowPick; }) || flowPick;
+      var closing = document.getElementById('closingPhoto');
+      if(closing && closePick) applyBackdrop(closing, closePick.image_url, 'contain');
+    }
+
     function build(products){
       if(!products || !products.length) return;
       renderDetails(products);
       renderTransformation(products);
+      scenePhotos(products);
     }
 
     document.addEventListener('hairshalo:catalog', function(e){
       build(e.detail && e.detail.products);
     });
     function boot(){
-      live();
       statement();
       // In case the catalogue landed before this ran.
       if(typeof liveProducts !== 'undefined' && liveProducts.length) build(liveProducts);
