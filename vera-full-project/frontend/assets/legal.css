@@ -1,0 +1,88 @@
+/* Hairshalo — policy pages (privacy, terms, cookies, refunds).
+   The storefront's palette and type, set for reading: a comfortable measure,
+   real text sizes, strong headings, AA contrast throughout. */
+:root{
+  --espresso:#17100C; --mocha:#231813; --ivory:#F4ECE0; --paper:#FAF6F0;
+  --ink:#1E1510; --ink-soft:#4A3B31; --line:#E3D6C6; --champagne:#8A6A3A; --champagne-hi:#DCC193;
+  --focus:#8A5A2B; --mark-bg:#FFF1D6; --mark-ink:#6B4200;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html{scroll-behavior:smooth;}
+@media (prefers-reduced-motion: reduce){ html{scroll-behavior:auto;} }
+body{font-family:'Inter',system-ui,-apple-system,Segoe UI,Roboto,sans-serif;background:var(--paper);color:var(--ink);
+  font-size:17px;line-height:1.7;-webkit-font-smoothing:antialiased;}
+a{color:var(--ink);text-underline-offset:3px;text-decoration-thickness:1px;}
+a:hover{color:var(--focus);}
+:focus-visible{outline:2px solid var(--focus);outline-offset:3px;border-radius:2px;}
+.skip{position:absolute;left:-9999px;top:8px;background:var(--espresso);color:var(--ivory);padding:10px 16px;z-index:10;}
+.skip:focus{left:16px;}
+
+.lg-top{background:var(--espresso);color:var(--ivory);}
+.lg-top-inner{max-width:1120px;margin:0 auto;padding:18px 20px;display:flex;align-items:center;justify-content:space-between;gap:16px;}
+.lg-top .logo{display:inline-flex;align-items:center;gap:10px;color:var(--ivory);text-decoration:none;
+  font-family:'Fraunces',serif;font-size:20px;letter-spacing:.12em;}
+.lg-top .logo img{filter:brightness(0) invert(1);opacity:.92;}
+.lg-top .back{color:var(--ivory);font-size:14px;letter-spacing:.04em;}
+
+.lg-hero{background:var(--espresso);color:var(--ivory);padding:56px 20px 64px;border-bottom:1px solid #3A2A20;}
+.lg-hero-inner{max-width:1120px;margin:0 auto;}
+.lg-eyebrow{display:block;font-size:12px;letter-spacing:.32em;text-transform:uppercase;color:var(--champagne-hi);margin-bottom:14px;}
+.lg-hero h1{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(40px,6vw,72px);line-height:1.02;letter-spacing:-.02em;}
+.lg-meta{margin-top:18px;color:#D9CBB8;font-size:15px;}
+
+.lg-nav{max-width:1120px;margin:0 auto;padding:0 20px;}
+.lg-nav ul{list-style:none;display:flex;flex-wrap:wrap;gap:6px 22px;padding:18px 0;border-bottom:1px solid var(--line);}
+.lg-nav a{font-size:14px;text-decoration:none;color:var(--ink-soft);padding:4px 0;border-bottom:1px solid transparent;}
+.lg-nav a:hover{color:var(--ink);border-bottom-color:currentColor;}
+.lg-nav a[aria-current="page"]{color:var(--ink);font-weight:600;border-bottom-color:var(--ink);}
+
+.lg-body{max-width:1120px;margin:0 auto;padding:40px 20px 80px;display:grid;grid-template-columns:240px minmax(0,1fr);gap:56px;}
+.lg-toc{position:sticky;top:24px;align-self:start;font-size:14px;}
+.lg-toc h2{font-size:12px;letter-spacing:.22em;text-transform:uppercase;color:var(--ink-soft);margin-bottom:10px;font-weight:600;}
+.lg-toc ol{list-style:none;display:grid;gap:6px;}
+.lg-toc a{text-decoration:none;color:var(--ink-soft);}
+.lg-toc a:hover{color:var(--ink);text-decoration:underline;}
+.lg-content{max-width:70ch;}
+.lg-content section{padding-top:8px;margin-bottom:40px;scroll-margin-top:24px;}
+.lg-content h2{font-family:'Fraunces',serif;font-weight:500;font-size:28px;line-height:1.2;margin-bottom:14px;letter-spacing:-.01em;}
+.lg-content h3{font-size:17px;font-weight:600;margin:22px 0 8px;}
+.lg-content p,.lg-content ul,.lg-content ol{margin-bottom:14px;}
+.lg-content ul,.lg-content ol{padding-left:22px;}
+.lg-content li{margin-bottom:6px;}
+.lg-content strong{font-weight:600;}
+
+.lg-table-wrap{overflow-x:auto;margin:10px 0 18px;border:1px solid var(--line);border-radius:6px;background:#fff;}
+.lg-table-wrap:focus-visible{outline:2px solid var(--focus);}
+table{border-collapse:collapse;width:100%;font-size:15px;line-height:1.55;}
+caption{text-align:left;padding:12px 14px 0;font-weight:600;}
+th,td{text-align:left;vertical-align:top;padding:12px 14px;border-bottom:1px solid var(--line);}
+th{background:#F3ECE2;font-weight:600;}
+tr:last-child td{border-bottom:0;}
+
+/* A detail the business has not supplied yet. Visible on purpose: the page
+   says what is missing rather than inventing it. */
+.tbp{background:var(--mark-bg);color:var(--mark-ink);border:1px dashed #C9A15A;border-radius:4px;padding:1px 7px;
+  font-size:.9em;font-weight:600;white-space:normal;}
+.lg-draft{background:var(--mark-bg);color:var(--mark-ink);border:1px solid #E4C98F;border-radius:6px;padding:14px 16px;
+  margin-bottom:32px;font-size:15px;}
+.lg-draft[hidden]{display:none;}
+.lg-note{border-left:3px solid var(--champagne);padding:4px 0 4px 16px;color:var(--ink-soft);}
+.lg-owner{white-space:pre-line;}
+
+.lg-foot{background:var(--espresso);color:#D9CBB8;font-size:14px;}
+.lg-foot-inner{max-width:1120px;margin:0 auto;padding:28px 20px;display:flex;flex-wrap:wrap;gap:10px 22px;justify-content:space-between;}
+.lg-foot a{color:var(--ivory);}
+.lg-foot nav{display:flex;flex-wrap:wrap;gap:6px 18px;}
+
+@media (max-width:860px){
+  body{font-size:16px;}
+  .lg-body{grid-template-columns:minmax(0,1fr);gap:24px;padding-top:28px;}
+  .lg-toc{position:static;border:1px solid var(--line);border-radius:6px;padding:14px 16px;background:#fff;}
+  .lg-hero{padding:40px 20px 44px;}
+  .lg-content h2{font-size:24px;}
+}
+@media print{
+  .lg-top,.lg-nav,.lg-toc,.lg-foot{display:none;}
+  .lg-hero{background:none;color:#000;padding:0 0 12px;}
+  .lg-body{display:block;padding:0;}
+}

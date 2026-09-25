@@ -39,12 +39,20 @@ from app import models
 # Every block, in the order the admin panel lists them. `label` and
 # `description` are what an admin sees; `payload` is what the storefront reads.
 DEFAULTS: Dict[str, dict] = {
+    # Every default below describes something the storefront can show to be
+    # true from the catalogue itself (hair type, texture, photographs, prices
+    # in rupees). The demo copy that used to sit here promised things no one
+    # had confirmed: "100% Human Hair" over a catalogue that is mostly
+    # synthetic, HD lace on crochet pieces, ethical sourcing, 12-month wear,
+    # a 7-day fit guarantee, 24-hour dispatch, a free sizing kit. Promises
+    # like those belong to the business; they stay empty here until the shop
+    # writes them in the Back Office.
     "announcement": {
         "label": "Announcement bar",
         "description": "The thin strip above the header. Leave the text empty to hide the bar.",
         "sort_order": 10,
         "payload": {
-            "text": "Complimentary virtual consultation with every order  ·  Ships pan-India in 3–5 days",
+            "text": "",
         },
     },
     "hero": {
@@ -52,37 +60,32 @@ DEFAULTS: Dict[str, dict] = {
         "description": "The opening panel: eyebrow, headline, supporting copy and the two buttons.",
         "sort_order": 20,
         "payload": {
-            "eyebrow": "Premium Human Hair",
+            "eyebrow": "The Hairshalo collection",
             # Split rather than one string with <br>: the storefront renders
             # each line as its own element, so an admin cannot inject markup
             # by typing a tag into a headline.
             "heading_lines": ["Hair that moves", "like it's always", "been yours."],
             # Which word inside the headline is italicised, matched literally.
             "heading_emphasis": "always",
-            "body": ("Hand-tied human hair wigs and extensions with a natural hairline, "
-                     "breathable lace, and a fit built for everyday wear — from your first "
-                     "install to your best hair day."),
-            "primary_cta_label": "Shop Wigs",
-            "primary_cta_href": "#collections",
-            "secondary_cta_label": "Book a Fitting",
+            "body": ("Curl, wave and straight textures, each piece photographed up close — "
+                     "its hair type and texture stated plainly, and its price shown before "
+                     "it goes in your bag."),
+            "primary_cta_label": "Shop the collection",
+            "primary_cta_href": "#shop",
+            "secondary_cta_label": "Questions, answered",
             "secondary_cta_href": "#faq",
-            "chips": ["100% Human Hair", "HD Lace, Natural Hairline", "Free Cap Size Guidance"],
+            "chips": ["Hair type on every piece", "Every texture, up close", "Prices in ₹"],
             "image_url": "",
-            "image_tag": "Glueless & Beginner-Friendly",
+            "image_tag": "",
         },
     },
     "trust": {
         "label": "Trust strip",
-        "description": "The row of reassurances under the hero.",
+        "description": ("The row of reassurances under the hero. Only list what you can stand "
+                        "behind — an empty list hides the strip."),
         "sort_order": 30,
         "payload": {
-            "items": [
-                {"icon": "star", "text": "100% Human Hair"},
-                {"icon": "check", "text": "Natural Scalp Finish"},
-                {"icon": "card", "text": "Secure Payments"},
-                {"icon": "tick", "text": "7-Day Fit Guarantee"},
-                {"icon": "arrow", "text": "Fast Pan-India Delivery"},
-            ],
+            "items": [],
         },
     },
     "collections": {
@@ -91,20 +94,19 @@ DEFAULTS: Dict[str, dict] = {
                         "are your categories — edit those under Catalog → Categories."),
         "sort_order": 40,
         "payload": {
-            "heading": "Find your perfect install",
-            "intro": "Every texture and density, made for a natural finish and easy everyday wear.",
+            "heading": "Find your texture",
+            "intro": "Browse by collection. Every piece lists its hair type, texture, lengths and colours.",
         },
     },
     "promo": {
         "label": "Promotional banner",
-        "description": "The wide panel between collections and best sellers. Switch it off to hide it.",
+        "description": "The wide panel between collections and best sellers. Leave the heading empty to hide it.",
         "sort_order": 50,
         "payload": {
-            "heading": "Free cap sizing kit with your first wig order.",
-            "body": ("Get a precise, comfortable fit before you buy — we'll mail a sizing kit "
-                     "and walk you through it over WhatsApp."),
-            "cta_label": "Claim Your Kit",
-            "cta_href": "#collections",
+            "heading": "",
+            "body": "",
+            "cta_label": "",
+            "cta_href": "#shop",
         },
     },
     "bestsellers": {
@@ -113,8 +115,8 @@ DEFAULTS: Dict[str, dict] = {
                         "whichever published products are flagged Bestseller."),
         "sort_order": 60,
         "payload": {
-            "heading": "Best sellers",
-            "intro": "Our most-loved units, chosen by customers who wear them every day.",
+            "heading": "Featured pieces",
+            "intro": "The pieces we are featuring right now.",
         },
     },
     "shop": {
@@ -132,20 +134,18 @@ DEFAULTS: Dict[str, dict] = {
         "description": "The image-and-text story panel.",
         "sort_order": 70,
         "payload": {
-            "eyebrow": "The Hairshalo Difference",
-            "heading": "Looks natural. Feels like yours.",
+            "eyebrow": "The Hairshalo way",
+            "heading": "See it before you choose it.",
             "paragraphs": [
-                ("Every unit starts with ethically sourced human hair, hand-tied strand by "
-                 "strand onto breathable Swiss lace. No stiff parting, no plastic shine — "
-                 "just movement, softness, and a scalp-like finish that holds up to real, "
-                 "everyday life."),
-                ("Our stylists size, trim, and customise the hairline for you before it ships, "
-                 "so what arrives is ready to wear from day one."),
+                ("Every piece is photographed from several angles, so you can look at the "
+                 "curl, the wave and the ends before you decide."),
+                ("Each listing states what the hair is — human hair or synthetic fibre — with "
+                 "its texture, its construction, and the lengths and colours it comes in."),
             ],
-            "cta_label": "Discover Our Hair",
-            "cta_href": "#collections",
+            "cta_label": "Explore the collection",
+            "cta_href": "#shop",
             "image_url": "",
-            "image_tag": "Density: Soft & natural",
+            "image_tag": "",
         },
     },
     "before_after": {
@@ -156,7 +156,7 @@ DEFAULTS: Dict[str, dict] = {
         "sort_order": 75,
         "payload": {
             "heading": "The difference is in the detail",
-            "intro": "Drag to compare — from natural roots to a completely blended install.",
+            "intro": "Drag to compare.",
             # Empty by default, and the section stays hidden until a shop
             # uploads its OWN pair. This used to be two stock photographs
             # presented as a Hairshalo before and after.
@@ -167,20 +167,23 @@ DEFAULTS: Dict[str, dict] = {
         },
     },
     "why_choose": {
-        "label": "Why customers choose us",
-        "description": "The four-up grid of selling points.",
+        "label": "Why Hairshalo",
+        "description": ("The brand-story statements. Each one should be something a customer "
+                        "can check on the product page."),
         "sort_order": 80,
         "payload": {
-            "heading": "Why customers choose Hairshalo",
+            "heading": "Why Hairshalo",
             "items": [
-                {"icon": "star", "title": "100% Human Hair",
-                 "body": "Natural movement, softness, and full styling versatility — heat-safe up to 180°C."},
-                {"icon": "check", "title": "Ethically Sourced",
-                 "body": "Every bundle is hand-selected for quality, consistency, and traceable origin."},
-                {"icon": "layers", "title": "Long Lasting",
-                 "body": "With proper care, our units stay soft and full for 12+ months of regular wear."},
-                {"icon": "eye", "title": "Natural Finish",
-                 "body": "HD lace and hand-plucked hairlines blend seamlessly with your own skin tone."},
+                {"icon": "check", "title": "Stated plainly",
+                 "body": ("Every piece lists its hair type — human hair or synthetic fibre — "
+                          "with its texture and construction. Nothing is left to guess.")},
+                {"icon": "eye", "title": "Seen up close",
+                 "body": "Each piece is photographed from several angles, down to the curl and the ends."},
+                {"icon": "layers", "title": "Your length, your colour",
+                 "body": ("The lengths and colours of each piece are listed, and the ones not "
+                          "in stock are marked as such.")},
+                {"icon": "star", "title": "Priced upfront",
+                 "body": "Prices are in rupees, and any delivery charge is shown before you pay."},
             ],
         },
     },
@@ -191,21 +194,14 @@ DEFAULTS: Dict[str, dict] = {
         "payload": {
             "heading": "Questions, answered",
             "items": [
-                {"q": "How do I choose the right cap size?",
-                 "a": ("We send a free sizing kit with a measuring guide, or you can book a "
-                       "virtual fitting and our stylists will measure with you over video call.")},
-                {"q": "How long does a human hair wig last?",
-                 "a": ("With proper washing, conditioning, and storage, most customers get "
-                       "12–18 months of regular wear from a single unit.")},
-                {"q": "Can I colour or heat style the hair?",
-                 "a": ("Yes — since it's 100% human hair, it can be safely heat-styled up to "
-                       "180°C and coloured up to two shades darker at a professional salon.")},
-                {"q": "Do you offer returns or exchanges?",
-                 "a": ("Unworn units in original packaging can be exchanged within 7 days. "
-                       "Our fit guarantee covers sizing issues on your first order.")},
-                {"q": "How long does shipping take?",
-                 "a": ("Most orders ship within 24 hours and arrive in 3–5 business days across "
-                       "India, with live tracking sent to your email and WhatsApp.")},
+                {"q": "Is the hair human hair or synthetic?",
+                 "a": ("It depends on the piece. Every product states its hair type on its page; "
+                       "the collection includes both human hair and synthetic fibre.")},
+                {"q": "How do I know what is in stock?",
+                 "a": ("Open any piece. The lengths and colours you can order are selectable; "
+                       "those that are out of stock are marked.")},
+                {"q": "How is delivery charged?",
+                 "a": "Any delivery charge is worked out for your order and shown before you pay."},
             ],
         },
     },
@@ -215,7 +211,7 @@ DEFAULTS: Dict[str, dict] = {
         "sort_order": 100,
         "payload": {
             "heading": "Your best hair starts here",
-            "body": "Styling tips, new arrivals, and offers — straight to your inbox.",
+            "body": "New pieces and styling notes, by email. Every email has an unsubscribe link.",
             "cta_label": "Join Us",
         },
     },
@@ -225,44 +221,42 @@ DEFAULTS: Dict[str, dict] = {
         "sort_order": 110,
         "payload": {
             "items": [
-                {"label": "Wigs", "href": "#collections"},
-                {"label": "Extensions", "href": "#collections"},
-                {"label": "Toppers", "href": "#bestsellers"},
-                {"label": "Hair Care", "href": "#editorial"},
-                {"label": "Book a Fitting", "href": "#faq"},
+                {"label": "Shop", "href": "#shop"},
+                {"label": "Collections", "href": "#collections"},
+                {"label": "Our way", "href": "#editorial"},
+                {"label": "Questions", "href": "#faq"},
             ],
         },
     },
     "footer": {
         "label": "Footer",
-        "description": "Brand blurb, link columns, legal links and the copyright line.",
+        "description": ("Brand blurb, link columns, legal links and the copyright line. The "
+                        "Privacy, Terms, Cookie and Refund pages are always linked, whatever "
+                        "is listed here."),
         "sort_order": 120,
         "payload": {
-            "blurb": ("Premium human hair wigs and extensions, fitted and finished for a "
-                      "completely natural, everyday wear."),
+            "blurb": ("Hair pieces photographed up close and described plainly — hair type, "
+                      "texture and price, stated before you buy."),
             "columns": [
                 {"heading": "Shop", "links": [
-                    {"label": "Wigs", "href": "#collections"},
-                    {"label": "Extensions", "href": "#collections"},
-                    {"label": "Toppers", "href": "#collections"},
-                    {"label": "Best Sellers", "href": "#bestsellers"},
+                    {"label": "Shop all", "href": "#shop"},
+                    {"label": "Collections", "href": "#collections"},
                 ]},
                 {"heading": "Help", "links": [
                     {"label": "Contact", "href": "#contact"},
                     {"label": "Shipping", "href": "#shipping"},
-                    {"label": "Returns", "href": "#returns"},
+                    {"label": "Refunds & cancellations", "href": "/refunds"},
                     {"label": "FAQ", "href": "#faq"},
                 ]},
                 {"heading": "About", "links": [
-                    {"label": "Our Story", "href": "#editorial"},
-                    {"label": "Hair Care Guide", "href": "#editorial"},
-                    {"label": "Reviews", "href": "#testimonials"},
+                    {"label": "Our way", "href": "#editorial"},
                 ]},
             ],
             "legal_links": [
-                {"label": "Privacy Policy", "href": "#privacy"},
-                {"label": "Terms", "href": "#terms"},
-                {"label": "Refund Policy", "href": "#returns"},
+                {"label": "Privacy Policy", "href": "/privacy"},
+                {"label": "Terms & Conditions", "href": "/terms"},
+                {"label": "Cookie Policy", "href": "/cookies"},
+                {"label": "Refunds & Cancellations", "href": "/refunds"},
             ],
             "copyright": "© 2026 Hairshalo. All rights reserved.",
         },
@@ -281,8 +275,9 @@ DEFAULTS: Dict[str, dict] = {
     },
     "business": {
         "label": "Business & contact details",
-        "description": ("Your shop's name, contact details and address. Used on the storefront "
-                        "and in the footer."),
+        "description": ("Your shop's legal name, contact details and address. Used in the "
+                        "footer and on the Privacy, Terms and Refund pages, which say "
+                        "\"not yet provided\" wherever a detail here is empty."),
         "sort_order": 140,
         "payload": {
             "legal_name": "Hairshalo",
@@ -296,14 +291,14 @@ DEFAULTS: Dict[str, dict] = {
     },
     "policies": {
         "label": "Shipping, returns & legal",
-        "description": ("Long-form policy text. Each is shown on its own page; leave one empty "
-                        "to hide that link."),
+        "description": ("Your own shipping and returns rules. Shipping opens from the footer; "
+                        "returns appears on the Refunds & Cancellations page. Leave one empty "
+                        "and the site says the policy is not yet published rather than "
+                        "inventing one."),
         "sort_order": 150,
         "payload": {
-            "shipping": ("Most orders ship within 24 hours and arrive in 3–5 business days "
-                         "across India, with live tracking sent to your email."),
-            "returns": ("Unworn units in original packaging can be exchanged within 7 days. "
-                        "Our fit guarantee covers sizing issues on your first order."),
+            "shipping": "",
+            "returns": "",
             "terms": "",
             "privacy": "",
         },
