@@ -2886,6 +2886,136 @@
     .closing-light{width:120vw;right:-50vw;}
   }
 
+  /* ======================================================================
+     EXAMINE THE PIECE — the product film
+     ======================================================================
+     A pinned scene. The cinematic layer moves a camera through the piece's
+     own photographs (opacity + transform on each frame, from the shared
+     ticker) and draws one line from the piece to the attribute being lit.
+     .is-still (reduced motion) lays the same frames and facts out as a
+     plain, complete sequence. */
+  .discover{padding:0;overflow:clip;background:var(--noir);}
+  .motion-ready .discover:not(.is-still){height:calc((var(--ds-n,5) + 1.4) * 88vh);}
+  .motion-ready .discover:not(.is-still){margin-top:-10vh;position:relative;z-index:2;
+    clip-path:inset(0 calc((1 - var(--sp,1)) * 5vw) 0 round calc((1 - var(--sp,1)) * 64px) calc((1 - var(--sp,1)) * 64px) 0 0);}
+  .ds-pin{position:relative;height:100vh;height:100svh;overflow:hidden;}
+  .motion-ready .discover:not(.is-still) .ds-pin{position:sticky;top:0;}
+  .ds-atmos{position:absolute;left:8%;top:-10%;width:60vw;height:120%;border-radius:50%;pointer-events:none;
+    background:radial-gradient(closest-side,rgba(220,193,147,.16),rgba(122,46,62,.08) 55%,transparent);}
+
+  .ds-head{position:absolute;z-index:3;top:13vh;left:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));
+    transition:opacity .9s var(--e-film), transform .9s var(--e-film);}
+  .ds-title{font-family:'Fraunces',serif;font-weight:400;color:var(--ivory);font-size:clamp(64px,9vw,160px);
+    line-height:.84;letter-spacing:-.045em;margin-top:22px;}
+  .ds-title em{font-style:italic;color:var(--champagne);padding-left:.4em;display:inline-block;}
+  .motion-ready .discover:not(.is-still) .ds-head{opacity:calc(1 - clamp(0, (var(--pp,0) - .04) * 9, 1));
+    transform:translate3d(calc(var(--pp,0) * -8vw),0,0);}
+
+  /* The window: a tall, lit frame the camera looks through. */
+  .ds-window{position:absolute;z-index:2;left:30%;top:9vh;bottom:9vh;width:min(38vw,640px);overflow:hidden;border-radius:2px;
+    background:#EFE3D2;box-shadow:0 0 0 1px rgba(220,193,147,.2), 0 60px 120px -50px rgba(0,0,0,.95), 0 0 120px -30px rgba(220,193,147,.25);}
+  .ds-window::after{content:'';position:absolute;inset:0;pointer-events:none;
+    background:radial-gradient(80% 70% at 50% 45%,transparent 50%,rgba(60,38,26,.28) 100%);}
+  .ds-frame{position:absolute;inset:0;background-color:#EFE3D2;background-blend-mode:multiply;
+    background-size:cover;background-position:center;background-repeat:no-repeat;
+    will-change:transform,opacity;transform-origin:50% 50%;}
+  .motion-ready .discover:not(.is-still) .ds-frame{opacity:0;}
+  .motion-ready .discover:not(.is-still) .ds-frame:first-child{opacity:1;}
+
+  .ds-lines{position:absolute;inset:0;width:100%;height:100%;z-index:3;pointer-events:none;overflow:visible;}
+  .ds-lines line{stroke:var(--champagne);stroke-width:1;transition:opacity .4s;}
+  .ds-lines #dsDot{fill:var(--champagne-hi);}
+  .ds-lines #dsDotRing{fill:none;stroke:rgba(243,221,176,.55);stroke-width:1;}
+  .motion-full .ds-lines #dsDotRing{animation:dsRing 2.4s var(--e-silk) infinite;transform-box:fill-box;transform-origin:center;}
+  @keyframes dsRing{ 0%{transform:scale(.5);opacity:.9;} 100%{transform:scale(1.6);opacity:0;} }
+
+  .ds-notes{position:absolute;z-index:3;right:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));
+    top:50%;transform:translateY(-50%);width:min(300px,24vw);list-style:none;margin:0;padding:0;
+    display:flex;flex-direction:column;gap:clamp(18px,3.4vh,34px);transition:opacity .8s var(--e-film);}
+  .ds-note{display:grid;grid-template-columns:34px 1fr;column-gap:10px;color:var(--ivory);opacity:.28;
+    transition:opacity .9s var(--e-film), transform .9s var(--e-film);}
+  .ds-note.is-past{opacity:.45;}
+  .ds-note.is-on{opacity:1;transform:translateX(-10px);}
+  .ds-n{grid-row:1 / span 2;font-family:'Fraunces',serif;font-style:italic;font-size:14px;color:var(--champagne);padding-top:3px;}
+  .ds-k{font-size:10.5px;letter-spacing:.3em;text-transform:uppercase;color:var(--ivory-soft);}
+  .ds-v{font-family:'Fraunces',serif;font-size:clamp(20px,1.8vw,30px);line-height:1.12;letter-spacing:-.01em;margin-top:6px;
+    transition:font-size .9s var(--e-film), color .9s var(--e-film);}
+  .ds-note.is-on .ds-v{font-size:clamp(28px,2.8vw,46px);color:var(--ivory);}
+
+  .ds-end{position:absolute;z-index:4;right:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));
+    bottom:12vh;width:min(420px,30vw);display:flex;flex-direction:column;align-items:flex-start;gap:10px;
+    opacity:0;transform:translateY(30px);pointer-events:none;
+    transition:opacity 1s var(--e-film), transform 1.2s var(--e-film);}
+  .ds-end-kicker{font-size:10.5px;letter-spacing:.38em;text-transform:uppercase;color:var(--champagne);}
+  .ds-end-name{font-family:'Fraunces',serif;color:var(--ivory);font-size:clamp(34px,3.6vw,62px);line-height:1;letter-spacing:-.025em;}
+  .ds-end-meta{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ivory-soft);}
+  .discover.is-ending .ds-end,.ds-end:focus-within{opacity:1;transform:none;pointer-events:auto;}
+  .discover.is-ending .ds-notes{opacity:0;}
+
+  .ds-count{position:absolute;z-index:3;left:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));bottom:8vh;
+    display:flex;align-items:center;gap:14px;font-family:'Fraunces',serif;font-style:italic;font-size:15px;color:var(--ivory-soft);}
+  .ds-count i{display:block;width:56px;height:1px;background:var(--line-dark);position:relative;overflow:hidden;}
+  .ds-count i::after{content:'';position:absolute;inset:0;background:var(--champagne);transform-origin:0 50%;transform:scaleX(var(--ds-t,0));}
+
+  /* Reduced motion: the same pictures and facts, still and complete. */
+  .discover.is-still{height:auto;}
+  .discover.is-still .ds-pin{height:auto;padding:clamp(90px,14vh,160px) 0;display:flex;flex-direction:column;gap:40px;
+    padding-left:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));
+    padding-right:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));}
+  .discover.is-still .ds-head,.discover.is-still .ds-window,.discover.is-still .ds-notes,
+  .discover.is-still .ds-end{position:relative;inset:auto;left:auto;right:auto;top:auto;bottom:auto;transform:none;width:auto;opacity:1;}
+  .discover.is-still .ds-window{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:12px;background:none;box-shadow:none;height:auto;overflow:visible;}
+  .discover.is-still .ds-window::after{display:none;}
+  .discover.is-still .ds-frame{position:relative;inset:auto;aspect-ratio:4/5;opacity:1;transform:none;}
+  .discover.is-still .ds-notes{flex-direction:row;flex-wrap:wrap;gap:28px 48px;}
+  .discover.is-still .ds-note{opacity:1;}
+  .discover.is-still .ds-lines,.discover.is-still .ds-count{display:none;}
+  .discover.is-still .ds-end{pointer-events:auto;}
+
+  /* ---------- Campaign frames (Find your match) ---------- */
+  .ai-section.has-campaign .ai-grid{border-top:0;gap:clamp(14px,1.6vw,24px);perspective:none;}
+  .ai-card.is-campaign{position:relative;isolation:isolate;overflow:hidden;display:flex;flex-direction:column;justify-content:flex-end;
+    min-height:clamp(440px,64vh,660px);padding:clamp(24px,2.6vw,40px);border:0;border-radius:2px;
+    background:#1A120E;color:var(--ivory);box-shadow:none;transform:none !important;}
+  .ai-card.is-campaign > *{grid-column:auto;grid-row:auto;}
+  .ai-photo{position:absolute;inset:0;z-index:-2;background-color:#CDB396;background-blend-mode:multiply;
+    background-size:cover;background-position:center;transform:scale(1.05);transition:transform 1.8s var(--e-film);}
+  .ai-card.is-campaign::before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
+    background:linear-gradient(180deg,rgba(13,9,7,.08) 18%,rgba(13,9,7,.5) 52%,rgba(13,9,7,.93) 100%);}
+  .ai-card.is-campaign:hover .ai-photo,.ai-card.is-campaign:focus-within .ai-photo{transform:scale(1.12);}
+  .ai-card.is-campaign:hover{background:#1A120E;}
+  .ai-card.is-campaign .ai-icon{display:none;}
+  .ai-card.is-campaign h3{font-family:'Fraunces',serif;font-weight:400;color:var(--ivory);
+    font-size:clamp(30px,2.6vw,44px);line-height:1;letter-spacing:-.02em;margin:0 0 14px;}
+  .ai-card.is-campaign p{color:var(--ivory-soft);font-size:15px;flex:0;margin-bottom:22px;max-width:330px;}
+  .ai-card.is-campaign .btn-outline{border-color:rgba(244,236,224,.5);color:var(--ivory);}
+  .ai-card.is-campaign .btn-outline:hover{background:var(--ivory);color:var(--noir);}
+  .ai-card.is-campaign :focus-visible{outline-color:var(--champagne);}
+
+  .foot-locale{font-size:10.5px;letter-spacing:.28em;text-transform:uppercase;color:var(--ivory-faint);}
+  .foot-locale i{font-style:normal;margin:0 .4em;}
+
+  @media (min-width:700px) and (max-width:980px){
+    .ds-window{left:6%;width:48vw;}
+    .ds-notes{width:32vw;}
+    .ds-end{width:36vw;}
+    .ai-section.has-campaign .ai-grid{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .ai-card.is-campaign{min-height:460px;}
+  }
+  @media (max-width:699px){
+    .ds-head{top:10vh;}
+    .ds-title{font-size:clamp(56px,16vw,84px);}
+    .ds-window{left:6vw;right:6vw;width:auto;top:16vh;bottom:30vh;}
+    .ds-notes{left:var(--gutter,20px);right:var(--gutter,20px);top:auto;bottom:9vh;transform:none;width:auto;height:92px;display:block;}
+    .ds-note{position:absolute;left:0;right:0;bottom:0;opacity:0;}
+    .ds-note.is-on{opacity:1;transform:none;}
+    .ds-note.is-past{opacity:0;}
+    .ds-end{left:var(--gutter,20px);right:var(--gutter,20px);width:auto;bottom:8vh;}
+    .ds-count{bottom:auto;top:10vh;left:auto;right:var(--gutter,20px);}
+    .motion-ready .discover:not(.is-still){margin-top:-6vh;}
+    .ai-card.is-campaign{min-height:380px;}
+  }
+
   /* ==================== Reduced motion — a still, finished stage ==================== */
   @media (prefers-reduced-motion: reduce){
     .fx-particles{display:none;}
@@ -3175,6 +3305,33 @@
   </div>
 </section>
 
+<!-- EXAMINE THE PIECE — a product film. One real piece, told through its own
+     photographs (one colourway, in the shop's own order): the camera enters,
+     pushes into the texture, moves around it, travels down its length and
+     settles. Each stage lights one real attribute from the catalogue, joined
+     to the piece by a line. Built by the cinematic layer; stays hidden unless
+     a product has at least three photographs and real attributes to show.
+     Under reduced motion it is a still, stacked sequence. -->
+<section class="cine discover" id="discover" data-tone="#0D0907" data-scroll="pin" hidden aria-labelledby="dsHeading">
+  <div class="ds-pin">
+    <span class="ds-atmos" aria-hidden="true"></span>
+    <div class="ds-head">
+      <span class="cine-eyebrow">Examine the piece</span>
+      <h2 class="ds-title" id="dsHeading">Up<br><em>close.</em></h2>
+    </div>
+    <div class="ds-window" id="dsWindow"></div>
+    <svg class="ds-lines" aria-hidden="true" focusable="false"><line id="dsLine" x1="0" y1="0" x2="0" y2="0"/><circle id="dsDot" r="5" cx="-20" cy="-20"/><circle id="dsDotRing" r="14" cx="-20" cy="-20"/></svg>
+    <ol class="ds-notes" id="dsNotes"></ol>
+    <div class="ds-end" id="dsEnd">
+      <span class="ds-end-kicker">The piece</span>
+      <span class="ds-end-name" id="dsEndName"></span>
+      <span class="ds-end-meta" id="dsEndMeta"></span>
+      <button type="button" class="fc-cta" id="dsEndCta">Explore this piece<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
+    </div>
+    <div class="ds-count" aria-hidden="true"><span id="dsCount">01</span><i></i><span id="dsTotal">05</span></div>
+  </div>
+</section>
+
 <!-- THE TRANSFORMATION — two real textures from the catalogue, with a light
      seam that sweeps between them. It shows products, never a person: there is
      no before/after result here to invent. Filled by the cinematic module from
@@ -3387,6 +3544,9 @@
     </div>
     <div class="foot-bottom">
       <span id="footCopyright"></span>
+      <!-- Where you are shopping, stated quietly: prices are always shown and
+           charged in INR (the currency picker is pinned; see loadCurrencies). -->
+      <span class="foot-locale">India <i aria-hidden="true">·</i> Prices in ₹ INR</span>
       <div class="foot-legal" id="footLegal"></div>
     </div>
   </div>
@@ -9118,6 +9278,185 @@
       var closePick = list.find(function(p){ return p !== flowPick; }) || flowPick;
       var closing = document.getElementById('closingPhoto');
       if(closing && closePick) applyBackdrop(closing, closePick.image_url, 'contain');
+      renderDiscover(products, taken.concat([flowPick, closePick].filter(Boolean)
+        .map(function(p){ return fileOf(p.image_url); })));
+      renderCampaign(products);
+    }
+
+    /* ---------- Examine the piece: a product film ----------
+       The piece with the richest real material is filmed through its own
+       photographs — one colourway, the shop's order — and each stage lights
+       one real attribute. Nothing is described that the catalogue does not
+       say, and no view is shown that was not photographed. */
+    /* One move per stage, matched to how the shop's photographs run: an
+       overall view, then the length, a texture close-up, a detail, and
+       another angle. */
+    var CAMERA = [
+      // enters the frame from below, slightly close, and settles
+      { a:{s:1.2,  x:0,  y:7,  r:0},  b:{s:1,    x:0,  y:0,  r:0},  dot:[50,38] },
+      // travels down the length
+      { a:{s:1.1,  x:0,  y:9,  r:0},  b:{s:1.1,  x:0,  y:-9, r:0},  dot:[50,70] },
+      // pushes in and drifts across the texture
+      { a:{s:1.04, x:-4, y:1,  r:0},  b:{s:1.3,  x:4,  y:-2, r:0},  dot:[44,52] },
+      // moves around it
+      { a:{s:1.1,  x:3,  y:2,  r:9},  b:{s:1.1,  x:-3, y:-2, r:-9}, dot:[58,46] },
+      // steps back
+      { a:{s:1.06, x:0,  y:0,  r:0},  b:{s:.96,  x:0,  y:0,  r:0},  dot:[52,48] }
+    ];
+    function lerp(a, b, t){ return a + (b - a) * t; }
+    function ease(t){ return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
+
+    function discoverFacts(p){
+      var lengths = [];
+      (p.variants || []).forEach(function(v){ var l = clean(v.length); if(l && lengths.indexOf(l) === -1) lengths.push(l); });
+      var shades = (p.colours || []).filter(function(c){ return c && c.is_active !== false; }).length;
+      return [
+        ['Hair type', clean(p.hair_type)],
+        ['Length', lengths.join(' · ')],
+        ['Texture', clean(p.texture)],
+        ['Construction', clean(p.construction)],
+        ['Colours', shades > 1 ? shades + ' shades' : '']
+      ].filter(function(f){ return f[1]; });
+    }
+    function discoverFrames(p){
+      var imgs = (p.media || []).filter(function(m){ return m.media_type !== 'video' && m.url; })
+        .sort(function(a, b){ return (a.sort_order || 0) - (b.sort_order || 0); });
+      if(!imgs.length) return [];
+      var lead = imgs.find(function(m){ return m.is_primary; }) || imgs[0];
+      var same = lead.variant_id ? imgs.filter(function(m){ return m.variant_id === lead.variant_id; }) : imgs;
+      return (same.length >= 3 ? same : imgs).slice(0, 5);
+    }
+
+    function renderDiscover(products, taken){
+      var sec = document.getElementById('discover');
+      if(!sec || typeof resolveMediaUrl !== 'function') return;
+      var best = null, bestScore = -1;
+      products.forEach(function(p){
+        var frames = discoverFrames(p), facts = discoverFacts(p);
+        if(frames.length < 3 || facts.length < 3) return;
+        var score = Math.min(frames.length, facts.length) * 2
+          + (/human/i.test(p.hair_type || '') ? 3 : 0)
+          + (taken.indexOf(fileOf(p.image_url)) === -1 ? 2 : 0);
+        if(score > bestScore){ bestScore = score; best = p; }
+      });
+      if(!best){ sec.hidden = true; return; }
+
+      var frames = discoverFrames(best), facts = discoverFacts(best);
+      var n = Math.min(frames.length, facts.length, CAMERA.length);
+      var win = document.getElementById('dsWindow');
+      var notes = document.getElementById('dsNotes');
+      win.innerHTML = frames.slice(0, n).map(function(m, i){
+        return '<div class="ds-frame" role="img" aria-label="' + esc(best.name) + ', view ' + (i + 1) + ' of ' + n +
+          '" style="background-image:url(\'' + cssUrl(resolveMediaUrl(m.url)) + '\')"></div>';
+      }).join('');
+      notes.innerHTML = facts.slice(0, n).map(function(f, i){
+        return '<li class="ds-note"><span class="ds-n">' + String(i + 1).padStart(2, '0') + '</span>' +
+          '<span class="ds-k">' + esc(f[0]) + '</span><span class="ds-v">' + esc(f[1]) + '</span></li>';
+      }).join('');
+      document.getElementById('dsTotal').textContent = String(n).padStart(2, '0');
+      document.getElementById('dsEndName').textContent = best.name;
+      var dv = (best.variants || []).find(function(v){ return v.is_available && v.price != null; });
+      var priced = dv || best.price != null;
+      var from = best.price_min != null ? best.price_min : (dv ? dv.price : best.price);
+      var many = best.price_max != null && best.price_min != null && Number(best.price_max) !== Number(best.price_min);
+      document.getElementById('dsEndMeta').textContent = [
+        best.category,
+        priced && from != null && typeof inr === 'function' ? (many ? 'From ' : '') + inr(from) : 'Price on request'
+      ].filter(Boolean).join(' · ');
+      document.getElementById('dsEndCta').setAttribute('data-view-product', best.id);
+      sec.style.setProperty('--ds-n', n);
+      sec.hidden = false;
+      wireDiscover(sec, n);
+    }
+
+    function wireDiscover(sec, n){
+      if(sec.dataset.wired) return;
+      sec.dataset.wired = '1';
+      var frames = sec.querySelectorAll('.ds-frame');
+      var noteEls = sec.querySelectorAll('.ds-note');
+      var line = document.getElementById('dsLine');
+      var dot = document.getElementById('dsDot'), ring = document.getElementById('dsDotRing');
+      var win = document.getElementById('dsWindow'), pin = sec.querySelector('.ds-pin');
+      var count = document.getElementById('dsCount');
+      var last = -1;
+
+      function paint(){
+        var p = sec.__pp != null ? sec.__pp : 0;
+        // n stages plus a closing beat for the name.
+        var span = p * (n + .8), stage = Math.min(Math.floor(span), n - 1), t = Math.min(Math.max(span - stage, 0), 1);
+        var ending = span >= n;
+        frames.forEach(function(f, i){
+          var cam = CAMERA[i], local = Math.min(Math.max(span - i, 0), 1), k = ease(local);
+          // Cross-dissolve around each boundary; the last frame stays for the name.
+          var o = i === stage ? 1 : 0;
+          if(i === stage + 1 && t > .82) o = (t - .82) / .18;
+          if(i === stage && t > .82 && i < n - 1) o = 1 - (t - .82) / .18;
+          f.style.opacity = o.toFixed(3);
+          var s = lerp(cam.a.s, cam.b.s, k), x = lerp(cam.a.x, cam.b.x, k), y = lerp(cam.a.y, cam.b.y, k), r = lerp(cam.a.r, cam.b.r, k);
+          f.style.transform = 'perspective(1400px) rotateY(' + r.toFixed(2) + 'deg) translate3d(' + x.toFixed(2) + '%,' + y.toFixed(2) + '%,0) scale(' + s.toFixed(3) + ')';
+        });
+        if(stage !== last){
+          last = stage;
+          noteEls.forEach(function(el, i){ el.classList.toggle('is-on', i === stage); el.classList.toggle('is-past', i < stage); });
+          count.textContent = String(stage + 1).padStart(2, '0');
+        }
+        sec.classList.toggle('is-ending', ending);
+        sec.style.setProperty('--ds-t', t.toFixed(3));
+        // The line: from a point on the piece to the lit note.
+        var active = noteEls[stage];
+        if(!active || ending){ line.style.opacity = dot.style.opacity = ring.style.opacity = 0; return; }
+        var pr = pin.getBoundingClientRect(), wr = win.getBoundingClientRect(), nr = active.getBoundingClientRect();
+        var cam = CAMERA[stage];
+        var x1 = wr.left - pr.left + wr.width * cam.dot[0] / 100, y1 = wr.top - pr.top + wr.height * cam.dot[1] / 100;
+        var x2 = nr.left - pr.left - 14, y2 = nr.top - pr.top + nr.height / 2;
+        if(x2 < x1){ x2 = nr.left - pr.left + nr.width / 2; y2 = nr.top - pr.top - 10; }
+        var draw = Math.min(Math.max((t - .08) / .3, 0), 1) * (t > .8 ? Math.max(0, 1 - (t - .8) / .15) : 1);
+        line.setAttribute('x1', x1); line.setAttribute('y1', y1);
+        line.setAttribute('x2', lerp(x1, x2, draw)); line.setAttribute('y2', lerp(y1, y2, draw));
+        dot.setAttribute('cx', x1); dot.setAttribute('cy', y1);
+        ring.setAttribute('cx', x1); ring.setAttribute('cy', y1);
+        line.style.opacity = draw ? 1 : 0;
+        dot.style.opacity = ring.style.opacity = Math.min(1, t * 6).toFixed(2);
+      }
+
+      if(still){ sec.classList.add('is-still'); return; }
+      var on = false;
+      function tick(){ paint(); }
+      new IntersectionObserver(function(entries){
+        var vis = entries[0].isIntersecting;
+        if(vis && !on){ on = true; M.on(tick); }
+        else if(!vis && on){ on = false; M.off(tick); }
+      }, {rootMargin:'10% 0px'}).observe(sec);
+      paint();
+    }
+
+    /* ---------- Campaign frames ----------
+       The three ways in (quiz, try-on, assistant) are set as campaign frames,
+       each over a real close-up from the catalogue — a different texture per
+       frame, from the product's own photographs. Decorative: the words and
+       buttons are unchanged. With too few photographs they stay plain. */
+    function renderCampaign(products){
+      var cards = document.querySelectorAll('.ai-card');
+      if(!cards.length || typeof resolveMediaUrl !== 'function') return;
+      var seen = {}, picks = [];
+      products.forEach(function(p){
+        var tex = clean(p.texture).toLowerCase();
+        var frames = discoverFrames(p);
+        if(frames.length < 3 || seen[tex]) return;
+        seen[tex] = 1;
+        picks.push(frames[2]);
+      });
+      if(picks.length < cards.length) return;
+      cards.forEach(function(card, i){
+        if(card.querySelector('.ai-photo')) return;
+        var ph = document.createElement('span');
+        ph.className = 'ai-photo';
+        ph.setAttribute('aria-hidden', 'true');
+        ph.style.backgroundImage = "url('" + cssUrl(resolveMediaUrl(picks[i].url)) + "')";
+        card.insertBefore(ph, card.firstChild);
+        card.classList.add('is-campaign');
+      });
+      document.querySelector('.ai-section').classList.add('has-campaign');
     }
 
     function build(products){
