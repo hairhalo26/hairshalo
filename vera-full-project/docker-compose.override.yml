@@ -1,9 +1,28 @@
 # Local-machine overrides (auto-loaded by `docker compose`).
-# Use this when host port 5432 is already in use — it publishes Postgres
-# on 5433 instead. The container still listens on 5432 internally, so
-# only DATABASE_URL's host port needs to match (see backend/.env.example).
+#
+# These apply ONLY when Compose auto-loads this file — that is, a plain
+# `docker compose up -d` run from this directory. Passing `-f docker-compose.yml`
+# explicitly bypasses this file and you silently get the base ports back, which
+# collide with the other stacks on this machine and leave the containers stuck
+# in "created" with "port is already allocated".
+#
+# On this machine 5432 and 5433 are taken by other Postgres containers, and 8000
+# by another backend, so Postgres is published on 5434 and the API on 8010.
+# Nothing inside the stack changes: the containers still listen on 5432/8000,
+# and the backend reaches the database as db:5432 over the compose network, so
+# only access from the host moves. The storefront already expects the API on
+# 8010 (see resolveApiBase in frontend/index.html).
 services:
   db:
     # !override replaces the base ports list instead of merging with it
     ports: !override
-      - "5433:5432"
+      - "5434:5432"
+  backend:
+    ports: !override
+      - "8010:8000"
+    environment:
+      # The demo range (Malaika, Anaya, Ishita, Kavya, Zara) is re-inserted by
+      # app/seed.py on every container start. The shop's real catalogue is now
+      # loaded, so re-seeding would keep resurrecting placeholder products with
+      # stock photography alongside it.
+      SEED_DEMO_DATA: "false"
