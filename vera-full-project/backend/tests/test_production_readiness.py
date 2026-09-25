@@ -503,8 +503,10 @@ def test_variants_follow_the_product_price_until_given_their_own(auth, product):
 
 
 def test_a_draft_can_be_saved_before_it_has_a_price_or_category(auth):
-    """Admins build a product up over time. Only publishing needs the price
-    and category — a shop with no categories yet must still be able to start."""
+    """Admins build a product up over time. Only publishing needs the category
+    — a shop with no categories yet must still be able to start. A price is not
+    a publish requirement: an unpriced product lists as "Price on request" and
+    POST /orders refuses it, so `force` may waive it but never the category."""
     r = requests.post(f"{API}/products", headers=auth, timeout=10,
                       json={"name": f"Unfinished Wig {uuid.uuid4().hex[:6]}", "status": "Draft"})
     assert r.status_code == 201, r.text
@@ -517,7 +519,8 @@ def test_a_draft_can_be_saved_before_it_has_a_price_or_category(auth):
     r = requests.post(f"{API}/products/{p['id']}/status", headers=auth, timeout=10,
                       json={"action": "publish", "force": True})
     assert r.status_code == 400
-    assert "Set a price" in r.json()["detail"] and "Choose a category" in r.json()["detail"]
+    assert "Choose a category" in r.json()["detail"]
+    assert "Set a price" not in r.json()["detail"]
     requests.delete(f"{API}/products/{p['id']}", headers=auth, timeout=10)
 
 
