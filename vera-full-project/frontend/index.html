@@ -297,13 +297,6 @@
   .pay-details div{display:flex;justify-content:space-between;gap:12px;font-size:14px;flex-wrap:wrap;}
   .pay-details span{color:var(--text-soft);}
   .pay-details strong{word-break:break-all;}
-  .prod-wish{
-    position:absolute;top:12px;right:12px;width:34px;height:34px;border-radius:50%;
-    background:rgba(250,245,238,.92);display:flex;align-items:center;justify-content:center;
-    transition:transform .25s var(--ease), background .25s;
-  }
-  .prod-wish:hover{transform:scale(1.1);background:#fff;}
-  .prod-wish svg{width:15px;height:15px;stroke:var(--wine);}
   .prod-badge{
     position:absolute;top:12px;left:12px;background:var(--wine);color:#fff;
     font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:100px;letter-spacing:.02em;
@@ -318,9 +311,7 @@
   .prod-card:hover .quick-add{opacity:1;transform:translateY(0);}
   .prod-info{padding-top:14px;}
   .prod-info .cat{font-size:11px;color:var(--text-soft);text-transform:uppercase;letter-spacing:.06em;}
-  .prod-info h4{font-family:'Fraunces',serif;font-size:16.5px;font-weight:500;margin:5px 0 6px;}
-  .swatches{display:flex;gap:6px;margin-bottom:8px;}
-  .swatch{width:14px;height:14px;border-radius:50%;border:1.5px solid #fff;box-shadow:0 0 0 1px var(--line);}
+  .prod-info h3{font-family:'Fraunces',serif;font-size:16.5px;font-weight:500;margin:5px 0 6px;}
   .prod-rating{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-soft);margin-bottom:6px;}
   .prod-rating .stars{color:var(--gold);letter-spacing:1px;}
   .prod-rating.no-reviews{display:block;font-size:12px;color:var(--text-soft);opacity:.75;margin-bottom:6px;}
@@ -336,7 +327,6 @@
   .review-item p{font-size:14px;line-height:1.6;color:var(--text);opacity:.9;margin:0;}
   .review-reply{margin-top:8px;padding-left:12px;border-left:2px solid var(--line);
     font-size:13px;color:var(--text-soft);}
-  .review-empty{font-size:14px;color:var(--text-soft);}
   .prod-price{font-size:14.5px;font-weight:700;}
   /* Shown in place of a figure while a product is listed but not yet priced. */
   .price-on-request{
@@ -485,7 +475,7 @@
     width:48px;height:58px;border-radius:9px;flex-shrink:0;background-size:cover;
     background-position:center;background-image:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34);
   }
-  .search-hit h5{font-family:'Fraunces',serif;font-size:14.5px;font-weight:500;margin:0 0 2px;}
+  .search-hit-name{display:block;font-family:'Fraunces',serif;font-size:14.5px;font-weight:500;margin:0 0 2px;}
   .search-hit small{font-size:11.5px;color:var(--text-soft);}
   .search-hit .p{margin-left:auto;font-size:13.5px;font-weight:700;white-space:nowrap;}
 
@@ -660,7 +650,7 @@
   .why-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:var(--radius);overflow:hidden;}
   .why-item{background:var(--cream);padding:34px 26px;}
   .why-item svg{width:26px;height:26px;stroke:var(--wine);margin-bottom:18px;}
-  .why-item h4{font-family:'Fraunces',serif;font-size:17px;font-weight:500;margin-bottom:8px;}
+  .why-item h3{font-family:'Fraunces',serif;font-size:17px;font-weight:500;margin-bottom:8px;}
   .why-item p{font-size:13.5px;color:var(--text-soft);line-height:1.6;}
 
   /* ---------- Testimonials ---------- */
@@ -782,7 +772,7 @@
   .foot-social{display:flex;gap:12px;}
   .foot-social a{width:34px;height:34px;border-radius:50%;border:1px solid var(--line);display:flex;align-items:center;justify-content:center;}
   .foot-social svg{width:14px;height:14px;}
-  .foot-col h5{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-soft);margin-bottom:16px;}
+  .foot-col h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--text-soft);margin-bottom:16px;}
   .foot-col a{display:block;font-size:13.5px;padding:6px 0;color:var(--text);}
   .foot-bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:14px;
     font-size:12px;color:var(--text-soft);padding-top:26px;border-top:1px solid var(--line);}
@@ -814,7 +804,6 @@
   .qty{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:100px;padding:4px 10px;font-size:12px;}
   .cart-foot{padding:22px 26px;border-top:1px solid var(--line);}
   .cart-subtotal{display:flex;justify-content:space-between;font-size:14.5px;font-weight:700;margin-bottom:16px;}
-  .cart-empty{padding:60px 20px;text-align:center;color:var(--text-soft);font-size:14px;}
 
   .toast{
     position:fixed;bottom:28px;left:50%;transform:translateX(-50%) translateY(20px);
@@ -1729,16 +1718,12 @@
   :focus-visible{outline:2px solid var(--champagne);outline-offset:3px;border-radius:4px;}
 
   /* ---------- Buttons on the dark stage ---------- */
-  .on-dark .btn-primary,
   .hero .btn-primary{
     background:var(--champagne);color:var(--noir);
     box-shadow:0 18px 40px -18px rgba(220,193,147,.55);
   }
-  .on-dark .btn-primary:hover,
   .hero .btn-primary:hover{background:var(--champagne-hi);}
-  .on-dark .btn-outline,
   .hero .btn-outline{border-color:rgba(244,236,224,.45);color:var(--ivory);}
-  .on-dark .btn-outline:hover,
   .hero .btn-outline:hover{background:var(--ivory);color:var(--noir);border-color:var(--ivory);}
 
   /* ==================== HERO — the cinematic statement ==================== */
@@ -2151,7 +2136,7 @@
   footer .logo{color:var(--ivory);font-size:clamp(30px,3.4vw,46px);}
   footer .logo-mark{height:clamp(38px,4vw,54px);}
   .foot-brand p{color:var(--ivory-soft);}
-  .foot-col h5{color:var(--champagne);letter-spacing:.24em;}
+  .foot-col h2{color:var(--champagne);letter-spacing:.24em;}
   .foot-col a{color:var(--ivory-soft);transition:color var(--t-fast) var(--e);}
   .foot-col a:hover,.foot-col a:focus-visible{color:var(--ivory);}
   .foot-social a{border-color:var(--line-dark);color:var(--ivory);}
@@ -2195,6 +2180,135 @@
     .det-body{padding-left:44px;}
     .faq-a p{padding-right:4px;}
     .closing-actions .btn{width:100%;justify-content:center;}
+  }
+
+  /* ==================== Final polish ====================
+     Fixes from the last responsive / accessibility QA pass. Refinements to
+     the rules above by cascade order — no new components. */
+
+  /* Focus: champagne reads on the dark stage but all but vanishes on ivory
+     (about 1.5:1). On light surfaces the ring is wine; the dark sections
+     keep champagne. */
+  :focus-visible{outline-color:var(--wine);}
+  .hero :focus-visible, .cine :focus-visible, #siteHeader :focus-visible,
+  .announce :focus-visible, .mobile-nav :focus-visible, footer :focus-visible,
+  .newsletter :focus-visible{outline-color:var(--champagne);}
+  /* These fields swapped the ring for a border tint; keyboard focus gets
+     the ring back. */
+  .search-field input:focus-visible, .chat-input-row input:focus-visible,
+  .nl-form input:focus-visible{outline:2px solid var(--wine);outline-offset:2px;}
+  .nl-form input:focus-visible{outline-color:var(--champagne);}
+
+  .sr-only{position:absolute !important;width:1px;height:1px;padding:0;margin:-1px;
+    overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+  /* The try-on file input is visually hidden but focusable; its label shows the ring. */
+  .tryon-upload:focus-within{outline:2px solid var(--wine);outline-offset:3px;}
+
+  /* The hero's product tag inherited the stage's ivory type on its ivory pill. */
+  .arch .tag{color:var(--ink);}
+
+  /* Footer column titles are h2 for a sound outline; they still look like labels. */
+  .foot-col h2{font-family:inherit;font-weight:700;}
+
+  /* The Flow fades into this ivory. When the seam lands on a fractional
+     pixel the dark page background showed through as a hairline; the
+     section now overlaps the fade by two pixels. */
+  .signature{position:relative;z-index:1;box-shadow:0 -2px 0 0 #EFE6D8;}
+
+  /* Small metadata stays legible. */
+  .prod-stock{font-size:12px;}
+
+  /* The newsletter line no longer runs the full width of the band. */
+  .newsletter p{max-width:52ch;margin-left:auto;margin-right:auto;}
+
+  /* ---------- Search results are buttons now ---------- */
+  .search-hit{width:100%;text-align:left;font:inherit;color:inherit;background:transparent;border:0;}
+  .search-hit small{display:block;}
+  .search-hit-text{min-width:0;}
+  .search-hit:focus-visible{background:#fff;}
+  .search-field .search-close{
+    flex:none;width:44px;height:44px;padding:0;border-radius:50%;
+    display:inline-flex;align-items:center;justify-content:center;
+    background:transparent;color:var(--ink);
+  }
+  .search-field .search-close:hover{background:#fff;}
+  .search-close svg{width:18px;height:18px;}
+  /* The field's intrinsic width pushed the buttons off a phone screen. */
+  .search-field input{min-width:0;}
+  @media (max-width:560px){
+    .search-panel{padding:16px;}
+    .search-field{gap:6px;}
+    .search-field #searchGo{padding:13px 16px;}
+    /* The price moves under the name instead of squeezing it to one word a line. */
+    .search-hit{display:grid;grid-template-columns:48px 1fr;column-gap:12px;row-gap:4px;}
+    .search-hit .thumb{grid-row:1 / span 2;}
+    .search-hit .p{grid-column:2;margin-left:0;white-space:normal;}
+  }
+
+  /* ---------- Touch targets: nothing interactive under 44 × 44 ---------- */
+  .icon-btn{width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;}
+  .icon-btn .cart-count{top:4px;right:3px;}
+  .header-icons{gap:6px;}
+  /* The 44px controls now set the bar's height, so the padding gives back
+     what they added and the header keeps its previous 75px / 59px. */
+  .header-inner{padding-top:15px;padding-bottom:15px;}
+  header.scrolled .header-inner{padding-top:7px;padding-bottom:7px;}
+  .nav-account{display:inline-flex;align-items:center;min-height:44px;padding:0 6px;}
+  .burger{box-sizing:content-box;padding:14px 11px;}
+  .mobile-nav-close, .cart-close, .chat-close-btn{
+    width:44px;height:44px;display:inline-flex;align-items:center;justify-content:center;
+    margin-right:-12px;
+  }
+  .modal-close{width:44px;height:44px;top:14px;right:14px;}
+  .pdp-close{width:44px;height:44px;}
+  .chat-send{width:44px;height:44px;}
+  .account-modal input, .ck-field input, .ck-field select{min-height:44px;}
+  .qty-ctl button{width:44px;height:44px;}
+  .cart-item-rm{display:inline-flex;align-items:center;min-height:44px;padding:0 4px;}
+  .cart-item-bottom{flex-wrap:wrap;gap:4px 10px;}
+
+  /* The assistant's button floated above the open bag (over Checkout) and
+     above the mobile menu. It now sits under every drawer and dialog. */
+  .chat-fab{z-index:190;}
+  .chat-panel{z-index:191;}
+  @media (pointer:coarse), (max-width:980px){
+    #siteHeader .logo, .mobile-nav .logo, footer .logo{min-height:44px;}
+    .cat-card .arrow{display:inline-flex;align-items:center;min-height:44px;}
+    .shop-chip, .shop-sort, .view-product, .tryon-style-btn, .acct-tab-btn,
+    .pw-toggle, .chat-quick button{min-height:44px;}
+    .view-product{display:flex;align-items:center;justify-content:center;}
+    .foot-col a{display:flex;align-items:center;min-height:44px;padding:0;}
+    .foot-legal a, .account-modal a[href="/forgot-password"]{display:inline-flex;align-items:center;min-height:44px;}
+    .chat-input-row input{min-height:44px;}
+  }
+  @media (max-width:560px){
+    .header-icons{gap:2px;}
+    .nav-account{padding:0 4px;}
+    /* With 44px rows the one-column footer ran past a full screen; the link
+       columns sit in pairs, the brand block and contact keep the full width. */
+    .foot-grid{grid-template-columns:1fr 1fr;column-gap:20px;}
+    .foot-brand, #footContact{grid-column:1 / -1;}
+  }
+
+  /* ---------- Tablet: use the width instead of stacking everything ----------
+     Between 700 and 980px the one-column layouts left the hero product
+     900px+ tall, the editorial image full-bleed and the AI section as three
+     near-empty stacked cards. */
+  @media (min-width:700px) and (max-width:980px){
+    .hero-grid{grid-template-columns:1.05fr .95fr;gap:40px;}
+    .hero-btns{margin-bottom:28px;}
+    .flow-grid{grid-template-columns:1fr 1fr;gap:40px;}
+    .flow-stage{order:0;max-width:none;}
+    .editorial{grid-template-columns:.9fr 1fr;gap:40px;}
+    .cat-grid, .prod-grid{grid-template-columns:repeat(3,1fr);gap:20px;}
+    .ai-card{
+      display:grid;grid-template-columns:52px 1fr auto;column-gap:24px;align-items:center;
+      padding:30px 8px;
+    }
+    .ai-card .ai-icon{grid-row:1 / span 2;align-self:start;margin:0;}
+    .ai-card h3{margin:0 0 6px;}
+    .ai-card p{grid-column:2;margin:0;}
+    .ai-card button{grid-column:3;grid-row:1 / span 2;align-self:center;}
   }
 
   /* ==================== Reduced motion — a still, finished stage ==================== */
@@ -2241,7 +2355,7 @@
         <svg viewBox="0 0 24 24" fill="none" stroke-width="1.6"><path d="M3 6h2l2.4 12.4a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6"/><circle cx="9" cy="21" r="1"/><circle cx="18" cy="21" r="1"/></svg>
         <span class="cart-count" id="cartCount">2</span>
       </button>
-      <button class="burger" id="burgerBtn" aria-label="Menu"><span></span><span></span><span></span></button>
+      <button class="burger" id="burgerBtn" aria-label="Menu" aria-expanded="false" aria-controls="mobileNav"><span></span><span></span><span></span></button>
     </div>
   </div>
   <!-- Reading progress. Decorative and driven entirely by scroll position,
@@ -2251,7 +2365,7 @@
 </header>
 
 <!-- MOBILE NAV -->
-<div class="mobile-nav" id="mobileNav">
+<div class="mobile-nav" id="mobileNav" role="dialog" aria-modal="true" aria-label="Menu">
   <div class="mobile-nav-top">
     <a href="#" class="logo" aria-label="Hairshalo — home"><img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="30">HAIRSHALO</a>
     <button class="mobile-nav-close" id="mobileNavClose" aria-label="Close menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
@@ -2653,7 +2767,7 @@
     <!-- Double opt-in: this only asks for a confirmation email. Nothing is
          added to the list until the link in that email is clicked. -->
     <form class="nl-form" id="newsletterForm">
-      <input type="email" id="newsletterEmail" placeholder="Enter your email" required>
+      <input type="email" id="newsletterEmail" placeholder="Enter your email" aria-label="Email address" autocomplete="email" required>
       <button class="btn btn-primary" type="submit" id="newsletterSubmit">Join Us</button>
     </form>
   </div>
@@ -2884,9 +2998,9 @@
     function shedExpensive(why){
       docEl.classList.remove('has-cursor');
       teardown.splice(0).forEach(function(fn){ try{ fn(); }catch(e){} });
-      if(window.console && console.info){
-        console.info('[Hairshalo] motion reduced to "lite" (' + why + ')');
-      }
+      // Recorded silently rather than logged: inspectable on <html> when
+      // diagnosing a slow device, without writing to a customer's console.
+      docEl.setAttribute('data-motion-downgrade', why);
     }
 
     /* ---------------- Scroll reveal ---------------- */
@@ -4003,10 +4117,34 @@
 
 <script>
   // Mobile nav drawer
+  // A dialog like the others (openModal, below): focus moves in, Tab stays
+  // inside, Escape closes and focus returns to the burger.
   const mobileNav = document.getElementById('mobileNav');
-  document.getElementById('burgerBtn').addEventListener('click', () => mobileNav.classList.add('active'));
-  document.getElementById('mobileNavClose').addEventListener('click', () => mobileNav.classList.remove('active'));
-  mobileNav.querySelectorAll('a').forEach(a => a.addEventListener('click', () => mobileNav.classList.remove('active')));
+  const burgerBtn = document.getElementById('burgerBtn');
+  const closeMobileNav = () => closeModal(mobileNav, null);
+  burgerBtn.addEventListener('click', () => {
+    burgerBtn.setAttribute('aria-expanded', 'true');
+    openModal(mobileNav, null, document.getElementById('mobileNavClose'),
+      () => burgerBtn.setAttribute('aria-expanded', 'false'));
+  });
+  document.getElementById('mobileNavClose').addEventListener('click', closeMobileNav);
+  // Delegated: the links are rendered later, from site content.
+  mobileNav.addEventListener('click', e => { if(e.target.closest('a')) closeMobileNav(); });
+
+  // Navigation is edited in the Back Office and can point at a section that
+  // is hidden because it has nothing to show yet (Best Sellers with no picks).
+  // Such a link lands on the full shop grid instead of doing nothing.
+  document.addEventListener('click', e => {
+    const a = e.target.closest('a[href^="#"]');
+    if(!a || a.getAttribute('href').length < 2) return;
+    let target = null;
+    try{ target = document.querySelector(a.getAttribute('href')); }catch(err){ return; }
+    if(target && !target.closest('[hidden]')) return;
+    const shop = document.getElementById('shop');
+    if(!shop) return;
+    e.preventDefault();
+    shop.scrollIntoView({ behavior: document.documentElement.classList.contains('motion-ready') ? 'smooth' : 'auto' });
+  });
 
   // Sticky header shadow
   const header = document.getElementById('siteHeader');
@@ -4132,7 +4270,11 @@
   function readStoredCart(){
     try{
       const saved = JSON.parse(localStorage.getItem(CART_KEY) || '[]');
-      return Array.isArray(saved) ? saved.filter(c => c && c.id && c.qty > 0) : [];
+      // A line without a real price would render as ₹0 until the catalogue
+      // answers (or forever, if it cannot be reached), so it is not restored.
+      return Array.isArray(saved)
+        ? saved.filter(c => c && c.id && c.qty > 0 && c.price != null && isFinite(Number(c.price)))
+        : [];
     }catch(e){ return []; }
   }
   function storeCart(){
@@ -4150,7 +4292,11 @@
       if(!product) return false;                       // unpublished or removed
       const variant = line.variantId ? (product.variants || []).find(v => v.id === line.variantId) : null;
       if(line.variantId && (!variant || !variant.is_available || variant.stock <= 0)) return false;
-      line.price = Number(variant ? variant.price : product.price);
+      // A product can lose its price (back to "price on request"). Number(null)
+      // is 0, which would leave a ₹0 line in the bag — drop it instead.
+      const price = variant ? variant.price : product.price;
+      if(price == null || !isFinite(Number(price))) return false;
+      line.price = Number(price);
       line.max = Number(variant ? variant.stock : product.total_stock);
       line.qty = Math.min(line.qty, line.max);
       line.name = product.name;
@@ -4218,9 +4364,13 @@
       cartItemsEl.innerHTML = cart.map((item, index) => {
         const key = cartKey(item);
         const atMax = item.max != null && item.qty >= item.max;
+        // The line's own product photo, from the catalogue already loaded.
+        const product = typeof liveProducts !== 'undefined' ? liveProducts.find(p => p.id === item.id) : null;
+        const photo = product && product.image_url
+          ? ` style="background:#fff url('${cssUrl(resolveMediaUrl(product.image_url))}') center / contain no-repeat"` : '';
         return `
         <div class="cart-item" style="--i:${Math.min(index, 6)}">
-          <div class="thumb"></div>
+          <div class="thumb"${photo}></div>
           <div class="cart-item-info">
             <h5>${esc(item.name)}</h5>
             <small>${esc(item.variantLabel || 'Standard')}</small>
@@ -4242,6 +4392,8 @@
     }
     cartCountEl.textContent = cartUnits();
     cartSubtotalEl.textContent = money(cartSubtotal());
+    // An empty bag has nothing to total or check out: no "₹0", no dead button.
+    document.querySelector('.cart-foot').hidden = cart.length === 0;
     updateCartProgress();
     // Any basket change invalidates a previously previewed coupon.
     if(typeof refreshTotals === 'function') refreshTotals();
@@ -4376,9 +4528,9 @@
 </script>
 <!-- QUIZ MODAL -->
 <div class="modal-overlay" id="quizOverlay"></div>
-<div class="modal" id="quizModal">
-  <button class="modal-close" id="quizClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-  <div class="modal-head"><span>AI Wig Finder</span><h3>Let's find your match</h3></div>
+<div class="modal" id="quizModal" role="dialog" aria-modal="true" aria-labelledby="quizTitle">
+  <button class="modal-close" id="quizClose" aria-label="Close quiz"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="modal-head"><span>AI Wig Finder</span><h3 id="quizTitle">Let's find your match</h3></div>
   <div class="quiz-progress"><span><i id="qp1"></i></span><span><i id="qp2"></i></span><span><i id="qp3"></i></span><span><i id="qp4"></i></span></div>
 
   <div class="quiz-step active" data-step="1">
@@ -4445,14 +4597,14 @@
 
 <!-- TRY-ON MODAL -->
 <div class="modal-overlay" id="tryonOverlay"></div>
-<div class="modal" id="tryonModal">
-  <button class="modal-close" id="tryonClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-  <div class="modal-head"><span>Virtual Try-On</span><h3>Preview a style on you</h3></div>
+<div class="modal" id="tryonModal" role="dialog" aria-modal="true" aria-labelledby="tryonTitle">
+  <button class="modal-close" id="tryonClose" aria-label="Close try-on"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="modal-head"><span>Virtual Try-On</span><h3 id="tryonTitle">Preview a style on you</h3></div>
 
   <label class="tryon-upload" id="tryonUploadLabel">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6"><path d="M12 16V4M7 9l5-5 5 5"/><path d="M4 16v3a2 2 0 002 2h12a2 2 0 002-2v-3"/></svg>
     <p><strong>Tap to upload a selfie</strong><br>Front-facing, good lighting works best</p>
-    <input type="file" accept="image/*" id="tryonFile" style="display:none;">
+    <input type="file" accept="image/*" id="tryonFile" class="sr-only">
   </label>
 
   <div class="tryon-preview" id="tryonPreview">
@@ -4471,17 +4623,17 @@
 </div>
 
 <!-- CHAT WIDGET -->
-<button class="chat-fab" id="chatFab" aria-label="Open AI Assistant">
+<button class="chat-fab" id="chatFab" aria-label="Open AI Assistant" aria-expanded="false" aria-controls="chatPanel">
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M21 11.5a8.4 8.4 0 01-8.9 8.4 8.6 8.6 0 01-3.6-.8L3 20l1-4.9a8.3 8.3 0 01-1-4A8.4 8.4 0 0111.9 3a8.5 8.5 0 019.1 8.5z"/></svg>
   <span class="chat-dot"></span>
 </button>
-<div class="chat-panel" id="chatPanel">
+<div class="chat-panel" id="chatPanel" role="dialog" aria-labelledby="chatTitle">
   <div class="chat-head">
     <div class="chat-head-info">
       <div class="chat-avatar">✨</div>
-      <div><h5>Hairshalo AI Assistant</h5><small>Online · Demo</small></div>
+      <div><h5 id="chatTitle">Hairshalo AI Assistant</h5><small>Online · Demo</small></div>
     </div>
-    <button class="chat-close-btn" id="chatClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+    <button class="chat-close-btn" id="chatClose" aria-label="Close assistant"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
   <div class="chat-messages" id="chatMessages">
     <div class="msg bot">Hi! I'm the Hairshalo AI Assistant (demo). Ask me about sizing, shipping, wig care, or appointments.</div>
@@ -4493,8 +4645,8 @@
     <button data-q="Can I book a fitting?">Book a fitting</button>
   </div>
   <div class="chat-input-row">
-    <input type="text" id="chatInput" placeholder="Type a message...">
-    <button class="chat-send" id="chatSend"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></button>
+    <input type="text" id="chatInput" placeholder="Type a message..." aria-label="Message the assistant">
+    <button class="chat-send" id="chatSend" aria-label="Send message"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13M22 2l-7 20-4-9-9-4z"/></svg></button>
   </div>
 </div>
 
@@ -4521,12 +4673,37 @@
       e.preventDefault(); first.focus();
     }
   }
+  /* A closed panel is only faded or slid out of view, so without this its
+     controls would stay in the Tab order — a keyboard user would land on
+     buttons they cannot see. `inert` takes a closed panel out of focus and
+     out of the accessibility tree. Run once the whole document is parsed:
+     the search and product-detail markup sits below this script. */
+  document.addEventListener('DOMContentLoaded', () => {
+    ['searchPanel','pdp','cartDrawer','mobileNav','chatPanel','quizModal',
+     'tryonModal','accountModal','checkoutModal','policyModal'].forEach(id => {
+      const el = document.getElementById(id);
+      if(el && !el.classList.contains('active')) el.inert = true;
+    });
+  });
+
   // `initialFocus` is optional: a panel whose first field would be the wrong
   // place to land (the bag's coupon box would raise a phone keyboard) names
-  // where focus should go instead.
-  function openModal(modal, overlay, initialFocus){
-    modal.classList.add('active'); overlay.classList.add('active');
-    activeDialog = { modal, overlay, returnTo: document.activeElement };
+  // where focus should go instead. `overlay` may be null. `onClose` runs
+  // however the dialog is dismissed — its button, the overlay or Escape.
+  // Dialogs can stack — checkout opens over the bag. The one underneath is
+  // kept here and takes Escape and the Tab loop back when the top one closes.
+  const dialogStack = [];
+  function openModal(modal, overlay, initialFocus, onClose){
+    const reopening = activeDialog && activeDialog.modal === modal;
+    if(activeDialog && !reopening) dialogStack.push(activeDialog);
+    modal.inert = false;
+    modal.classList.add('active'); if(overlay) overlay.classList.add('active');
+    activeDialog = {
+      modal, overlay, onClose,
+      // Opening a second product from inside the detail view keeps the
+      // original trigger as the place focus goes back to.
+      returnTo: reopening ? activeDialog.returnTo : document.activeElement
+    };
     if(!modal.hasAttribute('tabindex')) modal.setAttribute('tabindex', '-1');
     document.addEventListener('keydown', dialogKeys);
     // A beat after the class lands, so the dialog is laid out and focusable.
@@ -4541,12 +4718,21 @@
     }, 60);
   }
   function closeModal(modal, overlay){
-    modal.classList.remove('active'); overlay.classList.remove('active');
+    modal.classList.remove('active'); if(overlay) overlay.classList.remove('active');
+    modal.inert = true;
     if(activeDialog && activeDialog.modal === modal){
-      document.removeEventListener('keydown', dialogKeys);
-      const back = activeDialog.returnTo;
-      activeDialog = null;
+      const { returnTo: back, onClose } = activeDialog;
+      activeDialog = dialogStack.pop() || null;
+      if(!activeDialog) document.removeEventListener('keydown', dialogKeys);
+      if(onClose){ try{ onClose(); }catch(e){} }
       if(back && typeof back.focus === 'function' && document.contains(back)) back.focus({ preventScroll: true });
+    } else {
+      // Closed from underneath (the bag, once an order is placed from checkout).
+      const i = dialogStack.findIndex(d => d.modal === modal);
+      if(i > -1){
+        const [gone] = dialogStack.splice(i, 1);
+        if(gone.onClose){ try{ gone.onClose(); }catch(e){} }
+      }
     }
   }
 
@@ -4797,9 +4983,26 @@
   const chatMessages = document.getElementById('chatMessages');
   const chatInput = document.getElementById('chatInput');
 
+  /* A floating, non-modal panel: the page behind stays usable, so there is
+     no Tab loop. It is inert while closed, takes focus when opened, and
+     Escape or the close button hands focus back to whatever opened it. */
+  let chatReturnTo = null;
   function toggleChat(show){
+    if(show === chatPanel.classList.contains('active')) return;
     chatPanel.classList.toggle('active', show);
+    chatPanel.inert = !show;
+    chatFab.setAttribute('aria-expanded', show ? 'true' : 'false');
+    if(show){
+      chatReturnTo = document.activeElement;
+      setTimeout(() => chatInput.focus({ preventScroll: true }), 60);
+    } else if(chatPanel.contains(document.activeElement) || document.activeElement === document.body){
+      const back = chatReturnTo && document.contains(chatReturnTo) ? chatReturnTo : chatFab;
+      back.focus({ preventScroll: true });
+    }
   }
+  chatPanel.addEventListener('keydown', e => {
+    if(e.key === 'Escape'){ e.stopPropagation(); toggleChat(false); }
+  });
   chatFab.addEventListener('click', () => toggleChat(!chatPanel.classList.contains('active')));
   document.getElementById('chatClose').addEventListener('click', () => toggleChat(false));
   document.getElementById('openChatFromCard').addEventListener('click', () => toggleChat(true));
@@ -4871,8 +5074,8 @@
 
 <!-- ACCOUNT -->
 <div class="overlay" id="accountOverlay"></div>
-<div class="modal account-modal" id="accountModal">
-  <button class="modal-close" id="accountClose" aria-label="Close">&times;</button>
+<div class="modal account-modal" id="accountModal" role="dialog" aria-modal="true" aria-label="Your account">
+  <button class="modal-close" id="accountClose" aria-label="Close account">&times;</button>
 
   <div id="accountSignedOut">
     <div class="acct-tabs">
@@ -4999,9 +5202,9 @@
   <div class="modal-head"><span id="policyEyebrow">Hairshalo</span><h3 id="policyTitle"></h3></div>
   <div class="policy-body" id="policyBody"></div>
 </div>
-<div class="modal" id="checkoutModal">
-  <button class="modal-close" id="checkoutClose"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-  <div class="modal-head"><span>Checkout</span><h3>Complete your order</h3></div>
+<div class="modal" id="checkoutModal" role="dialog" aria-modal="true" aria-labelledby="checkoutTitle">
+  <button class="modal-close" id="checkoutClose" aria-label="Close checkout"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
+  <div class="modal-head"><span>Checkout</span><h3 id="checkoutTitle">Complete your order</h3></div>
   <form id="checkoutForm" novalidate>
     <div class="ck-section">
       <h4 class="ck-legend">Contact</h4>
@@ -5117,6 +5320,7 @@
   <div class="search-field">
     <input type="search" id="searchInput" placeholder="Search Hairshalo" autocomplete="off" aria-label="Search products">
     <button type="button" id="searchGo">Search</button>
+    <button type="button" class="search-close" id="searchClose" aria-label="Close search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
   <div class="search-status" id="searchStatus">Search by name, texture or description.</div>
   <div class="search-results" id="searchResults"></div>
@@ -5124,8 +5328,8 @@
 
 <!-- PRODUCT DETAIL (gallery + variant selection) -->
 <div class="pdp-overlay" id="pdpOverlay"></div>
-<div class="pdp" id="pdp" role="dialog" aria-modal="true" aria-label="Product details">
-  <button class="pdp-close" id="pdpClose" aria-label="Close">&times;</button>
+<div class="pdp" id="pdp" role="dialog" aria-modal="true" aria-labelledby="pdpName">
+  <button class="pdp-close" id="pdpClose" aria-label="Close product details">&times;</button>
   <div class="pdp-inner">
     <div>
       <div class="pdp-gallery-main" id="pdpGalleryMain"></div>
@@ -5195,8 +5399,6 @@
       .replace(/'/g, '%27').replace(/"/g, '%22')
       .replace(/\(/g, '%28').replace(/\)/g, '%29');
   }
-
-  const WISH_SVG = '<svg viewBox="0 0 24 24" fill="none" stroke-width="1.8"><path d="M12 21s-7.5-4.6-10-9.3C.4 8 2 4 6 4c2.2 0 3.8 1.2 6 3.6C14.2 5.2 15.8 4 18 4c4 0 5.6 4 4 7.7-2.5 4.7-10 9.3-10 9.3z"/></svg>';
 
   // The branded HAIRSHALO panel. Shared by placeholder cards and by real products
   // whose image is missing or fails to load — never a grey skeleton.
@@ -5308,7 +5510,7 @@
         </div>
         <div class="prod-info">
           <span class="cat">${esc(product.category || '')}</span>
-          <h4>${esc(product.name)}</h4>
+          <h3>${esc(product.name)}</h3>
           ${ratingHtml(product)}
           <div class="prod-price">${priceHtml}</div>
           ${summary ? `<div class="prod-variant-summary">${esc(summary)}</div>` : ''}
@@ -5324,16 +5526,15 @@
      never surface here. */
   let searchTimer = null;
 
+  // The shared dialog contract: Escape, the Tab loop and focus returning to
+  // the search button all come from openModal/closeModal.
   function openSearch(){
-    document.getElementById('searchPanel').classList.add('active');
-    document.getElementById('searchOverlay').classList.add('active');
     document.body.style.overflow = 'hidden';
-    setTimeout(()=>document.getElementById('searchInput').focus(), 120);
+    openModal(document.getElementById('searchPanel'), document.getElementById('searchOverlay'),
+      document.getElementById('searchInput'), () => { document.body.style.overflow = ''; });
   }
   function closeSearch(){
-    document.getElementById('searchPanel').classList.remove('active');
-    document.getElementById('searchOverlay').classList.remove('active');
-    document.body.style.overflow = '';
+    closeModal(document.getElementById('searchPanel'), document.getElementById('searchOverlay'));
   }
 
   async function runSearch(){
@@ -5375,14 +5576,16 @@
           : (onSale
             ? `${inr(unitPrice)} <span style="color:var(--text-soft);text-decoration:line-through;font-weight:500;font-size:12px;">${inr(compareAt)}</span>`
             : inr(unitPrice));
-        return `<div class="search-hit" data-search-hit="${esc(p.id)}">
-            <div class="thumb" ${img}></div>
-            <div>
-              <h5>${esc(p.name)}</h5>
+        // A real button, so every result is reachable by Tab and opens on
+        // Enter or Space. Spans inside: a button may only hold phrasing content.
+        return `<button type="button" class="search-hit" data-search-hit="${esc(p.id)}">
+            <span class="thumb" ${img}></span>
+            <span class="search-hit-text">
+              <span class="search-hit-name">${esc(p.name)}</span>
               <small>${esc(p.category || '')}${p.total_stock===0?' · Out of stock':''}</small>
-            </div>
-            <div class="p">${price}</div>
-          </div>`;
+            </span>
+            <span class="p">${price}</span>
+          </button>`;
       }).join('');
     }catch(err){
       status.textContent = 'Search is unavailable right now. Please try again.';
@@ -5392,6 +5595,7 @@
   document.getElementById('searchBtn').addEventListener('click', openSearch);
   document.getElementById('searchGo').addEventListener('click', runSearch);
   document.getElementById('searchOverlay').addEventListener('click', closeSearch);
+  document.getElementById('searchClose').addEventListener('click', closeSearch);
   document.getElementById('searchInput').addEventListener('keydown', e => {
     if(e.key === 'Enter'){ e.preventDefault(); runSearch(); }
   });
@@ -5399,8 +5603,18 @@
     clearTimeout(searchTimer);
     searchTimer = setTimeout(runSearch, 320);   // debounced live search
   });
-  document.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && document.getElementById('searchPanel').classList.contains('active')) closeSearch();
+  // Arrow keys walk from the field through the results and back up to it.
+  document.getElementById('searchPanel').addEventListener('keydown', e => {
+    if(e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const input = document.getElementById('searchInput');
+    const hits = [...document.querySelectorAll('#searchResults .search-hit')];
+    if(!hits.length) return;
+    const i = hits.indexOf(document.activeElement);
+    if(document.activeElement !== input && i === -1) return;
+    e.preventDefault();
+    if(e.key === 'ArrowDown') (i === -1 ? hits[0] : hits[Math.min(i + 1, hits.length - 1)]).focus();
+    else if(i <= 0) input.focus();
+    else hits[i - 1].focus();
   });
   document.addEventListener('click', async (e) => {
     const hit = e.target.closest('[data-search-hit]');
@@ -5611,25 +5825,25 @@
     pdpEl('pdpDetails').innerHTML = sections;
     pdpEl('pdpDetails').hidden = !sections;
 
-    pdpEl('pdp').classList.add('active');
-    pdpEl('pdpOverlay').classList.add('active');
+    // A fresh product starts at the top, not wherever the last one was left.
+    pdpEl('pdp').scrollTop = 0;
     document.body.style.overflow = 'hidden';
+    // Lands on the close button: the first control would otherwise be a
+    // gallery thumbnail, and nothing here is a field worth raising a keyboard for.
+    openModal(pdpEl('pdp'), pdpEl('pdpOverlay'), pdpEl('pdpClose'), () => {
+      document.body.style.overflow = '';
+      // Stop any playing video so it doesn't keep running in the background.
+      const v = pdpEl('pdpGalleryMain').querySelector('video');
+      if(v) v.pause();
+    });
   }
 
   function closeProductDetail(){
-    pdpEl('pdp').classList.remove('active');
-    pdpEl('pdpOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-    // Stop any playing video so it doesn't keep running in the background.
-    const v = pdpEl('pdpGalleryMain').querySelector('video');
-    if(v) v.pause();
+    closeModal(pdpEl('pdp'), pdpEl('pdpOverlay'));
   }
 
   pdpEl('pdpClose').addEventListener('click', closeProductDetail);
   pdpEl('pdpOverlay').addEventListener('click', closeProductDetail);
-  document.addEventListener('keydown', e => {
-    if(e.key === 'Escape' && pdpEl('pdp').classList.contains('active')) closeProductDetail();
-  });
 
   document.addEventListener('click', async (e) => {
     const view = e.target.closest('[data-view-product]');
@@ -5695,7 +5909,7 @@
         </div>
         <div class="prod-info">
           <span class="cat">${esc(ph.category)}</span>
-          <h4>${esc(ph.name)}</h4>
+          <h3>${esc(ph.name)}</h3>
           <div class="prod-meta">${esc(ph.placeholder_label || 'Coming Soon')}</div>
           <div class="prod-price">${esc(ph.display_price || 'Coming soon')}</div>
         </div>
@@ -6141,10 +6355,14 @@
   }
 
   function renderHero(block){
+    const heading = document.getElementById('heroHeading');
+    // With the content API unreachable (or no headline saved) the page's only
+    // <h1> would be empty over a bare dark stage. The brand name stands in —
+    // it is not copy anyone has to write, so nothing is invented.
+    if(heading && !(block && (block.heading_lines || []).some(Boolean))) heading.textContent = 'Hairshalo';
     if(!block) return;
     setText('heroEyebrow', block.eyebrow);
-    const heading = document.getElementById('heroHeading');
-    if(heading){
+    if(heading && (block.heading_lines || []).some(Boolean)){
       // Built as text nodes and one <em>, never innerHTML: a headline is admin
       // input, and rendering it as markup would make the homepage an injection
       // point for anyone who can reach the Content screen.
@@ -6336,7 +6554,7 @@
     if(grid){
       grid.innerHTML = items.map(item => `
         <div class="why-item" data-reveal="up">${icon(item.icon, 1.6)}
-          <h4>${esc(item.title)}</h4>
+          <h3>${esc(item.title)}</h3>
           <p>${esc(item.body)}</p>
         </div>`).join('');
     }
@@ -6388,7 +6606,7 @@
       if(columns){
         columns.innerHTML = (block.columns || []).map(col => `
           <div class="foot-col">
-            <h5>${esc(col.heading)}</h5>
+            <h2>${esc(col.heading)}</h2>
             ${(col.links || []).map(l =>
               `<a href="${esc(safeHref(l.href))}">${esc(l.label)}</a>`).join('')}
           </div>`).join('');
@@ -6430,7 +6648,7 @@
         business.address ? `<span>${esc(business.address)}</span>` : '',
         business.hours ? `<span>${esc(business.hours)}</span>` : ''
       ].filter(Boolean);
-      contact.innerHTML = rows.length ? `<h5>Contact</h5>${rows.join('')}` : '';
+      contact.innerHTML = rows.length ? `<h2>Contact</h2>${rows.join('')}` : '';
       contact.hidden = rows.length === 0;
     }
   }
