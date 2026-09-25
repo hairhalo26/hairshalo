@@ -1390,7 +1390,7 @@
       </div>
     </section>
 
-    <!-- PRODUCT IMPORT — supplier CSV/JSON files Hairshalo is authorised to use.
+    <!-- PRODUCT IMPORT — supplier Excel/CSV/JSON files Hairshalo is authorised to use.
          Everything imported arrives as Draft; publishing stays a manual step. -->
     <section class="view" id="view-import">
       <div class="topbar">
@@ -1406,8 +1406,8 @@
         </div>
         <div class="ph-row">
           <div class="ph-field"><label for="impSupplier">Supplier</label><select id="impSupplier"></select></div>
-          <div class="ph-field"><label for="impFile">Catalogue file (CSV or JSON, up to 5 MB)</label>
-            <input id="impFile" type="file" accept=".csv,.json,.txt,.tsv,text/csv,application/json"></div>
+          <div class="ph-field"><label for="impFile">Catalogue file (Excel .xlsx, CSV or JSON, up to 5 MB)</label>
+            <input id="impFile" type="file" accept=".xlsx,.csv,.json,.txt,.tsv,text/csv,application/json,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"></div>
         </div>
         <p class="imp-note" id="impSupplierInfo"></p>
         <p class="imp-note">Only upload files Hairshalo is authorised to use — a supplier's own export or
@@ -5054,7 +5054,7 @@ Archive it instead? It disappears from the shop and can be restored later.`)) re
     impFail('impError', '');
     const s = impSupplier(), file = el('impFile').files[0];
     if(!s){ impFail('impError', 'Add or choose a supplier first.'); return; }
-    if(!file){ impFail('impError', 'Choose a CSV or JSON file.'); return; }
+    if(!file){ impFail('impError', 'Choose an Excel (.xlsx), CSV or JSON file.'); return; }
     const fd = new FormData();
     fd.append('supplier_id', s.id);
     fd.append('file', file);

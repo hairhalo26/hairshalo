@@ -141,7 +141,7 @@ def update_supplier(supplier_id: str, payload: schemas.SupplierUpdate, db: Sessi
 @router.post("/imports", response_model=schemas.ImportDetailOut, status_code=201)
 async def upload_file(supplier_id: str = Form(...), file: UploadFile = File(...),
                       db: Session = Depends(get_db), admin=Depends(get_current_admin)):
-    """Parse an uploaded CSV/JSON file. Nothing is imported yet."""
+    """Parse an uploaded .xlsx/CSV/JSON file. Nothing is imported yet."""
     supplier = _get_supplier(db, supplier_id)
     data = await file.read(svc.MAX_FILE_BYTES + 1)
     name = re.sub(r"[^\w.\- ]+", "_", (file.filename or "upload").split("/")[-1].split("\\")[-1])[:120]

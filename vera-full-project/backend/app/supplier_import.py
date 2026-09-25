@@ -1,4 +1,4 @@
-"""Generic supplier catalogue import — CSV or JSON files Hairshalo is authorised to use.
+"""Generic supplier catalogue import — Excel (.xlsx), CSV or JSON files Hairshalo is authorised to use.
 
 Supplier-agnostic by design: nothing here knows any particular supplier. A file
 goes through four explicit steps, and nothing reaches the storefront without an
@@ -316,16 +316,17 @@ def parse_file(filename: str, data: bytes) -> Tuple[str, List[str], List[dict]]:
         raise SupplierImportError("The file is empty.")
     if len(data) > MAX_FILE_BYTES:
         raise SupplierImportError(f"The file is larger than {MAX_FILE_BYTES // (1024 * 1024)} MB.")
-    if b"\x00" in data[:4096]:
-        raise SupplierImportError("This does not look like a text file. Upload a CSV or JSON export.")
     lower = (filename or "").lower()
-    head = data.lstrip()[:1]
-    if lower.endswith(".json") or head in (b"[", b"{"):
-        fmt, rows = "json", _parse_json(data)
-    elif lower.endswith((".csv", ".txt", ".tsv")) or not lower:
-        fmt, rows = "csv", _parse_csv(data)
+    if lower.endswith(".xls"):
+        raise SupplierImportError("Old .xls workbooks can't be read. Save it as .xlsx (or CSV) and upload again.")
+    if data[:4] == b"PK\x03\x04":                  # a zip container, i.e. .xlsx
+        fmt, rows = "xlsx", _parse_xlsx(data)
+    elif b"\x00" in data[:4096]:
+        raise SupplierImportError("This does not look like a catalogue file. Upload an Excel (.xlsx), CSV or JSON file.")
+    elif lower.endswith(".xlsx"):
+        raise SupplierImportError("This .xlsx file is not a valid Excel workbook.")
     else:
-        raise SupplierImportError("Only CSV and JSON files can be imported.")
+        fmt, rows = _parse_text(lower, data)
     if not rows:
         raise SupplierImportError("The file has no product rows.")
     if len(rows) > MAX_ROWS:
@@ -336,6 +337,15 @@ def parse_file(filename: str, data: bytes) -> Tuple[str, List[str], List[dict]]:
             if not key.startswith("__") and key not in columns:
                 columns.append(key)
     return fmt, columns, rows
+
+
+def _parse_text(lower: str, data: bytes) -> Tuple[str, List[dict]]:
+    head = data.lstrip()[:1]
+    if lower.endswith(".json") or head in (b"[", b"{"):
+        return "json", _parse_json(data)
+    if lower.endswith((".csv", ".txt", ".tsv")) or not lower:
+        return "csv", _parse_csv(data)
+    raise SupplierImportError("Only Excel (.xlsx), CSV and JSON files can be imported.")
 
 
 def _decode(data: bytes) -> str:
@@ -379,6 +389,84 @@ def _parse_csv(data: bytes) -> List[dict]:
         return rows
     except csv.Error as exc:
         raise SupplierImportError(f"The CSV could not be read: {exc}")
+
+
+# Sheets of Hairshalo's supplier template that hold guidance, not products.
+XLSX_PREFERRED_SHEETS = ("catalogue", "catalog", "products")
+XLSX_MAX_UNZIPPED_BYTES = 60 * 1024 * 1024       # zip-bomb guard: 5 MB compresses well, not this well
+
+
+def _xlsx_cell(value) -> str:
+    if value is None:
+        return ""
+    if isinstance(value, bool):
+        return "TRUE" if value else "FALSE"
+    if isinstance(value, float):
+        # Excel stores every number as a float: 1001 -> "1001", not "1001.0".
+        return str(int(value)) if value.is_integer() else repr(value)
+    if isinstance(value, datetime):
+        return value.date().isoformat() if value.time() == datetime.min.time() else value.isoformat(sep=" ")
+    if hasattr(value, "isoformat"):
+        return value.isoformat()
+    return str(value)
+
+
+def _parse_xlsx(data: bytes) -> List[dict]:
+    """Read one worksheet of an .xlsx: row 1 is the header, like a CSV.
+
+    The sheet is 'Catalogue' (or 'Catalog'/'Products') when there is one — so
+    Hairshalo's own template works as returned — else the first visible sheet.
+    Cached values are read, never formulas; openpyxl parses through defusedxml.
+    """
+    import zipfile
+    from openpyxl import load_workbook
+
+    try:
+        with zipfile.ZipFile(io.BytesIO(data)) as zf:
+            members = zf.infolist()
+            if len(members) > 2000 or sum(m.file_size for m in members) > XLSX_MAX_UNZIPPED_BYTES:
+                raise SupplierImportError("This workbook is too large once unpacked. Save the product sheet as CSV instead.")
+            if "xl/workbook.xml" not in {m.filename for m in members}:
+                raise SupplierImportError("This file is not an Excel workbook.")
+    except zipfile.BadZipFile:
+        raise SupplierImportError("This .xlsx file is damaged and could not be opened.")
+
+    try:
+        wb = load_workbook(io.BytesIO(data), read_only=True, data_only=True)
+    except SupplierImportError:
+        raise
+    except Exception as exc:
+        raise SupplierImportError(f"The workbook could not be read ({type(exc).__name__}). Save it again as .xlsx or CSV.")
+    try:
+        sheets = [ws for ws in wb.worksheets if getattr(ws, "sheet_state", "visible") == "visible"] or wb.worksheets
+        by_name = {ws.title.strip().lower(): ws for ws in sheets}
+        ws = next((by_name[n] for n in XLSX_PREFERRED_SHEETS if n in by_name), sheets[0] if sheets else None)
+        if ws is None:
+            raise SupplierImportError("The workbook has no sheets.")
+
+        it = ws.iter_rows(values_only=True)
+        first = next(it, None)
+        headers = [_xlsx_cell(h).strip() for h in (first or ())]
+        named = [h for h in headers if h]
+        if not named:
+            raise SupplierImportError(f"The sheet '{ws.title}' has no header row in row 1.")
+        if len(set(named)) != len(named):
+            raise SupplierImportError(f"The sheet '{ws.title}' has duplicate column names in row 1.")
+        rows = []
+        for index, values in enumerate(it, start=2):
+            row = {}
+            for key, value in zip(headers, values):
+                if key:
+                    row[key] = _xlsx_cell(value).strip()[:MAX_CELL_CHARS]
+            if any(v for v in row.values()):
+                row["__line"] = index
+                row["__group"] = None
+                rows.append(row)
+            if len(rows) > MAX_ROWS:
+                break
+        return rows
+    finally:
+        wb.close()
 
 
 def _scalar(value):

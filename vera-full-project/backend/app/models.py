@@ -1291,7 +1291,7 @@ class SupplierImport(Base):
     supplier_id = Column(String, ForeignKey("suppliers.id", ondelete="CASCADE"),
                          nullable=False, index=True)
     file_name = Column(String, nullable=False)
-    file_format = Column(String, nullable=False)       # csv | json
+    file_format = Column(String, nullable=False)       # csv | json | xlsx
     status = Column(String, nullable=False, default="uploaded")  # uploaded|previewed|committed|failed
     columns = Column(JSON, nullable=True)
     raw_rows = Column(JSON, nullable=True)
