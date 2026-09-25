@@ -171,6 +171,64 @@ def test_json_variants_flatten_to_one_row_each():
     assert mapping["variant_price"] == "variants.price" and mapping["source_price"] == "price"
 
 
+def _xlsx(sheets):
+    """sheets: [(title, rows)] -> .xlsx bytes."""
+    from openpyxl import Workbook
+    wb = Workbook()
+    wb.remove(wb.active)
+    for title, rows in sheets:
+        ws = wb.create_sheet(title)
+        for row in rows:
+            ws.append(row)
+    buf = io.BytesIO()
+    wb.save(buf)
+    return buf.getvalue()
+
+
+def test_xlsx_reads_the_catalogue_sheet_like_a_csv():
+    body = _xlsx([
+        ("Read Me", [["Please fill in the Catalogue sheet"], ["Company name", "Aurora"]]),
+        ("Catalogue", [["Product ID", "Product Name", "Supplier SKU", "Variant Price", "Quantity", "Length"],
+                       ["HW-1", "Straight Wig", 1001, 85.5, 40, "16 inch"],
+                       [None, None, None, None, None, None],           # blank rows are skipped
+                       ["HW-1", "Straight Wig", "HW-1-20", 105, 25.0, "20 inch"]]),
+        ("Lists", [["Hair Type"], ["Human Hair"]]),
+    ])
+    fmt, cols, rows = svc.parse_file("catalogue.xlsx", body)
+    assert fmt == "xlsx" and len(rows) == 2
+    assert cols == ["Product ID", "Product Name", "Supplier SKU", "Variant Price", "Quantity", "Length"]
+    assert rows[0]["Supplier SKU"] == "1001" and rows[0]["Variant Price"] == "85.5"
+    assert rows[1]["Variant Price"] == "105" and rows[1]["Quantity"] == "25"
+    assert [r["__line"] for r in rows] == [2, 4]
+    mapping = svc.suggest_mapping(cols)
+    assert mapping["source_product_id"] == "Product ID" and mapping["variant_price"] == "Variant Price"
+
+
+def test_xlsx_without_a_catalogue_sheet_uses_the_first_sheet():
+    body = _xlsx([("Sheet1", [["name", "sku"], ["Ponytail", "P-1"]]), ("Other", [["x"], ["y"]])])
+    fmt, cols, rows = svc.parse_file("export.xlsx", body)
+    assert cols == ["name", "sku"] and rows[0]["sku"] == "P-1"
+
+
+def test_bad_workbooks_are_refused():
+    import zipfile
+    bomb = io.BytesIO()
+    with zipfile.ZipFile(bomb, "w", zipfile.ZIP_DEFLATED) as zf:
+        zf.writestr("xl/workbook.xml", "<x/>")
+        zf.writestr("xl/big.xml", b"\x20" * (svc.XLSX_MAX_UNZIPPED_BYTES + 1))
+    not_excel = io.BytesIO()
+    with zipfile.ZipFile(not_excel, "w") as zf:
+        zf.writestr("readme.txt", "hello")
+    for name, body in [("x.xlsx", bomb.getvalue()), ("x.xlsx", not_excel.getvalue()),
+                       ("x.xlsx", b"PK\x03\x04garbage"), ("x.xlsx", b"just text"),
+                       ("x.xls", b"\xd0\xcf\x11\xe0legacy"),
+                       ("x.xlsx", _xlsx([("Catalogue", [["a", "a"], [1, 2]])])),
+                       ("x.xlsx", _xlsx([("Catalogue", [[None, None], ["x", "y"]])])),
+                       ("x.xlsx", _xlsx([("Catalogue", [["name"]])]))]:
+        with pytest.raises(svc.SupplierImportError):
+            svc.parse_file(name, body)
+
+
 # ================================================================ unit: URL safety
 def test_image_urls_are_vetted_before_any_fetch(monkeypatch):
     allowed = ["images.aurora-supply.test"]

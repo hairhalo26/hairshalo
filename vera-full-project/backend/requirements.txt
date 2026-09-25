@@ -12,6 +12,9 @@ passlib[bcrypt]==1.7.4
 bcrypt==4.0.1  # passlib 1.7.4 is incompatible with bcrypt >= 4.1
 python-dotenv==1.0.1
 python-multipart==0.0.9
+# Supplier catalogue import reads .xlsx; openpyxl parses its XML through defusedxml when installed.
+openpyxl==3.1.5
+defusedxml==0.7.1
 
 # Testing (dev only)
 pytest==8.3.2
