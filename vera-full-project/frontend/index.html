@@ -10008,20 +10008,36 @@
       applyBackdrop(arch, pick, 'cover');
     }
 
-    /* The texture study hands over to the piece it was art-directed around —
-       Feather Crochet Burmese Curl 18" — shown through its own close-up, with
-       its name and id straight from the catalogue. Only that piece: when the
-       catalogue does not have it (or it has no photograph), nothing stands in
-       for it and the scene holds on the campaign image alone. The handover
-       layers (.has-product) run only once the product photograph has loaded. */
+    /* The texture study hands over to a real piece from the catalogue, chosen
+       by what the API itself reports — never by name, never a stand-in:
+         - in stock now (in_stock true and total_stock above zero; the API's
+           is_purchasable is true even at zero stock, so it is not used);
+         - human hair (the campaign image shows natural hair; synthetic or
+           unstated hair_type does not qualify);
+         - a curl or wave texture, curls preferred;
+         - photographed.
+       No piece qualifies, no handover: the scene holds on the campaign image
+       alone. The handover layers (.has-product) run only once the product's
+       own photograph has loaded. */
+    function textureStudyPick(products){
+      var ok = products.filter(function(p){
+        return p.in_stock === true && Number(p.total_stock) > 0
+          && /human/i.test(p.hair_type || '') && !/synthetic/i.test(p.hair_type || '')
+          && /curl|coil|kink|wave/i.test(p.texture || '')
+          && (discoverFrames(p).length || p.image_url);
+      });
+      var curl = function(p){ return /curl|coil|kink/i.test(p.texture || '') ? 1 : 0; };
+      ok.sort(function(a, b){ return (curl(b) - curl(a)) || (discoverFrames(b).length - discoverFrames(a).length); });
+      return ok[0] || null;
+    }
     function textureStudyProduct(products){
       var sec = document.getElementById('textureStudy');
       if(!sec || typeof resolveMediaUrl !== 'function') return;
-      var p = products.find(function(x){ return /feather crochet burmese curl/i.test(x.name || ''); });
-      var shots = p ? discoverFrames(p) : [];
+      var p = textureStudyPick(products);
+      if(!p) return;
+      var shots = discoverFrames(p);
       // The third frame is the close-up; fewer frames, the best there is.
-      var url = shots.length ? shots[Math.min(2, shots.length - 1)].url : (p && p.image_url);
-      if(!url) return;
+      var url = shots.length ? shots[Math.min(2, shots.length - 1)].url : p.image_url;
       var src = resolveMediaUrl(url);
       var probe = new Image();
       probe.onload = function(){
