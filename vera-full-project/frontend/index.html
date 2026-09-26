@@ -9931,6 +9931,9 @@
         ph.className = 'ai-photo';
         ph.setAttribute('aria-hidden', 'true');
         ph.style.backgroundImage = "url('" + cssUrl(resolveMediaUrl(url)) + "')";
+        // A card's own artwork is composed for the card, subject at the top;
+        // the text sits over the darkened foot either way.
+        if(own(card)) ph.style.backgroundPosition = '50% 22%';
         card.insertBefore(ph, card.firstChild);
         card.classList.add('is-campaign');
       });
