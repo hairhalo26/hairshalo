@@ -3005,14 +3005,16 @@
   /* ======================================================================
      THE STORY'S JOINS — hair as the thread between scenes
      ====================================================================== */
-  /* Statement → texture study: the same curls the texture study opens on
-     drift in from the right edge as the words cross, so the typography
-     scene is never an empty stage. Only when the campaign photograph is
-     present; otherwise the strands carry it as before. */
+  /* Statement → texture study: a portrait drifts in from the right edge as
+     the words cross, so the typography scene is never an empty stage — the
+     statement's own (data-image), or else the curls the texture study opens
+     on. With neither photograph the strands carry it as before. */
   .stmt-hair{display:none;}
   .stmt-hair.is-set{display:block;position:absolute;top:0;bottom:0;right:0;width:min(46vw,680px);
     background-size:cover;background-position:88% 52%;background-repeat:no-repeat;opacity:.42;
     -webkit-mask-image:linear-gradient(90deg,transparent 0,#000 60%);mask-image:linear-gradient(90deg,transparent 0,#000 60%);}
+  /* A portrait of its own is framed on the face, not the texture's crop. */
+  .stmt-hair.is-own{background-position:55% 30%;}
   .motion-ready .stmt-hair.is-set{will-change:transform,opacity;
     opacity:calc(clamp(0, (var(--sv,.5) - .12) * 1.6, 1) * .55);
     transform:translate3d(calc((1 - clamp(0, (var(--sv,.5) - .08) * 1.5, 1)) * 9vw),0,0) scale(1.06);}
@@ -3481,8 +3483,12 @@
 <!-- The story, in order: the film (flow, statement, texture study,
      transformation), then the collection (examine, details, shop), then
      why and help, then the close. -->
-<!-- EDITORIAL STATEMENT — the loudest moment on the page. -->
-<section class="cine statement" id="statement" data-tone="#0D0907" data-scroll aria-labelledby="stmtHeading">
+<!-- EDITORIAL STATEMENT — the loudest moment on the page.
+     data-image: its own portrait, drifting in behind the words from the right
+     — production campaign imagery only (clean, licensed). Empty, it borrows
+     the texture study's photograph instead; with neither, the strands carry
+     the scene alone. -->
+<section class="cine statement" id="statement" data-tone="#0D0907" data-scroll aria-labelledby="stmtHeading" data-image="">
   <div class="stmt-fx" aria-hidden="true">
     <canvas class="stmt-strands" data-fx="strands" aria-hidden="true"></canvas>
     <div class="stmt-hair" id="stmtHair"></div>
@@ -9926,8 +9932,11 @@
       var probe = new Image();
       probe.onload = function(){
         sec.querySelector('.ts-img').style.backgroundImage = "url('" + cssUrl(src) + "')";
+        // The statement borrows this photograph only when it has none of its own.
         var lead = document.getElementById('stmtHair');
-        if(lead){ lead.style.backgroundImage = "url('" + cssUrl(src) + "')"; lead.classList.add('is-set'); }
+        if(lead && !lead.classList.contains('is-own')){
+          lead.style.backgroundImage = "url('" + cssUrl(src) + "')"; lead.classList.add('is-set');
+        }
         sec.hidden = false;
         if(M && M.scan) M.scan(sec);
       };
@@ -9935,6 +9944,23 @@
       probe.src = src;
     }
     textureStudyImage();
+
+    /* The statement's own portrait (data-image on #statement). Shown only
+       once it has loaded; it takes precedence over the borrowed texture-study
+       photograph whichever of the two loads first. */
+    function statementImage(){
+      var sec = document.getElementById('statement');
+      var lead = document.getElementById('stmtHair');
+      var src = sec && (sec.getAttribute('data-image') || '').trim();
+      if(!src || !lead) return;
+      var probe = new Image();
+      probe.onload = function(){
+        lead.style.backgroundImage = "url('" + cssUrl(src) + "')";
+        lead.classList.add('is-set', 'is-own');
+      };
+      probe.src = src;
+    }
+    statementImage();
 
     function build(products){
       if(!products || !products.length) return;
