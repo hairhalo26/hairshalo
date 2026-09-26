@@ -3440,6 +3440,224 @@
   .motion-ready .nl-wrap .newsletter h2{opacity:clamp(.001, (var(--sp,1) - .25) * 2.5, 1);
     translate:0 calc((1 - clamp(0, (var(--sp,1) - .25) * 2.5, 1)) * 18px);}
 
+  /* ==================== HERO PORTRAIT ====================
+     The campaign portrait (assets/campaign/hero-portrait-*.webp, a
+     transparent cutout, unaltered apart from resizing) replaces the product
+     vitrine on the right of the hero. .has-portrait on .hero-visual scopes
+     all of it; without the class the product set comes back untouched.
+
+     Three layers share one box, so they can never drift apart: the portrait,
+     the light falling on it (masked to her silhouette), and the travelling
+     sheen (masked to the hair — the face is cut out of both masks, so no
+     light or line ever crosses it). The source is cropped flat at the
+     bottom, so every layer fades out into the floor of the set. */
+  .has-portrait{--hvp:url("assets/campaign/hero-portrait-1254.webp");}
+  .has-portrait .arch,
+  .motion-ready .has-portrait .arch[data-reveal],
+  .has-portrait .hv-floor,
+  .has-portrait .hv-tag{display:none !important;}
+  /* The key light rises behind her head. The cutout is opaque, so it only
+     reads around the curls — a warm backlight, not a glow drawn on her. */
+  .has-portrait .hv-light{
+    background:radial-gradient(40% 46% at 53% 34%,
+      rgba(236,214,186,.30) 0%, rgba(201,154,130,.14) 45%, rgba(13,9,7,0) 74%);
+  }
+  .hv-portrait,
+  .has-portrait .hv-portrait-light,
+  .has-portrait .hv-sweep{
+    position:absolute;top:auto;right:auto;
+    left:55%;bottom:-5.5%;height:106%;width:auto;aspect-ratio:1/1;max-width:none;
+    translate:-50% 0;transform-origin:50% 100%;
+    transform:translate3d(calc(var(--hero-px,0) * 8px),0,0);
+    transition:transform .5s var(--ease), opacity 1.6s var(--e-film) .2s;
+    pointer-events:none;
+  }
+  .hv-portrait{
+    z-index:3;display:block;user-select:none;-webkit-user-drag:none;
+    -webkit-mask-image:linear-gradient(0deg,transparent 0,#000 15%);
+            mask-image:linear-gradient(0deg,transparent 0,#000 15%);
+  }
+  /* Silhouette ∩ not-the-face ∩ the bottom fade. */
+  .has-portrait .hv-portrait-light,
+  .has-portrait .hv-sweep{
+    -webkit-mask:
+      var(--hvp) center / contain no-repeat,
+      radial-gradient(ellipse 17% 23% at 49% 39%, transparent 78%, #000 100%),
+      linear-gradient(0deg, transparent 0, #000 15%);
+    -webkit-mask-composite:source-in, source-in;
+    mask:
+      var(--hvp) center / contain no-repeat,
+      radial-gradient(ellipse 17% 23% at 49% 39%, transparent 78%, #000 100%),
+      linear-gradient(0deg, transparent 0, #000 15%);
+    mask-composite:intersect;
+  }
+  /* The studio key from high right warms the crown and the right-hand
+     curls; a lower fill from the left lifts the hair on that side; the body
+     sinks into the espresso dark. Soft-light, so it tints, never paints. */
+  .has-portrait .hv-portrait-light{
+    z-index:4;display:block;mix-blend-mode:soft-light;
+    background:
+      radial-gradient(52% 40% at 82% 12%, rgba(243,221,176,.6), rgba(243,221,176,0) 72%),
+      radial-gradient(24% 32% at 14% 42%, rgba(201,154,130,.4), rgba(201,154,130,0) 72%),
+      linear-gradient(0deg, rgba(13,9,7,.75) 0%, rgba(13,9,7,0) 40%);
+  }
+  /* The existing sweep, re-aimed: a sheen travelling across the curls. */
+  .has-portrait .hv-sweep{
+    z-index:5;mix-blend-mode:screen;
+    background:linear-gradient(104deg,transparent 44%,rgba(255,238,212,.22) 50%,transparent 56%) no-repeat;
+    background-size:300% 100%;background-position:100% 0;
+  }
+  /* Enters on load, not on a timer: never a fade into an empty frame. */
+  .motion-ready .hv-stage:has(.hv-portrait:not(.is-loaded)) :is(.hv-portrait,.hv-portrait-light,.hv-sweep){opacity:0;}
+  /* Breathing, not bobbing: the face travels about 4px over twenty
+     seconds (2px of rise plus 0.4% of scale from the floor), all three
+     layers in step. Full tier only; reduced motion never gets
+     .motion-ready, so it never runs there. */
+  .motion-full .hv-portrait,
+  .motion-full .has-portrait .hv-portrait-light{animation:hvBreath 20s ease-in-out infinite alternate;}
+  .motion-full .has-portrait .hv-sweep{animation:hvSweep 11s var(--e-film) 2.6s infinite, hvBreath 20s ease-in-out infinite alternate;}
+  @keyframes hvBreath{
+    from{translate:-50% 0;scale:1;}
+    to  {translate:-50% -2px;scale:1.004;}
+  }
+
+  /* Large screens: the headline keeps growing with the viewport while the
+     visual column is capped, so she moves right to stay clear of it. */
+  @media (min-width:1520px){
+    .hv-portrait,
+    .has-portrait .hv-portrait-light,
+    .has-portrait .hv-sweep{left:69%;height:101%;bottom:-8.7%;}
+  }
+  @media (min-width:2000px){
+    .hv-portrait,
+    .has-portrait .hv-portrait-light,
+    .has-portrait .hv-sweep{left:76%;}
+  }
+  /* Small laptops: the copy column is narrow, so she steps back a little
+     and further right to keep clear of the buttons and chips. */
+  @media (min-width:981px) and (max-width:1180px){
+    .hv-portrait,
+    .has-portrait .hv-portrait-light,
+    .has-portrait .hv-sweep{left:60%;height:100%;bottom:-4%;}
+  }
+  /* Tablet: the two columns are narrow and the headline reaches into the
+     visual, so she is smaller and set lower, beside the paragraph and
+     buttons rather than the headline, with her face kept whole on screen. */
+  @media (min-width:700px) and (max-width:980px){
+    .hv-portrait,
+    .has-portrait .hv-portrait-light,
+    .has-portrait .hv-sweep{left:70%;height:84%;bottom:-12%;}
+  }
+  @media (max-width:699px){
+    .has-portrait{--hvp:url("assets/campaign/hero-portrait-760.webp");}
+    .hv-portrait,
+    .has-portrait .hv-portrait-light,
+    .has-portrait .hv-sweep{left:50%;height:100%;bottom:0;}
+  }
+  /* Desktop: the whole portrait belongs to the first screen. The hero is
+     taller than the window, so anchoring her to its floor left her body
+     below the fold. fitHeroPortrait() measures the header and the window
+     and hands over a top (relative to .hv-stage) and a size, so she runs
+     from just under the navigation down to (at most) the bottom of the
+     first screen. */
+  @media (min-width:981px){
+    .has-portrait.is-fitted .hv-portrait,
+    .has-portrait.is-fitted .hv-portrait-light,
+    .has-portrait.is-fitted .hv-sweep{top:var(--hvp-top);bottom:auto;height:var(--hvp-size);}
+  }
+
+  /* ==================== Curl / straight divider ====================
+     One portrait in two hairstyles, layered — never blended. Both <img>
+     share every rule that decides framing (box, object-fit, object-position,
+     srcset/sizes) so they can never crop differently; only the top layer's
+     clip-path moves. --hx is the divider position, 0–100%. */
+  /* Fades from and back to the stage black, so the neighbours meet it without a hard edge. */
+  .hx{position:relative;background:linear-gradient(180deg,#0D0907 0%,#24130E 16%,#24130E 84%,#0D0907 100%);color:var(--ivory);
+    padding:clamp(72px,9vw,128px) 0 clamp(56px,7vw,96px);}
+  .hx-head{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,.7fr);column-gap:40px;align-items:end;
+    margin-bottom:clamp(28px,3.4vw,48px);}
+  .hx-head .cine-eyebrow{grid-column:1 / -1;}
+  .hx-title{font-family:'Fraunces',serif;font-weight:400;color:var(--ivory);
+    font-size:clamp(40px,5.4vw,88px);line-height:.95;letter-spacing:-.02em;}
+  .hx-title em{font-style:italic;color:var(--champagne);}
+  .hx-stage{
+    --hx:50%;
+    position:relative;overflow:hidden;isolation:isolate;
+    width:calc(100% - 2 * var(--gutter,32px));max-width:1320px;margin:0 auto;
+    height:clamp(480px,86vh,900px);
+    border-radius:clamp(10px,1.2vw,18px);
+    background:#B9714F;             /* the backdrop's own terracotta, only while loading */
+    touch-action:pan-y;             /* vertical scroll stays native; horizontal is ours */
+    user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;
+    cursor:ew-resize;
+  }
+  .hx-img{
+    position:absolute;inset:0;width:100%;height:100%;max-width:none;
+    object-fit:cover;object-position:44% 45%;
+    pointer-events:none;-webkit-user-drag:none;
+  }
+  .hx-img--top{clip-path:inset(0 0 0 var(--hx));}
+  /* The rail is exactly as wide as the stage, so translateX(var(--hx)) puts
+     its left edge — the divider — at the same x the clip cuts. */
+  .hx-rail{position:absolute;inset:0;pointer-events:none;transform:translateX(var(--hx));}
+  .hx-stage.is-gliding .hx-img--top{transition:clip-path .42s cubic-bezier(.16,1,.3,1);}
+  .hx-stage.is-gliding .hx-rail{transition:transform .42s cubic-bezier(.16,1,.3,1);}
+  .hx-line{
+    position:absolute;top:0;bottom:0;left:-.75px;width:1.5px;
+    background:var(--champagne-hi);opacity:.92;
+    box-shadow:0 0 14px rgba(13,9,7,.3);
+  }
+  .hx-handle{
+    position:absolute;top:50%;left:0;width:46px;height:46px;margin:-23px 0 0 -23px;
+    border-radius:50%;pointer-events:auto;cursor:ew-resize;touch-action:none;
+    display:flex;align-items:center;justify-content:center;gap:5px;
+    background:rgba(13,9,7,.86);color:var(--champagne-hi);
+    border:1px solid rgba(243,221,176,.55);
+    box-shadow:0 10px 26px -10px rgba(13,9,7,.7);
+    transition:transform .3s cubic-bezier(.16,1,.3,1), background .3s;
+  }
+  .hx-handle svg{width:8px;height:12px;flex:none;}
+  .hx-stage:hover .hx-handle,
+  .hx-stage.is-dragging .hx-handle{transform:scale(1.08);background:rgba(13,9,7,.94);}
+  .hx-handle:focus{outline:none;}
+  .hx-handle:focus-visible{outline:2px solid var(--champagne);outline-offset:4px;}
+  .hx-tag{
+    position:absolute;top:clamp(14px,2vw,24px);z-index:2;pointer-events:none;
+    font-size:10.5px;font-weight:600;letter-spacing:.22em;text-transform:uppercase;
+    color:var(--ivory);padding:7px 12px;border-radius:100px;
+    background:rgba(13,9,7,.42);
+    -webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px);
+    transition:opacity .3s;
+  }
+  .hx-tag--curl{left:clamp(14px,2vw,24px);}
+  .hx-tag--straight{right:clamp(14px,2vw,24px);}
+  .hx-stage.is-edge-l .hx-tag--curl,
+  .hx-stage.is-edge-r .hx-tag--straight{opacity:0;}
+  .hx-notes{
+    display:grid;grid-template-columns:1fr 1fr;gap:clamp(18px,4vw,64px);
+    max-width:880px;margin:clamp(26px,3vw,38px) auto 0;padding:0 var(--gutter,32px);
+  }
+  .hx-notes h3{font-family:'Fraunces',serif;font-weight:400;font-size:20px;color:var(--ivory);margin-bottom:6px;}
+  .hx-notes p{font-size:14px;line-height:1.7;color:rgba(244,236,224,.66);}
+  .hx-notes div:last-child{text-align:right;}
+  @media (max-width:760px){
+    .hx-head{grid-template-columns:1fr;row-gap:14px;}
+    /* Portrait on phones: the crop loses the sides, never the face, and both
+       layers crop identically because they share the rules above. */
+    .hx-stage{height:auto;aspect-ratio:4/5;max-height:82vh;}
+    .hx-handle{width:42px;height:42px;margin:-21px 0 0 -21px;}
+  }
+  @media (max-width:520px){
+    .hx-notes{grid-template-columns:1fr;}
+    .hx-notes div:last-child{text-align:left;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    /* Still fully draggable; only the glide goes. */
+    .hx-stage.is-gliding .hx-img--top,
+    .hx-stage.is-gliding .hx-rail,
+    .hx-handle{transition:none !important;}
+  }
+
   /* ==================== Reduced motion — a still, finished stage ==================== */
   @media (prefers-reduced-motion: reduce){
     .fx-particles{display:none;}
@@ -3553,14 +3771,17 @@
       </div>
       <div class="hero-chips" id="heroChips" data-reveal="up"></div>
     </div>
-    <div class="hero-visual">
-      <!-- A lit set, not a frame. The photograph is multiplied into a pool of
-           warm light, so the studio white of a product shot becomes the light
-           itself and the product appears to stand in the scene. Layers, back
-           to front: light, floor shadow, the product (entering through a
-           mask), a sweep of light across it, and hair-light strands that run
-           past its edge into the room. Image comes from Back Office → Content
-           → Homepage hero, else the shop's own product photograph. -->
+    <div class="hero-visual has-portrait">
+      <!-- A lit set, not a frame. Layers, back to front: the warm key light,
+           hair-light strands running into the room, the campaign portrait (a
+           transparent cutout, so the set shows through around her), the light
+           falling on her hair, and a sheen that crosses the curls but never
+           the face.
+
+           .has-portrait retires the product vitrine (#heroArch, its floor
+           shadow and tag). Those nodes stay in the markup because the content
+           script still writes into them; remove the class to bring back the
+           Back Office hero image / product photograph. -->
       <div class="hv-stage">
         <span class="hv-light" aria-hidden="true"></span>
         <span class="hv-floor" aria-hidden="true"></span>
@@ -3586,6 +3807,13 @@
           <path class="hv-l" pathLength="1" style="--i:0;--dur:6.5s" d="M300 170C250 330 420 470 360 620S520 780 690 830"/>
           <path class="hv-l" pathLength="1" style="--i:1;--dur:8s" d="M270 200C170 380 300 540 220 700S300 840 380 920"/>
         </svg>
+        <img class="hv-portrait" src="assets/campaign/hero-portrait-1254.webp"
+             srcset="assets/campaign/hero-portrait-760.webp 760w, assets/campaign/hero-portrait-1254.webp 1254w"
+             sizes="(max-width:699px) min(112vw, 520px), min(98vh, 1020px)"
+             width="1254" height="1254" fetchpriority="high" decoding="async" draggable="false"
+             onload="this.classList.add('is-loaded')"
+             alt="Editorial portrait of a woman with long, voluminous dark curly hair">
+        <span class="hv-portrait-light" aria-hidden="true"></span>
         <span class="tag hv-tag" id="heroArchTag" hidden></span>
       </div>
       <!-- Filled with a real review when there is one; otherwise it states a
@@ -3603,6 +3831,47 @@
   </div>
   <a class="hero-cue" href="#flow" aria-label="Scroll to The Flow"><span>Scroll</span><i aria-hidden="true"></i></a>
 </section>
+<script>
+/* fitHeroPortrait — desktop only (see "HERO PORTRAIT" in the stylesheet).
+   Sizes the portrait to the first screen: from just under the header down
+   to, at most, the bottom of the window. Positions are read from the layout (offsetTop),
+   not from getBoundingClientRect, so the scroll parallax on .hero-visual
+   never feeds back into the measurement. Runs on load, on resize, and when
+   the hero's own size changes (its copy arrives from the API later). */
+(function(){
+  'use strict';
+  var vis = document.querySelector('.hero-visual.has-portrait');
+  if(!vis) return;
+  var stage = vis.querySelector('.hv-stage');
+  var hero = vis.closest('.hero');
+  var header = document.getElementById('siteHeader');
+  var desktop = window.matchMedia('(min-width:981px)');
+  var raf = 0;
+
+  function pageTop(el){
+    var y = 0;
+    for(; el; el = el.offsetParent) y += el.offsetTop;
+    return y;
+  }
+  function fit(){
+    raf = 0;
+    if(!desktop.matches || !stage){ vis.classList.remove('is-fitted'); return; }
+    var top = (header ? header.offsetHeight : 75) + 14;
+    // Very tall windows would grow her past the headline; 960px keeps her
+    // clear of it while still fully on screen.
+    var size = Math.max(420, Math.min(window.innerHeight - top, 960));
+    vis.style.setProperty('--hvp-top', (top - pageTop(stage)) + 'px');
+    vis.style.setProperty('--hvp-size', size + 'px');
+    vis.classList.add('is-fitted');
+  }
+  function queue(){ if(!raf) raf = window.requestAnimationFrame(fit); }
+
+  fit();
+  window.addEventListener('resize', queue);
+  if(desktop.addEventListener) desktop.addEventListener('change', queue);
+  if('ResizeObserver' in window && hero) new ResizeObserver(queue).observe(hero);
+})();
+</script>
 
 <!-- The story, in order: the film (flow, statement, texture study,
      transformation), then the collection (examine, details, shop), then
@@ -3688,6 +3957,145 @@
     </div>
   </div>
 </section>
+
+<!-- CURL / STRAIGHT — an editorial styling comparison: one portrait (client-
+     supplied campaign imagery) shown curly and straight. Not a customer result
+     and not presented as one. Curly is the base layer; straight sits above it, clipped to the
+     right of the divider. -->
+<section class="hx" id="curlStraight" data-tone="#24130E" aria-labelledby="hxHeading">
+  <div class="wrap hx-head">
+    <span class="cine-eyebrow" data-reveal="up">Curl / Straight</span>
+    <h2 class="hx-title" id="hxHeading" data-reveal="up">Curl.<br><em>Or straight.</em></h2>
+    <p class="cine-lede" id="hxIntro" data-reveal="up">The same portrait, styled two ways. Drag the divider to move between a full curl and a sleek straight finish — only the hair changes.</p>
+  </div>
+  <div class="hx-stage" id="hxStage" role="group" aria-labelledby="hxHeading" aria-describedby="hxIntro">
+    <img class="hx-img" src="assets/editorial/hair-curly-1279.webp"
+         srcset="assets/editorial/hair-curly-800.webp 800w, assets/editorial/hair-curly-1279.webp 1279w"
+         sizes="(max-width:760px) 100vw, min(1320px, 100vw)" width="1279" height="1192"
+         loading="lazy" decoding="async" draggable="false"
+         alt="Editorial portrait of a woman in profile against a terracotta backdrop, with long, voluminous dark curly hair.">
+    <img class="hx-img hx-img--top" src="assets/editorial/hair-straight-1279.webp"
+         srcset="assets/editorial/hair-straight-800.webp 800w, assets/editorial/hair-straight-1279.webp 1279w"
+         sizes="(max-width:760px) 100vw, min(1320px, 100vw)" width="1279" height="1192"
+         loading="lazy" decoding="async" draggable="false"
+         alt="The same portrait with the hair styled long, sleek and straight.">
+    <span class="hx-tag hx-tag--curl" aria-hidden="true">Curl</span>
+    <span class="hx-tag hx-tag--straight" aria-hidden="true">Straight</span>
+    <div class="hx-rail">
+      <span class="hx-line" aria-hidden="true"></span>
+      <div class="hx-handle" id="hxHandle" role="slider" tabindex="0"
+           aria-label="Compare curly and straight hair"
+           aria-orientation="horizontal"
+           aria-valuemin="0" aria-valuemax="100" aria-valuenow="50"
+           aria-valuetext="Divider at 50%: curly on the left half, straight on the right half">
+        <svg viewBox="0 0 8 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M6.5 1L1.5 6l5 5"/></svg>
+        <svg viewBox="0 0 8 12" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M1.5 1l5 5-5 5"/></svg>
+      </div>
+    </div>
+  </div>
+  <div class="hx-notes">
+    <div data-reveal="up">
+      <h3>Curl</h3>
+      <p>Defined, springy curls with volume from root to end.</p>
+    </div>
+    <div data-reveal="up">
+      <h3>Straight</h3>
+      <p>Long, sleek and bone-straight, with a glossy fall.</p>
+    </div>
+  </div>
+</section>
+<script>
+/* Curl / straight divider. Nothing runs until someone drags, clicks or
+   presses a key: each input writes one custom property (--hx) and the
+   browser clips and moves the rail from it. No animation loop. */
+(function(){
+  'use strict';
+  var stage = document.getElementById('hxStage');
+  var handle = document.getElementById('hxHandle');
+  if(!stage || !handle) return;
+
+  var pos = 50;
+  var glideTimer = 0;
+
+  function set(next, glide){
+    pos = Math.max(0, Math.min(100, next));
+    var shown = Math.round(pos * 10) / 10;
+    stage.classList.toggle('is-gliding', !!glide);
+    if(glide){
+      clearTimeout(glideTimer);
+      glideTimer = setTimeout(function(){ stage.classList.remove('is-gliding'); }, 450);
+    }
+    stage.style.setProperty('--hx', shown + '%');
+    stage.classList.toggle('is-edge-l', pos < 14);
+    stage.classList.toggle('is-edge-r', pos > 86);
+    var v = Math.round(pos);
+    handle.setAttribute('aria-valuenow', v);
+    handle.setAttribute('aria-valuetext',
+      v === 0 ? 'Divider at 0%: showing straight hair only'
+      : v === 100 ? 'Divider at 100%: showing curly hair only'
+      : 'Divider at ' + v + '%: curly on the left ' + v + '%, straight on the right ' + (100 - v) + '%');
+  }
+
+  function fromClientX(x){
+    var r = stage.getBoundingClientRect();
+    return r.width ? (x - r.left) / r.width * 100 : pos;
+  }
+
+  /* Mouse and pen: press anywhere and the divider jumps there, then follows.
+     Touch: the divider follows a horizontal swipe and a tap moves it, but a
+     finger that starts a vertical scroll is handed back to the page
+     (touch-action: pan-y fires pointercancel) without moving anything. */
+  var active = null;
+  stage.addEventListener('pointerdown', function(e){
+    if(e.button !== 0 || active !== null) return;
+    active = e.pointerId;
+    var startX = e.clientX, startY = e.clientY, moved = false;
+    var touch = e.pointerType === 'touch';
+    try{ stage.setPointerCapture(active); }catch(_){}
+    if(!touch){ set(fromClientX(e.clientX), false); stage.classList.add('is-dragging'); e.preventDefault(); }
+
+    function move(ev){
+      if(ev.pointerId !== active) return;
+      if(touch && !moved){
+        if(Math.abs(ev.clientX - startX) < 6 && Math.abs(ev.clientY - startY) < 6) return;
+        stage.classList.add('is-dragging');
+      }
+      moved = true;
+      set(fromClientX(ev.clientX), false);
+    }
+    function end(ev){
+      if(ev.pointerId !== active) return;
+      if(touch && !moved && ev.type === 'pointerup') set(fromClientX(ev.clientX), true);
+      active = null;
+      stage.classList.remove('is-dragging');
+      stage.removeEventListener('pointermove', move);
+      stage.removeEventListener('pointerup', end);
+      stage.removeEventListener('pointercancel', end);
+      if(!touch) handle.focus({ preventScroll: true });
+    }
+    stage.addEventListener('pointermove', move);
+    stage.addEventListener('pointerup', end);
+    stage.addEventListener('pointercancel', end);
+  });
+
+  handle.addEventListener('keydown', function(e){
+    var step = e.shiftKey ? 10 : 2, next = null;
+    switch(e.key){
+      case 'ArrowLeft': case 'ArrowDown': next = pos - step; break;
+      case 'ArrowRight': case 'ArrowUp': next = pos + step; break;
+      case 'PageDown': next = pos - 10; break;
+      case 'PageUp': next = pos + 10; break;
+      case 'Home': next = 0; break;
+      case 'End': next = 100; break;
+      default: return;
+    }
+    e.preventDefault();
+    set(next, e.key === 'Home' || e.key === 'End' || e.key.indexOf('Page') === 0);
+  });
+
+  set(50, false);
+})();
+</script>
 
 <!-- THE TRANSFORMATION — two real textures from the catalogue, with a light
      seam that sweeps between them. It shows products, never a person: there is
