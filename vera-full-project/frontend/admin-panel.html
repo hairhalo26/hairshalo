@@ -2224,7 +2224,8 @@
       {key:'items', label:'Reasons', kind:'group',
        fields:[{key:'icon', label:'Icon', kind:'icon'},
                {key:'title', label:'Title', kind:'text'},
-               {key:'body', label:'Body', kind:'textarea'}]}
+               {key:'body', label:'Body', kind:'textarea'},
+               {key:'image_url', label:'Photo (optional — otherwise one is chosen from the catalogue)', kind:'image'}]}
     ],
     faq: [
       {key:'heading', label:'Heading', kind:'text'},
@@ -2378,6 +2379,8 @@
         </div>
         ${spec.fields.map(f => f.kind === 'grouplinks'
           ? cmsLinksField(f, item[f.key], `${path}.${i}.${f.key}`)
+          : f.kind === 'image'
+          ? cmsImageField(f, item[f.key], `${path}.${i}.${f.key}`)
           : cmsField(f, item[f.key], `${path}.${i}.${f.key}`)).join('')}
       </div>`).join('');
     return `

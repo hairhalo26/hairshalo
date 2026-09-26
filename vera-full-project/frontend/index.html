@@ -7978,7 +7978,7 @@
     setText('whyHeading', block && block.heading);
     if(grid){
       grid.innerHTML = items.map((item, i) => `
-        <li class="wy-item">
+        <li class="wy-item" data-photo="${esc(item.image_url || '')}">
           <span class="wy-n" aria-hidden="true">${String(i + 1).padStart(2, '0')}</span>
           <h3>${esc(item.title)}</h3>
           <p>${esc(item.body)}</p>
@@ -9814,9 +9814,10 @@
     }
 
     /* ---------- Why Hairshalo: the brand story ----------
-       Statements come from the Back Office (renderWhy); photographs are the
-       catalogue's own detail shots of real hair, a different piece per
-       statement where possible. Scrolling the pinned scene moves through
+       Statements come from the Back Office (renderWhy), each with an optional
+       photo of its own; a statement without one takes one of the catalogue's
+       detail shots of real hair, a different piece per statement where
+       possible. Scrolling the pinned scene moves through
        them: the active statement grows and the list shifts, the photograph
        dissolves to the next and drifts like a slow camera. */
     var whyShots = [];
@@ -9840,9 +9841,11 @@
     function paintWhyVisuals(){
       var box = document.getElementById('wyVisuals');
       var items = document.querySelectorAll('#whyGrid .wy-item');
-      if(!box || !items.length || !whyShots.length || typeof resolveMediaUrl !== 'function') return;
-      box.innerHTML = Array.prototype.map.call(items, function(_, i){
-        var url = whyShots[i % whyShots.length];
+      var own = Array.prototype.some.call(items, function(li){ return li.getAttribute('data-photo'); });
+      if(!box || !items.length || (!whyShots.length && !own) || typeof resolveMediaUrl !== 'function') return;
+      box.innerHTML = Array.prototype.map.call(items, function(li, i){
+        var url = li.getAttribute('data-photo') || (whyShots.length ? whyShots[i % whyShots.length] : '');
+        if(!url) return '<div class="wy-shot"></div>';
         return '<div class="wy-shot" style="background-image:url(\'' + cssUrl(resolveMediaUrl(url)) + '\')"></div>';
       }).join('');
       wireWhy();
@@ -9898,7 +9901,10 @@
       paint();
     }
     document.addEventListener('hairshalo:why', function(){
-      if(whyShots.length) paintWhyVisuals(); else wireWhy();
+      // Reasons with photos of their own paint at once; the rest wait for
+      // the catalogue (whyPhotos). wireWhy() is idempotent.
+      paintWhyVisuals();
+      wireWhy();
     });
 
     /* The Hairshalo Difference: when the Back Office has no photograph for
