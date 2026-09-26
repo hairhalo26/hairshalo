@@ -9702,8 +9702,9 @@
       { a:{s:1.3,  x:0,  y:0,  r:0},  b:{s:.94,  x:0,  y:0,  r:0},  dot:[50,46] }
     ];
     // Which of a colourway's photographs serves each stage. The shop's sets
-    // run: overall view, full length, texture close-up, detail, extra.
-    var STAGE_SHOTS = [0, 2, 3, 1, 0];
+    // run: overall view, full length, texture close-up, detail, extra. Every
+    // stage shows a different photograph — the film never comes back to one.
+    var STAGE_SHOTS = [0, 2, 3, 1, 4];
     function lerp(a, b, t){ return a + (b - a) * t; }
     function ease(t){ return t < .5 ? 2 * t * t : 1 - Math.pow(-2 * t + 2, 2) / 2; }
 
@@ -9751,7 +9752,7 @@
       if(!best){ sec.hidden = true; return; }
 
       var shots = discoverFrames(best, isTaken), facts = discoverFacts(best);
-      // Stages whose photograph exists; the last returns to the first view.
+      // Stages whose photograph exists; with fewer photographs, fewer stages.
       var frames = STAGE_SHOTS.filter(function(i){ return i < shots.length; })
         .map(function(i){ return shots[i]; });
       var n = Math.min(frames.length, facts.length, CAMERA.length);
