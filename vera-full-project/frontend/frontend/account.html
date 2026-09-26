@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>My Account | Hairshalo</title>
+<meta name="description" content="Your Hairshalo account: orders, addresses, loyalty points, wishlist and profile.">
+<meta name="theme-color" content="#1A2338">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/favicon.ico" sizes="any">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/auth.css?v=20260918">
+<style>
+  /* Dashboard components. Colours, radii and type come from auth.css, which
+     mirrors the storefront, so nothing here introduces a new visual language. */
+  .auth-card.wide{max-width:1040px;}
+  .acct-panel h3{font-family:Fraunces,serif;font-weight:500;font-size:16px;margin:22px 0 10px;color:var(--ink);}
+  .stat-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:6px;}
+  .stat{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;}
+  .stat strong{display:block;font-family:Fraunces,serif;font-size:26px;font-weight:500;color:var(--wine);}
+  .stat span{font-size:12.5px;color:var(--text-soft);}
+
+  .order-card{border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:12px;background:#fff;}
+  .order-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;flex-wrap:wrap;}
+  .order-top strong{font-size:14.5px;color:var(--ink);}
+  .order-lines{display:flex;flex-direction:column;gap:9px;margin:12px 0;}
+  .line{display:grid;grid-template-columns:56px 1fr auto;gap:12px;align-items:center;font-size:13.5px;}
+  .thumb{width:56px;height:56px;border-radius:10px;background:#fff center/contain no-repeat;border:1px solid var(--line);}
+  .thumb.none{background:linear-gradient(150deg,#EAD9C6,#C9976F 60%,#7C4C34);}
+  .line .qty{color:var(--text-soft);font-size:12.5px;}
+  .order-foot{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;border-top:1px solid var(--line);padding-top:10px;}
+  .link-btn{background:none;border:none;color:var(--wine);font:inherit;font-weight:600;cursor:pointer;padding:6px 0;}
+
+  .pill{display:inline-block;font-size:11.5px;font-weight:600;letter-spacing:.03em;padding:4px 10px;border-radius:20px;background:var(--blush);color:var(--ink);white-space:nowrap;}
+  .pill.wait{background:#F3E2C4;color:#7A5418;}
+  .pill.go{background:#DCE8F3;color:#23456B;}
+  .pill.ok{background:#DCEFE3;color:#2E6445;}
+  .pill.stop{background:#F2DAD7;color:#8E332A;}
+
+  .detail-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+  .box{border:1px solid var(--line);border-radius:14px;padding:14px 16px;background:#fff;font-size:13.5px;line-height:1.6;}
+  .box h4{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-soft);margin-bottom:8px;font-weight:600;}
+  .totals div{display:flex;justify-content:space-between;gap:10px;padding:3px 0;}
+  .totals .grand{border-top:1px solid var(--line);margin-top:6px;padding-top:8px;font-weight:700;color:var(--ink);}
+  .timeline{list-style:none;padding:0;margin:0;}
+  .timeline li{position:relative;padding:0 0 14px 22px;font-size:13.5px;}
+  .timeline li::before{content:'';position:absolute;left:5px;top:6px;width:8px;height:8px;border-radius:50%;background:var(--wine);}
+  .timeline li::after{content:'';position:absolute;left:8.5px;top:16px;bottom:0;width:1px;background:var(--line);}
+  .timeline li:last-child::after{display:none;}
+  .timeline small{display:block;color:var(--text-soft);font-size:12px;}
+  .pay-box{background:#FFF8EC;border-color:#EBD3A6;}
+  .pay-box dl{display:grid;grid-template-columns:auto 1fr;gap:4px 14px;margin-top:8px;}
+  .pay-box dt{color:var(--text-soft);}
+  .pay-box dd{font-weight:600;word-break:break-all;}
+
+  .addr{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap;}
+  .addr p{font-size:13.5px;line-height:1.6;}
+  .row-actions{display:flex;gap:6px;flex-wrap:wrap;align-items:flex-start;}
+  .btn-sm{padding:8px 14px !important;font-size:12.5px !important;width:auto !important;}
+  .form-grid{display:grid;grid-template-columns:1fr 1fr;gap:0 14px;}
+  .form-grid .full{grid-column:1/-1;}
+  .field select,.field textarea{width:100%;padding:13px 14px;border:1px solid var(--line);border-radius:12px;background:#fff;font:inherit;font-size:14.5px;color:var(--ink);}
+  .field textarea{min-height:96px;resize:vertical;}
+  .check{display:flex;gap:8px;align-items:center;font-size:13.5px;margin:4px 0 14px;}
+
+  .wish{display:grid;grid-template-columns:64px 1fr auto;gap:12px;align-items:center;}
+  .stars{display:flex;gap:4px;margin:6px 0 12px;}
+  .stars button{background:none;border:none;font-size:24px;line-height:1;cursor:pointer;color:#D8C4B4;padding:0 1px;}
+  .stars button.on{color:#B8872F;}
+
+  @media (max-width:700px){
+    .stat-grid{grid-template-columns:1fr 1fr;}
+    .detail-grid,.form-grid{grid-template-columns:1fr;}
+    .line{grid-template-columns:48px 1fr;}
+    .line .amt{grid-column:2;}
+    .thumb{width:48px;height:48px;}
+  }
+</style>
+</head>
+<body>
+<div class="auth-shell">
+  <header class="auth-top">
+    <a href="/" class="logo" aria-label="Hairshalo — home">
+      <img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="28">HAIRSHALO
+    </a>
+    <a class="back" href="/">&larr; Back to the shop</a>
+  </header>
+
+  <main class="auth-main" style="align-items:flex-start;">
+    <div class="auth-card wide">
+      <div class="auth-head" style="display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;">
+        <div>
+          <span class="eyebrow">Your Account</span>
+          <h1 id="who">My account</h1>
+          <p id="whoEmail" class="muted"></p>
+        </div>
+        <button class="btn btn-outline" id="logout" style="padding:10px 20px;">
+          <span class="spinner" aria-hidden="true"></span><span class="label">Sign out</span>
+        </button>
+      </div>
+
+      <div class="verify-banner" id="verifyBanner" style="display:none;">
+        <span>Confirm your email to see earlier orders placed under this address and your points.
+          Orders you place while signed in show here straight away.</span>
+        <button class="btn btn-outline" id="resend" style="padding:8px 16px;font-size:13px;">
+          <span class="spinner" aria-hidden="true"></span><span class="label">Resend link</span>
+        </button>
+      </div>
+
+      <div class="notice" id="notice"></div>
+
+      <div class="acct-grid">
+        <nav class="acct-nav" aria-label="Account sections">
+          <button data-tab="overview">Dashboard</button>
+          <button data-tab="orders">My orders</button>
+          <button data-tab="addresses">Addresses</button>
+          <button data-tab="wishlist">Wishlist</button>
+          <button data-tab="reviews">Reviews</button>
+          <button data-tab="points">Points</button>
+          <button data-tab="profile">Profile</button>
+          <button data-tab="security">Security</button>
+        </nav>
+        <section class="acct-panel" id="panel" aria-live="polite"><p class="muted">Loading…</p></section>
+      </div>
+    </div>
+  </main>
+</div>
+
+<script src="assets/auth.js?v=20260918"></script>
+<script>
+(function () {
+  var A = window.HairshaloAuth;
+  var notice = A.$('#notice');
+  var panel = A.$('#panel');
+  var customer = null;
+  var countries = null;
+  var ordersCache = null;
+
+  // A page that needs a session sends you to sign in and back again.
+  if (!A.getToken()) { A.redirect('/signin?next=/account'); return; }
+
+  /* ------------------------------------------------------------- helpers */
+  function esc(s) {
+    return String(s == null ? '' : s)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  function money(n) {
+    return '₹' + Number(n || 0).toLocaleString('en-IN',
+      { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+  }
+  function date(d, withTime) {
+    if (!d) return '';
+    var opts = { day: 'numeric', month: 'short', year: 'numeric' };
+    if (withTime) { opts.hour = 'numeric'; opts.minute = '2-digit'; }
+    // The API sends naive UTC timestamps; mark them as UTC before formatting.
+    var s = String(d);
+    if (!/[zZ]|[+-]\d\d:?\d\d$/.test(s)) s += 'Z';
+    return new Date(s).toLocaleString('en-IN', opts);
+  }
+  function media(url) {
+    if (!url) return '';
+    if (/^(https?:)?\/\//i.test(url)) return url;
+    return A.API_BASE.replace(/\/api\/?$/, '') + url;
+  }
+  function cssUrl(url) {
+    return encodeURI(String(url || '')).replace(/'/g, '%27').replace(/"/g, '%22')
+      .replace(/\(/g, '%28').replace(/\)/g, '%29');
+  }
+  function api(path, opts) {
+    opts = opts || {}; opts.auth = true;
+    return A.api(path, opts).catch(function (err) {
+      if (err.status === 401) { A.redirect('/signin?next=' + encodeURIComponent('/account' + location.hash)); }
+      throw err;
+    });
+  }
+  function failed(title, err) {
+    panel.innerHTML = '<h2>' + esc(title) + '</h2><p class="muted">' + esc(err.message) + '</p>';
+  }
+
+  /* The backend's own statuses, explained in customer language. The order's
+     status value is shown exactly as the shop set it; this only adds the
+     sentence underneath and a colour. */
+  var STATUS = {
+    'Pending Payment': ['wait', 'Waiting for your payment'],
+    'Paid': ['go', 'Payment received — we are preparing your order'],
+    'Processing': ['go', 'Being prepared for dispatch'],
+    'Shipped': ['go', 'On its way'],
+    'Out for Delivery': ['go', 'Out for delivery today'],
+    'Delivered': ['ok', 'Delivered'],
+    'Cancelled': ['stop', 'Cancelled'],
+    'Refunded': ['stop', 'Refunded']
+  };
+  function pill(status) {
+    var s = STATUS[status] || ['', status];
+    return '<span class="pill ' + s[0] + '">' + esc(status) + '</span>';
+  }
+  function paymentLabel(o) {
+    if (o.is_paid) return 'Paid';
+    if (o.payment_status) return o.payment_status === 'Pending' ? 'Awaiting payment' : o.payment_status;
+    return o.status === 'Pending Payment' ? 'Awaiting payment' : '—';
+  }
+  function thumb(url, size) {
+    var dims = size ? 'width:' + size + 'px;height:' + size + 'px;' : '';
+    return url
+      ? '<div class="thumb" style="' + dims + 'background-image:url(\'' + cssUrl(media(url)) + '\')"></div>'
+      : '<div class="thumb none" style="' + dims + '"></div>';
+  }
+  function loadOrders(force) {
+    if (ordersCache && !force) return Promise.resolve(ordersCache);
+    return api('/account/orders?limit=100').then(function (o) { ordersCache = o; return o; });
+  }
+
+  /* ------------------------------------------------------------ overview */
+  function showOverview() {
+    panel.innerHTML = '<h2>Dashboard</h2><p class="muted">Loading…</p>';
+    var loyalty = customer.email_verified
+      ? api('/account/loyalty?limit=1').catch(function () { return null; })
+      : Promise.resolve(null);
+    Promise.all([loadOrders(true), loyalty, api('/account/addresses').catch(function () { return []; })])
+      .then(function (r) {
+        var orders = r[0], points = r[1], addrs = r[2];
+        var open = orders.filter(function (o) {
+          return ['Delivered', 'Cancelled', 'Refunded'].indexOf(o.status) < 0;
+        });
+        var awaiting = orders.filter(function (o) { return o.status === 'Pending Payment'; });
+        var def = addrs.filter(function (a) { return a.is_default; })[0] || addrs[0];
+        panel.innerHTML =
+          '<h2>Welcome back, ' + esc((customer.name || '').split(' ')[0] || 'there') + '</h2>' +
+          '<div class="stat-grid">' +
+            '<div class="stat"><strong>' + orders.length + '</strong><span>Orders</span></div>' +
+            '<div class="stat"><strong>' + open.length + '</strong><span>In progress</span></div>' +
+            '<div class="stat"><strong>' + (points ? points.balance : '—') + '</strong><span>' +
+              (points ? 'Points (worth ' + money(points.value) + ')' : 'Points — confirm your email') + '</span></div>' +
+          '</div>' +
+          (awaiting.length
+            ? '<div class="box pay-box" style="margin-top:14px;"><strong>' + awaiting.length +
+              (awaiting.length === 1 ? ' order is' : ' orders are') + ' waiting for payment.</strong> ' +
+              '<button class="link-btn" data-open-order="' + esc(awaiting[0].id) + '">See how to pay →</button></div>'
+            : '') +
+          '<h3>Recent orders</h3>' +
+          (orders.length ? orders.slice(0, 3).map(orderCard).join('')
+            : '<div class="empty">No orders yet.<br><a href="/#shop">Start shopping</a></div>') +
+          '<h3>Account</h3>' +
+          '<div class="detail-grid">' +
+            '<div class="box"><h4>Profile</h4>' + esc(customer.name) + '<br>' + esc(customer.email) +
+              (customer.phone ? '<br>' + esc(customer.phone) : '') +
+              '<br><button class="link-btn" data-go="profile">Edit profile</button></div>' +
+            '<div class="box"><h4>Default address</h4>' +
+              (def ? addressText(def) : '<span class="muted">No saved address yet.</span>') +
+              '<br><button class="link-btn" data-go="addresses">Manage addresses</button></div>' +
+          '</div>';
+      }).catch(function (err) { failed('Dashboard', err); });
+  }
+
+  /* -------------------------------------------------------------- orders */
+  function orderCard(o) {
+    var items = o.items || [];
+    return '<div class="order-card">' +
+      '<div class="order-top"><div><strong>Order ' + esc(o.order_number) + '</strong>' +
+        '<div class="muted">' + date(o.created_at) + ' · ' + items.length +
+        (items.length === 1 ? ' item' : ' items') + '</div></div>' + pill(o.status) + '</div>' +
+      '<div class="order-lines">' + items.slice(0, 3).map(function (i) {
+        return '<div class="line">' + thumb(i.image_url) +
+          '<div><div>' + esc(i.product_name) + '</div>' +
+          '<div class="qty">' + (i.variant_label ? esc(i.variant_label) + ' · ' : '') + 'Qty ' + i.quantity + '</div></div>' +
+          '<div class="amt">' + money(i.price * i.quantity) + '</div></div>';
+      }).join('') + (items.length > 3 ? '<div class="muted">+ ' + (items.length - 3) + ' more</div>' : '') + '</div>' +
+      '<div class="order-foot"><span><strong>' + money(o.total) + '</strong> <span class="muted">· ' +
+        esc(paymentLabel(o)) + '</span></span>' +
+        '<button class="link-btn" data-open-order="' + esc(o.id) + '">View details →</button></div>' +
+    '</div>';
+  }
+
+  function showOrders() {
+    panel.innerHTML = '<h2>My orders</h2><p class="muted">Loading…</p>';
+    loadOrders(true).then(function (orders) {
+      panel.innerHTML = '<h2>My orders</h2>' + (orders.length
+        ? orders.map(orderCard).join('')
+        : '<div class="empty">No orders yet.<br><a href="/#shop">Start shopping</a></div>');
+    }).catch(function (err) { failed('My orders', err); });
+  }
+
+  function addressText(a) {
+    return [a.full_name, a.line1, a.line2,
+            [a.city, a.state, a.postal_code].filter(Boolean).join(', '),
+            a.country, a.phone].filter(Boolean).map(esc).join('<br>');
+  }
+
+  function showOrder(id) {
+    panel.innerHTML = '<p class="muted">Loading…</p>';
+    api('/account/orders/' + encodeURIComponent(id)).then(function (o) {
+      var ship = o.shipping || {};
+      var address = ship.structured ? addressText(ship)
+        : esc(o.shipping_address || 'No delivery address recorded.');
+      var status = STATUS[o.status] || ['', o.status];
+      var tracking = o.tracking_number
+        ? (o.carrier ? esc(o.carrier) + ' · ' : '') + '<strong>' + esc(o.tracking_number) + '</strong>' +
+          (o.tracking_url && /^https?:\/\//i.test(o.tracking_url)
+            ? '<br><a href="' + esc(o.tracking_url) + '" target="_blank" rel="noopener noreferrer">Track parcel →</a>' : '')
+        : '<span class="muted">Tracking details appear here once your order ships.</span>';
+      panel.innerHTML =
+        '<button class="link-btn" data-go="orders">← All orders</button>' +
+        '<div class="order-top" style="margin:8px 0 4px;"><div><h2 style="margin:0;">Order ' + esc(o.order_number) + '</h2>' +
+          '<div class="muted">Placed ' + date(o.created_at, true) + '</div></div>' + pill(o.status) + '</div>' +
+        '<p class="muted" style="margin-bottom:14px;">' + esc(status[1]) + '</p>' +
+        '<div id="payBox"></div>' +
+        '<div class="box" style="margin-bottom:14px;"><h4>Items</h4><div class="order-lines" style="margin:0;">' +
+          (o.items || []).map(function (i) {
+            return '<div class="line">' + thumb(i.image_url) +
+              '<div><div>' + esc(i.product_name) + '</div><div class="qty">' +
+              (i.variant_label ? esc(i.variant_label) + ' · ' : '') +
+              (i.variant_sku ? 'SKU ' + esc(i.variant_sku) + ' · ' : '') +
+              money(i.price) + ' × ' + i.quantity + '</div></div>' +
+              '<div class="amt">' + money(i.price * i.quantity) + '</div></div>';
+          }).join('') + '</div></div>' +
+        '<div class="detail-grid">' +
+          '<div class="box"><h4>Delivery address</h4>' + address + '</div>' +
+          '<div class="box"><h4>Shipping</h4>' + tracking + '</div>' +
+          '<div class="box totals"><h4>Payment</h4>' +
+            '<div><span>Subtotal</span><span>' + money(o.subtotal != null ? o.subtotal : o.total) + '</span></div>' +
+            (Number(o.discount_total) > 0 ? '<div><span>Discount' + (o.coupon_code ? ' (' + esc(o.coupon_code) + ')' : '') +
+              '</span><span>− ' + money(o.discount_total) + '</span></div>' : '') +
+            (Number(o.loyalty_discount) > 0 ? '<div><span>Points (' + o.loyalty_points_redeemed + ')</span><span>− ' +
+              money(o.loyalty_discount) + '</span></div>' : '') +
+            '<div><span>Delivery</span><span>' + (Number(o.shipping_fee) > 0 ? money(o.shipping_fee) : 'Free') + '</span></div>' +
+            '<div class="grand"><span>Total</span><span>' + money(o.total) + '</span></div>' +
+            '<div class="muted" style="margin-top:6px;">Payment status: <strong>' + esc(paymentLabel(o)) + '</strong></div>' +
+          '</div>' +
+          '<div class="box"><h4>Order timeline</h4><ul class="timeline">' +
+            (o.timeline || []).map(function (s) {
+              return '<li>' + esc(s.status === 'Placed' ? 'Order placed' : s.status) +
+                (s.note ? ' — ' + esc(s.note) : '') +
+                '<small>' + (s.at ? date(s.at, true) : '') + '</small></li>';
+            }).join('') + '</ul></div>' +
+        '</div>';
+      if (o.status === 'Pending Payment') showHowToPay(o);
+    }).catch(function (err) {
+      failed('Order', err);
+      panel.insertAdjacentHTML('afterbegin', '<button class="link-btn" data-go="orders">← All orders</button>');
+    });
+  }
+
+  /* The shop's payment details, fetched for THIS order only — they are not
+     part of any public page. */
+  function showHowToPay(o) {
+    var box = A.$('#payBox');
+    api('/payments/intent', { method: 'POST', body: { order_id: o.id } }).then(function (intent) {
+      var extra = intent.extra || {}, d = extra.details || {};
+      var LABELS = { upi_id: 'UPI ID', upi_name: 'UPI name', account_name: 'Account name',
+                     bank_name: 'Bank', account_number: 'Account number', ifsc: 'IFSC',
+                     whatsapp_for_receipts: 'Send receipt on WhatsApp' };
+      var rows = Object.keys(LABELS).filter(function (k) { return d[k]; }).map(function (k) {
+        return '<dt>' + LABELS[k] + '</dt><dd>' + esc(d[k]) + '</dd>';
+      }).join('');
+      box.innerHTML = '<div class="box pay-box" style="margin-bottom:14px;"><h4>How to pay</h4>' +
+        esc(String(intent.instructions || '').split('\n')[0]) +
+        (rows ? '<dl>' + rows + '<dt>Amount</dt><dd>' + money(intent.amount) + '</dd>' +
+                '<dt>Reference</dt><dd>' + esc(o.order_number) + '</dd></dl>' : '') + '</div>';
+    }).catch(function () { box.innerHTML = ''; });
+  }
+
+  /* ----------------------------------------------------------- addresses */
+  function loadCountries() {
+    if (countries) return Promise.resolve(countries);
+    return A.api('/account/shipping-countries').then(function (c) { countries = c; return c; })
+      .catch(function () { countries = [{ name: 'India', postal_label: 'PIN Code', requires_state: true }]; return countries; });
+  }
+
+  function showAddresses() {
+    panel.innerHTML = '<h2>Addresses</h2><p class="muted">Loading…</p>';
+    api('/account/addresses').then(function (list) {
+      list.sort(function (a, b) { return (b.is_default ? 1 : 0) - (a.is_default ? 1 : 0); });
+      panel.innerHTML = '<div class="order-top"><h2>Addresses</h2>' +
+        '<button class="btn btn-outline btn-sm" data-addr-new>+ Add address</button></div>' +
+        '<div id="addrForm"></div>' +
+        (list.length ? list.map(function (a) {
+          return '<div class="card-row addr"><p>' + (a.label ? '<strong>' + esc(a.label) + '</strong><br>' : '') +
+            addressText(a) + '</p><div class="row-actions">' +
+            (a.is_default ? '<span class="pill ok">Default</span>'
+              : '<button class="btn btn-outline btn-sm" data-addr-default="' + esc(a.id) + '">Set default</button>') +
+            '<button class="btn btn-outline btn-sm" data-addr-edit="' + esc(a.id) + '">Edit</button>' +
+            '<button class="btn btn-outline btn-sm" data-addr-del="' + esc(a.id) + '">Delete</button></div></div>';
+        }).join('') : '<div class="empty">No saved addresses yet. Add one here, or tick “save this address” at checkout.</div>');
+      panel.dataset.addresses = JSON.stringify(list);
+    }).catch(function (err) { failed('Addresses', err); });
+  }
+
+  function addressForm(a) {
+    a = a || { country: 'India' };
+    loadCountries().then(function (list) {
+      var opts = list.map(function (c) {
+        return '<option' + (c.name === a.country ? ' selected' : '') + '>' + esc(c.name) + '</option>';
+      }).join('');
+      function field(id, label, value, cls, type) {
+        return '<div class="field ' + (cls || '') + '"><label for="' + id + '">' + label + '</label>' +
+          '<div class="control"><input id="' + id + '" type="' + (type || 'text') + '" value="' + esc(value || '') + '"></div>' +
+          '<p class="err"></p></div>';
+      }
+      A.$('#addrForm').innerHTML =
+        '<form class="card-row" id="addrEdit" novalidate data-id="' + esc(a.id || '') + '">' +
+          '<div class="form-grid">' +
+            field('aLabel', 'Label (e.g. Home, Work)', a.label, 'full') +
+            field('aName', 'Full name', a.full_name) +
+            field('aPhone', 'Phone', a.phone, '', 'tel') +
+            field('aLine1', 'Address line 1', a.line1, 'full') +
+            field('aLine2', 'Address line 2 (optional)', a.line2, 'full') +
+            field('aCity', 'City', a.city) +
+            field('aState', 'State', a.state) +
+            '<div class="field"><label for="aCountry">Country</label><select id="aCountry">' + opts + '</select><p class="err"></p></div>' +
+            field('aPostal', 'PIN Code', a.postal_code) +
+          '</div>' +
+          '<label class="check"><input type="checkbox" id="aDefault"' + (a.is_default ? ' checked' : '') + '> Use as my default address</label>' +
+          '<div class="row-actions"><button class="btn btn-primary btn-sm" type="submit" id="aSave">' +
+            '<span class="spinner" aria-hidden="true"></span><span class="label">Save address</span></button>' +
+            '<button class="btn btn-outline btn-sm" type="button" data-addr-cancel>Cancel</button></div>' +
+        '</form>';
+      function relabel() {
+        var c = list.filter(function (x) { return x.name === A.$('#aCountry').value; })[0];
+        if (c) A.$('label[for="aPostal"]').textContent = c.postal_label || 'Postal code';
+      }
+      A.$('#aCountry').addEventListener('change', relabel); relabel();
+      A.$('#aName').focus();
+    });
+  }
+
+  var ADDR_FIELDS = { full_name: 'aName', phone: 'aPhone', line1: 'aLine1', line2: 'aLine2',
+                      city: 'aCity', state: 'aState', country: 'aCountry', postal_code: 'aPostal' };
+
+  function saveAddress(form) {
+    var id = form.dataset.id;
+    var body = { label: A.$('#aLabel').value.trim() || null, is_default: A.$('#aDefault').checked };
+    Object.keys(ADDR_FIELDS).forEach(function (k) { body[k] = A.$('#' + ADDR_FIELDS[k]).value.trim() || null; });
+    Object.keys(ADDR_FIELDS).forEach(function (k) { A.fieldError(A.$('#' + ADDR_FIELDS[k]), ''); });
+    var btn = A.$('#aSave');
+    A.setBusy(btn, true, 'Saving…');
+    api('/account/addresses' + (id ? '/' + encodeURIComponent(id) : ''),
+        { method: id ? 'PUT' : 'POST', body: body })
+      .then(function () { A.showNotice(notice, 'ok', 'Address saved.'); showAddresses(); })
+      .catch(function (err) {
+        A.setBusy(btn, false);
+        if (err.fields) {
+          Object.keys(err.fields).forEach(function (k) {
+            if (ADDR_FIELDS[k]) A.fieldError(A.$('#' + ADDR_FIELDS[k]), err.fields[k]);
+          });
+        }
+        A.showNotice(notice, 'error', err.message);
+      });
+  }
+
+  /* ------------------------------------------------------------ wishlist */
+  function showWishlist() {
+    panel.innerHTML = '<h2>Wishlist</h2><p class="muted">Loading…</p>';
+    api('/account/wishlist').then(function (items) {
+      panel.innerHTML = '<h2>Wishlist</h2>' + (items.length ? items.map(function (i) {
+        return '<div class="card-row wish">' + thumb(i.image_url, 64) +
+          '<div><strong>' + esc(i.product_name) + '</strong>' +
+            (i.variant_label ? ' <span class="muted">— ' + esc(i.variant_label) + '</span>' : '') +
+            '<div class="muted">' + (i.price ? money(i.price) + ' · ' : '') +
+            (i.in_stock ? 'In stock' : 'Out of stock') + '</div></div>' +
+          '<div class="row-actions"><a class="btn btn-outline btn-sm" href="/#shop">Shop</a>' +
+          '<button class="btn btn-outline btn-sm" data-wish-remove="' + esc(i.id) + '">Remove</button></div></div>';
+      }).join('') : '<div class="empty">Nothing saved yet.<br><a href="/#shop">Browse the collection</a></div>');
+    }).catch(function (err) { failed('Wishlist', err); });
+  }
+
+  /* ------------------------------------------------------------- reviews */
+  var reviewRating = 0;
+  function showReviews() {
+    panel.innerHTML = '<h2>Reviews</h2><p class="muted">Finding things you can review…</p>';
+    loadOrders(true).then(function (orders) {
+      var candidates = orders.filter(function (o) {
+        return ['Cancelled', 'Refunded', 'Pending Payment'].indexOf(o.status) < 0;
+      }).slice(0, 15);
+      return Promise.all(candidates.map(function (o) {
+        return A.api('/reviews/reviewable?order_number=' + encodeURIComponent(o.order_number) +
+                     '&email=' + encodeURIComponent(o.customer_email))
+          .then(function (items) { return items.map(function (i) { i.order = o; return i; }); })
+          .catch(function () { return []; });
+      }));
+    }).then(function (groups) {
+      var items = [].concat.apply([], groups);
+      panel.innerHTML = '<h2>Reviews</h2>' +
+        '<p class="muted" style="margin-bottom:14px;">Review what you have bought. Reviews are checked before they appear on the shop.</p>' +
+        (items.length ? items.map(function (i, n) {
+          return '<div class="card-row"><div class="order-top"><div><strong>' + esc(i.product_name) + '</strong>' +
+            (i.variant_label ? ' <span class="muted">— ' + esc(i.variant_label) + '</span>' : '') +
+            '<div class="muted">Order ' + esc(i.order.order_number) + '</div></div>' +
+            '<button class="btn btn-outline btn-sm" data-review="' + n + '">Write a review</button></div>' +
+            '<div data-review-slot="' + n + '"></div></div>';
+        }).join('') : '<div class="empty">Nothing waiting for a review. Items you receive will appear here.</div>');
+      panel._reviewItems = items;
+    }).catch(function (err) { failed('Reviews', err); });
+  }
+
+  function reviewForm(n) {
+    var item = panel._reviewItems[n];
+    reviewRating = 0;
+    var slot = A.$('[data-review-slot="' + n + '"]');
+    slot.innerHTML = '<form data-review-form="' + n + '" style="margin-top:12px;" novalidate>' +
+      '<div class="stars" role="radiogroup" aria-label="Rating">' + [1, 2, 3, 4, 5].map(function (s) {
+        return '<button type="button" data-star="' + s + '" aria-label="' + s + ' star' + (s > 1 ? 's' : '') + '">★</button>';
+      }).join('') + '</div>' +
+      '<div class="field"><label>Title (optional)</label><div class="control"><input type="text" data-r-title maxlength="120"></div></div>' +
+      '<div class="field"><label>Your review</label><textarea data-r-body maxlength="4000"></textarea></div>' +
+      '<button class="btn btn-primary btn-sm" type="submit"><span class="spinner" aria-hidden="true"></span><span class="label">Submit review</span></button>' +
+    '</form>';
+    slot._item = item;
+  }
+
+  function submitReview(form) {
+    var n = form.dataset.reviewForm, item = panel._reviewItems[n];
+    if (!reviewRating) { A.showNotice(notice, 'error', 'Choose a star rating first.'); return; }
+    var btn = form.querySelector('button[type=submit]');
+    A.setBusy(btn, true, 'Sending…');
+    A.api('/reviews', { method: 'POST', body: {
+      product_id: item.product_id, order_number: item.order.order_number,
+      email: item.order.customer_email, rating: reviewRating,
+      title: form.querySelector('[data-r-title]').value.trim() || null,
+      body: form.querySelector('[data-r-body]').value.trim(),
+      author_name: customer.name
+    } }).then(function () {
+      A.showNotice(notice, 'ok', 'Thank you — your review has been sent.');
+      showReviews();
+    }).catch(function (err) { A.setBusy(btn, false); A.showNotice(notice, 'error', err.message); });
+  }
+
+  /* -------------------------------------------------------------- points */
+  function showPoints() {
+    panel.innerHTML = '<h2>Points</h2><p class="muted">Loading…</p>';
+    if (!customer.email_verified) {
+      panel.innerHTML = '<h2>Points</h2><div class="empty">Confirm your email address to see your points balance and history.</div>';
+      return;
+    }
+    api('/account/loyalty').then(function (d) {
+      panel.innerHTML = '<h2>Points</h2>' +
+        '<div class="stat-grid">' +
+          '<div class="stat"><strong>' + d.balance + '</strong><span>Balance · worth ' + money(d.value) + '</span></div>' +
+          '<div class="stat"><strong>' + d.earned_total + '</strong><span>Earned in total</span></div>' +
+          '<div class="stat"><strong>' + d.redeemed_total + '</strong><span>Redeemed</span></div>' +
+        '</div>' +
+        '<p class="muted" style="margin:10px 0 4px;">Earn 1 point per ' + money(d.earn_per) + ' spent. Points can cover up to ' +
+          d.max_redeem_pct + '% of an order.</p>' +
+        '<h3>History</h3>' +
+        (d.history && d.history.length ? d.history.map(function (h) {
+          return '<div class="card-row" style="display:flex;gap:12px;flex-wrap:wrap;align-items:baseline;">' +
+            '<strong style="color:' + (h.delta > 0 ? 'var(--ok)' : 'var(--danger)') + ';">' +
+              (h.delta > 0 ? '+' : '') + h.delta + '</strong>' +
+            '<span>' + esc(h.reason) + '</span><span class="muted">' + esc(h.note || '') + '</span>' +
+            '<span class="muted" style="margin-left:auto;">' + date(h.created_at) + ' · balance ' + h.balance_after + '</span></div>';
+        }).join('') : '<div class="empty">No points yet. Points are added when an order is paid for.</div>');
+    }).catch(function (err) { failed('Points', err); });
+  }
+
+  /* ------------------------------------------------------------- profile */
+  function showProfile() {
+    panel.innerHTML =
+      '<h2>Profile</h2>' +
+      '<form id="profileForm" novalidate>' +
+        '<div class="field"><label for="pName">Full name</label>' +
+          '<div class="control"><input id="pName" type="text" autocomplete="name"></div><p class="err"></p></div>' +
+        '<div class="field"><label for="pEmail">Email address</label>' +
+          '<div class="control"><input id="pEmail" type="email" disabled></div>' +
+          '<p class="hint">Contact us if you need to change the address on your account.</p></div>' +
+        '<div class="field"><label for="pPhone">Phone number</label>' +
+          '<div class="control"><input id="pPhone" type="tel" autocomplete="tel"></div><p class="err"></p></div>' +
+        '<button class="btn btn-primary" type="submit" id="saveProfile" style="width:auto;">' +
+          '<span class="spinner" aria-hidden="true"></span><span class="label">Save changes</span></button>' +
+      '</form>';
+    A.$('#pName').value = customer.name || '';
+    A.$('#pEmail').value = customer.email || '';
+    A.$('#pPhone').value = customer.phone || '';
+  }
+
+  function saveProfile() {
+    A.hideNotice(notice);
+    var nameEl = A.$('#pName'), phoneEl = A.$('#pPhone'), btn = A.$('#saveProfile');
+    var ok = A.fieldError(nameEl, nameEl.value.trim() ? '' : 'Please enter your name.');
+    ok = A.fieldError(phoneEl, A.phoneLooksValid(phoneEl.value)
+          ? '' : 'Enter a valid phone number, or leave it blank.') && ok;
+    if (!ok) return;
+    A.setBusy(btn, true, 'Saving…');
+    api('/account/me', { method: 'PUT', body: { name: nameEl.value.trim(), phone: phoneEl.value.trim() || null } })
+      .then(function (data) {
+        customer = data;
+        A.setBusy(btn, false);
+        A.$('#who').textContent = 'Hello, ' + (customer.name.split(' ')[0] || 'there');
+        A.showNotice(notice, 'ok', 'Your details have been saved.');
+      }).catch(function (err) { A.setBusy(btn, false); A.showNotice(notice, 'error', err.message); });
+  }
+
+  /* ------------------------------------------------------------ security */
+  function showSecurity() {
+    panel.innerHTML =
+      '<h2>Security</h2>' +
+      '<form id="pwForm" novalidate>' +
+        '<div class="field"><label for="pwCurrent">Current password</label>' +
+          '<div class="control"><input id="pwCurrent" type="password" autocomplete="current-password"></div><p class="err"></p></div>' +
+        '<div class="field"><label for="pwNew">New password</label>' +
+          '<div class="control"><input id="pwNew" type="password" autocomplete="new-password"></div><p class="err"></p>' +
+          '<ul class="pw-rules" id="pwRules"></ul></div>' +
+        '<button class="btn btn-primary" type="submit" id="pwSave" style="width:auto;">' +
+          '<span class="spinner" aria-hidden="true"></span><span class="label">Change password</span></button>' +
+      '</form>' +
+      '<h3>Sessions</h3>' +
+      '<p class="muted" style="margin-bottom:10px;">Signed in on a shared or lost device? Sign out everywhere — every device, including this one, will need to sign in again.</p>' +
+      '<button class="btn btn-outline" id="logoutAll" style="width:auto;">' +
+        '<span class="spinner" aria-hidden="true"></span><span class="label">Sign out of all devices</span></button>';
+    A.attachPasswordToggle(A.$('#pwCurrent'));
+    A.attachPasswordToggle(A.$('#pwNew'));
+    A.$('#pwNew').addEventListener('input', function () {
+      A.renderPasswordRules(A.$('#pwRules'), A.$('#pwNew').value, customer.email);
+    });
+  }
+
+  function changePassword() {
+    var cur = A.$('#pwCurrent'), nw = A.$('#pwNew'), btn = A.$('#pwSave');
+    var ok = A.fieldError(cur, cur.value ? '' : 'Enter your current password.');
+    ok = A.fieldError(nw, A.passwordOk(nw.value, customer.email) ? '' : 'Choose a password that meets every rule below.') && ok;
+    if (!ok) return;
+    A.setBusy(btn, true, 'Saving…');
+    A.api('/account/password', { method: 'POST', auth: true,
+      body: { current_password: cur.value, new_password: nw.value } })
+      .then(function () {
+        // A password change ends every session, this one included, so the
+        // customer signs in again with the new password.
+        A.setToken(null);
+        A.redirect('/signin?next=/account');
+      }).catch(function (err) { A.setBusy(btn, false); A.showNotice(notice, 'error', err.message); });
+  }
+
+  /* -------------------------------------------------------------- router
+     The section lives in the URL hash, so refresh, back and a shared link
+     all land where the customer was: #orders, #order/<id>, #addresses … */
+  var VIEWS = { overview: showOverview, orders: showOrders, addresses: showAddresses,
+                wishlist: showWishlist, reviews: showReviews, points: showPoints,
+                profile: showProfile, security: showSecurity };
+
+  function route() {
+    var h = location.hash.replace(/^#/, '');
+    var tab = h.split('/')[0] || 'overview';
+    if (tab === 'order' && h.split('/')[1]) {
+      setActive('orders');
+      showOrder(decodeURIComponent(h.split('/')[1]));
+      return;
+    }
+    if (!VIEWS[tab]) tab = 'overview';
+    setActive(tab);
+    VIEWS[tab]();
+  }
+  function setActive(tab) {
+    document.querySelectorAll('.acct-nav button').forEach(function (b) {
+      b.classList.toggle('active', b.dataset.tab === tab);
+    });
+  }
+  function go(hash) {
+    A.hideNotice(notice);
+    if (location.hash === '#' + hash) route(); else location.hash = hash;
+  }
+  window.addEventListener('hashchange', route);
+
+  /* -------------------------------------------------------------- events */
+  document.addEventListener('click', function (e) {
+    var t = e.target.closest('button, a');
+    if (!t) return;
+    if (t.dataset.tab) { go(t.dataset.tab); return; }
+    if (t.dataset.go) { go(t.dataset.go); return; }
+    if (t.dataset.openOrder) { go('order/' + encodeURIComponent(t.dataset.openOrder)); return; }
+    if (t.hasAttribute('data-addr-new')) { addressForm(null); return; }
+    if (t.hasAttribute('data-addr-cancel')) { A.$('#addrForm').innerHTML = ''; return; }
+    var list = panel.dataset.addresses ? JSON.parse(panel.dataset.addresses) : [];
+    if (t.dataset.addrEdit) {
+      addressForm(list.filter(function (a) { return a.id === t.dataset.addrEdit; })[0]);
+      return;
+    }
+    if (t.dataset.addrDefault) {
+      var a = list.filter(function (x) { return x.id === t.dataset.addrDefault; })[0];
+      if (!a) return;
+      t.disabled = true;
+      var body = {}; Object.keys(a).forEach(function (k) { if (k !== 'id') body[k] = a[k]; });
+      body.is_default = true;
+      api('/account/addresses/' + encodeURIComponent(a.id), { method: 'PUT', body: body })
+        .then(showAddresses).catch(function (err) { t.disabled = false; A.showNotice(notice, 'error', err.message); });
+      return;
+    }
+    if (t.dataset.addrDel) {
+      if (!window.confirm('Delete this address? Orders already placed keep their own copy.')) return;
+      t.disabled = true;
+      api('/account/addresses/' + encodeURIComponent(t.dataset.addrDel), { method: 'DELETE' })
+        .then(showAddresses).catch(function (err) { t.disabled = false; A.showNotice(notice, 'error', err.message); });
+      return;
+    }
+    if (t.dataset.wishRemove) {
+      t.disabled = true;
+      api('/account/wishlist/' + encodeURIComponent(t.dataset.wishRemove), { method: 'DELETE' })
+        .then(showWishlist).catch(function (err) { t.disabled = false; A.showNotice(notice, 'error', err.message); });
+      return;
+    }
+    if (t.dataset.review) { reviewForm(t.dataset.review); return; }
+    if (t.dataset.star) {
+      reviewRating = Number(t.dataset.star);
+      t.parentNode.querySelectorAll('[data-star]').forEach(function (s) {
+        s.classList.toggle('on', Number(s.dataset.star) <= reviewRating);
+      });
+      return;
+    }
+    if (t.id === 'logoutAll') {
+      if (!window.confirm('Sign out of every device, including this one?')) return;
+      A.setBusy(t, true, 'Signing out…');
+      api('/account/logout-all', { method: 'POST' }).catch(function () {})
+        .then(function () { A.setToken(null); A.redirect('/signin'); });
+    }
+  });
+
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    e.preventDefault();
+    if (f.id === 'profileForm') saveProfile();
+    else if (f.id === 'pwForm') changePassword();
+    else if (f.id === 'addrEdit') saveAddress(f);
+    else if (f.dataset.reviewForm) submitReview(f);
+  });
+
+  A.$('#logout').addEventListener('click', function () {
+    var btn = A.$('#logout');
+    A.setBusy(btn, true, 'Signing out…');
+    // The token is cleared whether or not the server call succeeds: a failed
+    // logout must not leave the customer looking signed in on this device.
+    A.api('/account/logout', { method: 'POST', auth: true })
+      .catch(function () {})
+      .then(function () { A.setToken(null); A.redirect('/'); });
+  });
+
+  A.$('#resend').addEventListener('click', function () {
+    var btn = A.$('#resend');
+    A.setBusy(btn, true, 'Sending…');
+    api('/account/resend-verification', { method: 'POST' })
+      .then(function (data) { A.setBusy(btn, false); A.showNotice(notice, 'ok', data.message || 'Confirmation link sent.'); })
+      .catch(function (err) { A.setBusy(btn, false); A.showNotice(notice, 'error', err.message); });
+  });
+
+  /* ------------------------------------------------------------- start-up */
+  api('/account/me').then(function (me) {
+    customer = me;
+    A.$('#who').textContent = 'Hello, ' + (String(me.name || '').split(' ')[0] || 'there');
+    A.$('#whoEmail').textContent = me.email;
+    if (!me.email_verified) A.$('#verifyBanner').style.display = 'flex';
+    route();
+  }).catch(function (err) {
+    if (err.status !== 401) A.showNotice(notice, 'error', err.message);
+  });
+})();
+</script>
+</body>
+</html>
