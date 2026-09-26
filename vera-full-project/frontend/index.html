@@ -277,6 +277,8 @@
   .shop-chip:hover{border-color:var(--ink);}
   .shop-chip.active{background:var(--ink);color:var(--cream);border-color:var(--ink);}
   .shop-chip.sub{font-size:12px;padding:6px 13px;}
+  .shop-controls{display:flex;flex-wrap:wrap;gap:8px;}
+  .pdp-swatch{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.15);}
   .shop-sort{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;font:inherit;font-size:13px;color:var(--ink);}
   .shop-more{display:flex;justify-content:center;margin-top:30px;}
   .shop-empty{padding:40px 0;text-align:center;color:var(--text-soft);}
@@ -4250,12 +4252,19 @@
     </div>
     <div class="shop-bar" data-reveal="up">
       <div class="shop-chips" id="shopChips" role="tablist" aria-label="Filter by category"></div>
+      <div class="shop-controls">
+      <!-- Colours come from /api/colours: only those some published product in
+           the chosen category/type actually comes in. Hidden when none. -->
+      <select class="shop-sort" id="shopColour" aria-label="Filter by colour" hidden>
+        <option value="">All colours</option>
+      </select>
       <select class="shop-sort" id="shopSort" aria-label="Sort products">
         <option value="curated">Featured</option>
         <option value="newest">Newest</option>
         <option value="price_asc">Price: low to high</option>
         <option value="price_desc">Price: high to low</option>
       </select>
+      </div>
     </div>
     <!-- A 12-per-page grid with a cap of 8 on the stagger: the first two rows
          arrive in sequence, everything behind them shares the last delay
@@ -7520,7 +7529,10 @@
     pdpEl('pdpMeta').innerHTML = [
       pdpVariant && pdpVariant.sku ? `<div><strong>SKU:</strong> ${esc(pdpVariant.sku)}</div>` : '',
       pdpProduct.brand ? `<div><strong>Brand:</strong> ${esc(pdpProduct.brand)}</div>` : '',
-      pdpProduct.hair_type ? `<div><strong>Hair type:</strong> ${esc(pdpProduct.hair_type)}</div>` : '',
+      pdpProduct.subcategory ? `<div><strong>Category:</strong> ${esc(pdpProduct.main_category)}</div>` : '',
+      pdpProduct.subcategory ? `<div><strong>Hair type:</strong> ${esc(pdpProduct.subcategory)}</div>` : '',
+      // The older free-text field describes the fibre (Human Hair, Synthetic…).
+      pdpProduct.hair_type ? `<div><strong>Fibre:</strong> ${esc(pdpProduct.hair_type)}</div>` : '',
       pdpProduct.texture ? `<div><strong>Texture:</strong> ${esc(pdpProduct.texture)}</div>` : '',
       pdpProduct.construction ? `<div><strong>Construction:</strong> ${esc(pdpProduct.construction)}</div>` : '',
       pdpProduct.product_type ? `<div><strong>Type:</strong> ${esc(pdpProduct.product_type)}</div>` : '',
@@ -7532,12 +7544,20 @@
   function pdpRenderOptions(){
     const variants = (pdpProduct.variants || []);
     const dims = [
-      ['length','Length'], ['density','Density'], ['color','Color'],
+      ['length','Length'], ['density','Density'], ['color','Colour'],
       ['lace_type','Lace type'], ['cap_size','Cap size']
     ];
+    // Managed colours (Hair Catalogue) keep the Back Office order and carry a
+    // swatch; a colour is still just the variant's `color`, so choosing one
+    // selects the matching variant exactly as before.
+    const colourRank = {}, swatch = {};
+    (pdpProduct.colours || []).forEach((c, i) => { colourRank[c.name] = i; });
+    variants.forEach(v => { if(v.color && v.colour_hex) swatch[v.color] = v.colour_hex; });
     let html = '';
     dims.forEach(([key,label]) => {
-      const values = [...new Set(variants.map(v => v[key]).filter(Boolean))];
+      let values = [...new Set(variants.map(v => v[key]).filter(Boolean))];
+      if(key === 'color') values = values.slice().sort((a, b) =>
+        (colourRank[a] ?? 1e6) - (colourRank[b] ?? 1e6));
       if(values.length === 0) return;
       html += `<div class="pdp-opt"><label>${label}</label><div class="pdp-opt-values">` +
         values.map(val => {
@@ -7548,7 +7568,8 @@
           const active = pdpVariant && pdpVariant[key] === val;
           const disabled = !candidate || !candidate.is_available || candidate.stock <= 0;
           return `<button class="pdp-chip ${active?'active':''} ${disabled&&!active?'disabled':''}"
-            data-pdp-opt="${key}" data-pdp-val="${esc(val)}">${esc(val)}</button>`;
+            data-pdp-opt="${key}" data-pdp-val="${esc(val)}">${key === 'color' && swatch[val]
+              ? `<span class="pdp-swatch" style="background:${esc(swatch[val])}"></span>` : ''}${esc(val)}</button>`;
         }).join('') + '</div></div>';
     });
     pdpEl('pdpOptions').innerHTML = html;
@@ -7577,7 +7598,8 @@
     pdpVariant = variants.find(v => v.is_available && v.stock > 0) || variants[0] || null;
     pdpMediaIndex = 0;
 
-    pdpEl('pdpCat').textContent = product.category || '';
+    pdpEl('pdpCat').textContent = product.subcategory
+      ? product.main_category + ' › ' + product.subcategory : (product.category || '');
     pdpEl('pdpName').textContent = product.name;
     const reviewCount = Number(product.review_count || 0);
     pdpEl('pdpStars').textContent = reviewCount ? starsFor(product.rating) : '';
@@ -7790,14 +7812,97 @@
     wrap.hidden = tops.length === 0;
   }
 
+  /* Category / hair type / colour filtering happens ON THE SERVER: a chosen
+     filter fetches /api/products?category=&type=&colour= and the grid shows
+     exactly what came back. The unfiltered view is the catalog the page has
+     already loaded. Slugs, not ids, so the filter can live in the URL. */
+  let shopColour = '';            // colour slug, '' = all
+  let shopResults = null;         // null = unfiltered (liveProducts)
+  let shopRequest = 0;
+
+  function shopScopeParams(){
+    const params = new URLSearchParams();
+    const cat = (liveCategories || []).find(c => c.id === shopCategory);
+    if(cat){
+      const parent = cat.parent_id && liveCategories.find(c => c.id === cat.parent_id);
+      if(parent){ params.set('category', parent.slug); params.set('type', cat.slug); }
+      else params.set('category', cat.slug);
+    }
+    return params;
+  }
+
+  function syncShopUrl(){
+    const params = shopScopeParams();
+    if(shopColour) params.set('colour', shopColour);
+    const query = params.toString();
+    try{
+      history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+    }catch(e){ /* a sandboxed preview may refuse; the filter still works */ }
+  }
+
+  async function renderShopColours(){
+    const sel = document.getElementById('shopColour');
+    if(!sel) return;
+    let colours = [];
+    try{
+      const params = shopScopeParams();
+      params.set('in_use', 'true');
+      const res = await fetch(API_BASE + '/colours?' + params.toString());
+      if(res.ok) colours = await res.json();
+    }catch(e){ colours = []; }
+    if(shopColour && !colours.some(c => c.slug === shopColour)) shopColour = '';
+    sel.innerHTML = '<option value="">All colours</option>' +
+      colours.map(c => `<option value="${esc(c.slug)}">${esc(c.name)}</option>`).join('');
+    sel.value = shopColour;
+    sel.hidden = colours.length === 0;
+  }
+
+  async function refreshShop(){
+    const ticket = ++shopRequest;
+    await renderShopColours();
+    const params = shopScopeParams();
+    if(shopColour) params.set('colour', shopColour);
+    if([...params.keys()].length === 0){
+      shopResults = null;
+    } else {
+      params.set('limit', '200');
+      try{
+        const res = await fetch(API_BASE + '/products?' + params.toString());
+        if(!res.ok) throw new Error('filter failed');
+        const rows = await res.json();
+        if(ticket !== shopRequest) return;      // a newer choice already won
+        shopResults = rows;
+      }catch(e){
+        if(ticket !== shopRequest) return;
+        shopResults = [];
+      }
+    }
+    if(ticket !== shopRequest) return;
+    syncShopUrl();
+    renderShop();
+  }
+
+  let shopUrlApplied = false;
+  function applyShopUrlState(){
+    if(shopUrlApplied) return;
+    shopUrlApplied = true;
+    const q = new URLSearchParams(location.search);
+    const bySlug = (slug, isType) => (liveCategories || []).find(c =>
+      c.slug === slug && (isType ? !!c.parent_id : !c.parent_id));
+    const cat = q.get('category') && bySlug(q.get('category'), false);
+    const type = q.get('type') && bySlug(q.get('type'), true);
+    shopCategory = type && (!cat || type.parent_id === cat.id) ? type.id : (cat ? cat.id : '');
+    shopColour = q.get('colour') || '';
+    if(shopCategory || shopColour) refreshShop();
+  }
+
   function renderShop(){
     const grid = document.getElementById('shopGrid');
     if(!grid) return;
     if(!apiConnected){ toggleSection('shop', false); return; }
     toggleSection('shop', liveProducts.length > 0);
     renderShopChips();
-    const ids = shopCategoryIds(shopCategory);
-    let list = liveProducts.filter(p => !ids || ids.has(p.category_id));
+    let list = shopResults || liveProducts;
     const sort = (document.getElementById('shopSort') || {}).value || 'curated';
     const price = p => Number(p.price_min ?? p.price ?? 0);
     if(sort === 'price_asc') list = list.slice().sort((a, b) => price(a) - price(b));
@@ -7819,8 +7924,14 @@
   function showShopCategory(id){
     shopCategory = id || '';
     shopShown = SHOP_PAGE;
-    renderShop();
+    renderShop();          // the chip highlights at once; results follow
+    refreshShop();
   }
+  document.getElementById('shopColour').addEventListener('change', e => {
+    shopColour = e.target.value;
+    shopShown = SHOP_PAGE;
+    refreshShop();
+  });
 
   document.addEventListener('click', e => {
     const chip = e.target.closest('[data-shop-cat]');
@@ -7888,6 +7999,10 @@
     await renderBestSellers();
     reconcileCartWithCatalog();
     renderShop();
+    if(apiConnected){
+      renderShopColours();
+      applyShopUrlState();    // ?category=&type=&colour= deep links
+    }
     if(apiConnected) applyProductPhotoFallbacks();
     // The cinematic layer builds its data-driven sections (details, the
     // transformation) from this same catalogue — no second request.
