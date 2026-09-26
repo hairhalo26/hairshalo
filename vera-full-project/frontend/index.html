@@ -3833,21 +3833,22 @@
       <p>Get matched to the right piece, preview a style, or ask a question — all before you add to bag.</p>
     </div>
     <!-- Each card is both the tilt trigger and the tilted surface; .ai-grid
-         supplies the shared perspective. -->
+         supplies the shared perspective. data-image: the card's own campaign
+         photograph (clean, licensed); empty, one is taken from the catalogue. -->
     <div class="ai-grid" data-reveal-group data-reveal-step="110">
-      <div class="ai-card m-tilt m-tilt-inner" data-reveal="up" data-tilt-max="5" data-tilt-lift="-6">
+      <div class="ai-card m-tilt m-tilt-inner" data-reveal="up" data-tilt-max="5" data-tilt-lift="-6" data-image="">
         <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M9 18h6M10 21h4M12 3a6 6 0 00-3.6 10.8c.5.4.6 1 .6 1.5v.7h6v-.7c0-.5.1-1.1.6-1.5A6 6 0 0012 3z"/></svg></div>
         <h3>Style Finder</h3>
         <p>Four quick questions about face shape, length, budget and occasion, then a suggestion from the collection.</p>
         <button class="btn btn-outline" id="openQuiz">Take the Quiz</button>
       </div>
-      <div class="ai-card m-tilt m-tilt-inner" data-reveal="up" data-tilt-max="5" data-tilt-lift="-6">
+      <div class="ai-card m-tilt m-tilt-inner" data-reveal="up" data-tilt-max="5" data-tilt-lift="-6" data-image="">
         <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><rect x="4" y="3" width="16" height="18" rx="3"/><circle cx="12" cy="10" r="3"/><path d="M8 18c0-2.2 1.8-3.5 4-3.5s4 1.3 4 3.5"/></svg></div>
         <h3>Virtual Try-On</h3>
         <p>Lay a simple outline of a length or texture over a selfie. Your photo stays in your browser — it is never uploaded.</p>
         <button class="btn btn-outline" id="openTryon">Try It On</button>
       </div>
-      <div class="ai-card m-tilt m-tilt-inner" data-reveal="up" data-tilt-max="5" data-tilt-lift="-6">
+      <div class="ai-card m-tilt m-tilt-inner" data-reveal="up" data-tilt-max="5" data-tilt-lift="-6" data-image="">
         <div class="ai-icon"><svg viewBox="0 0 24 24" fill="none" stroke-width="1.7"><path d="M21 11.5a8.4 8.4 0 01-8.9 8.4 8.6 8.6 0 01-3.6-.8L3 20l1-4.9a8.3 8.3 0 01-1-4A8.4 8.4 0 0111.9 3a8.5 8.5 0 019.1 8.5z"/></svg></div>
         <h3>Quick answers</h3>
         <p>Automated answers about hair types, prices, delivery and returns, drawn from the shop's own information.</p>
@@ -6718,7 +6719,10 @@
   /* ---- Real, sellable product card ----
      The badge comes from the database (admin-chosen). It is never derived
      from compare_at_price. */
-  function renderProductCard(product, index){
+  function renderProductCard(product, index, opts){
+    // opts.photo: a photograph to show instead of the cover (see Best sellers).
+    // Called straight from Array.map, opts is the array — hence the check.
+    const shown = (opts && opts.photo) || product.image_url || '';
     // Default to the first available, in-stock variant so Quick Add can send a
     // real variant_id; the backend rejects orders without one.
     const variants = product.variants || [];
@@ -6779,7 +6783,7 @@
     const HOVER_VIDEO_MAX = 4 * 1024 * 1024;
     const hoverVideo = gallery.find(m => m.media_type === 'video' && m.url
       && (m.file_size == null || m.file_size <= HOVER_VIDEO_MAX));
-    const hoverStill = gallery.find(m => m.media_type !== 'video' && m.url && !m.is_primary);
+    const hoverStill = gallery.find(m => m.media_type !== 'video' && m.url && !m.is_primary && m.url !== shown);
     let hoverAttrs = '';
     if(hoverVideo)      hoverAttrs = ` data-hover-media data-hover-video="${esc(resolveMediaUrl(hoverVideo.url))}"`;
     else if(hoverStill) hoverAttrs = ` data-hover-media data-hover-image="${esc(resolveMediaUrl(hoverStill.url))}"`;
@@ -6788,7 +6792,7 @@
     const num = typeof index === 'number' ? String(index + 1).padStart(2, '0') : '';
     return `
       <div class="prod-card" data-reveal="up" data-cursor="View" data-product-id="${esc(product.id)}">
-        <div class="prod-media${(soldOut && !onRequest) ? ' is-sold-out' : ''}" data-media data-image="${esc(product.image_url || '')}"${hoverAttrs}>
+        <div class="prod-media${(soldOut && !onRequest) ? ' is-sold-out' : ''}" data-media data-image="${esc(shown)}"${hoverAttrs}>
           ${veraPlaceholderPanel('Product Image Coming Soon')}
           <span class="prod-floor" aria-hidden="true"></span>
           <span class="media-sheen" aria-hidden="true"></span>
@@ -7269,7 +7273,9 @@
     // This used to be "the first four published products", so a fifth product
     // was invisible everywhere except search.
     const real = liveProducts.filter(p => p.bestseller).slice(0, BESTSELLERS_SLOTS);
-    let html = real.map(renderProductCard).join('');
+    // Every one of these is also in the shop grid below, which shows its
+    // cover; here each shows another of its own photographs.
+    let html = real.map((p, i) => renderProductCard(p, i, { photo: claimPhoto(productStills(p)) })).join('');
 
     // Top up with placeholders only if this section is configured for it.
     const missing = BESTSELLERS_SLOTS - real.length;
@@ -7468,22 +7474,63 @@
     return pick ? pick.image_url : null;
   }
 
+  /* One photograph, one place. The shop grid shows every product's cover, so
+     covers are reserved for it; every other section that fills itself from
+     the catalogue claims a photograph nobody else has, and photographs chosen
+     in the Back Office or named on a section (data-image) are reserved before
+     anything is picked. Shared with the cinematic layer as HS_PHOTOS. */
+  const photoKey = url => String(url || '').split('/').pop().split('?')[0];
+  const usedPhotos = new Set();
+  function claimPhoto(urls){
+    for(const url of urls || []){
+      if(url && !usedPhotos.has(photoKey(url))){ usedPhotos.add(photoKey(url)); return url; }
+    }
+    return null;
+  }
+  // A product's stills other than its cover, in gallery order.
+  function productStills(p){
+    return (p.media || []).filter(m => m.media_type !== 'video' && m.url)
+      .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
+      .map(m => m.url).filter(url => photoKey(url) !== photoKey(p.image_url));
+  }
+  function reservePhotos(){
+    usedPhotos.clear();
+    const c = siteContent || {};
+    [c.hero && c.hero.image_url, c.editorial && c.editorial.image_url]
+      .concat(((c.why_choose || {}).items || []).map(item => item.image_url))
+      .concat(Array.prototype.map.call(document.querySelectorAll('[data-image]:not([data-media])'),
+        el => el.getAttribute('data-image')))
+      .concat(Array.prototype.map.call(document.querySelectorAll('[data-cat-image]'),
+        el => el.getAttribute('data-cat-image')))
+      .concat(liveProducts.map(p => p.image_url))
+      .forEach(url => { if(url) usedPhotos.add(photoKey(url)); });
+  }
+  window.HS_PHOTOS = {
+    claim: claimPhoto,
+    has: url => usedPhotos.has(photoKey(url))
+  };
+
   function applyProductPhotoFallbacks(){
     const hero = siteContent.hero || {};
-    const used = new Set();
+    // Featured first, then bestsellers, then the rest — none of them a cover.
+    const ranked = liveProducts.filter(p => p.featured)
+      .concat(liveProducts.filter(p => p.bestseller && !p.featured))
+      .concat(liveProducts.filter(p => !p.bestseller && !p.featured));
+    const stillsOf = list => list.reduce((all, p) => all.concat(productStills(p)), []);
     if(!hero.image_url){
-      const url = productPhoto(p => p.featured) || productPhoto(p => p.bestseller) || productPhoto(() => true);
-      if(url){ used.add(url); applyBackdrop(document.getElementById('heroArch'), url, 'contain'); }
+      const url = claimPhoto(stillsOf(ranked)) || productPhoto(() => true);
+      if(url) applyBackdrop(document.getElementById('heroArch'), url, 'contain');
     }
     const editorial = siteContent.editorial;
     if(editorial && !editorial.image_url){
-      const url = productPhoto(p => !used.has(p.image_url)) || productPhoto(() => true);
+      const url = claimPhoto(stillsOf(ranked));
       if(url) applyBackdrop(document.getElementById('editorialArch'), url, 'contain');
     }
     document.querySelectorAll('#catGrid [data-cat-id]').forEach(node => {
       if(node.dataset.catImage) return;
       const ids = shopCategoryIds(node.dataset.catId);
-      const url = productPhoto(p => ids.has(p.category_id));
+      const url = claimPhoto(stillsOf(liveProducts.filter(p => ids.has(p.category_id))))
+        || productPhoto(p => ids.has(p.category_id));
       if(url) applyBackdrop(node, url, 'contain');
     });
   }
@@ -7507,6 +7554,7 @@
     }catch(err){
       apiConnected = false;
     }
+    reservePhotos();
     await renderBestSellers();
     reconcileCartWithCatalog();
     renderShop();
@@ -9609,25 +9657,20 @@
       }
       var fresh = pool.filter(function(p){ return taken.indexOf(fileOf(p.image_url)) === -1; });
       var list = fresh.length ? fresh : pool;
-      var closePick = list[0];
-      var closing = document.getElementById('closingPhoto');
-      if(closing && closePick){
-        var closeShots = discoverFrames(closePick);
-        if(closeShots.length >= 3){ closing.classList.add('is-texture'); applyBackdrop(closing, closeShots[2].url, 'cover'); }
-        else applyBackdrop(closing, closePick.image_url, 'contain');
-      }
-      renderDiscover(products, taken.concat([closePick].filter(Boolean)
-        .map(function(p){ return fileOf(p.image_url); })));
-      renderCampaign(products);
+      // In page order, so a higher section gets first choice. Every pick is
+      // claimed through HS_PHOTOS: no photograph appears in two sections.
+      renderDiscover(products, taken);
+      spreadTexture(products.slice().reverse());
       whyPhotos(products);
-      // The campaign frames use each piece's close-up; the spread takes one
-      // they did not.
-      var campaignUsed = Array.prototype.map.call(document.querySelectorAll('.ai-photo'), function(el){
-        return el.style.backgroundImage;
-      }).join(' ');
-      spreadTexture(products.slice().reverse(), campaignUsed ? products.map(function(p){
-        var s = discoverFrames(p); return s.length >= 3 && campaignUsed.indexOf(fileOf(s[2].url)) !== -1 ? s[2].url : '';
-      }).filter(Boolean) : []);
+      renderCampaign(products);
+      var closing = document.getElementById('closingPhoto');
+      if(closing){
+        var order = [];
+        list.forEach(function(p){ var s = discoverFrames(p, isTaken); if(s.length >= 3) order.push(s[2].url); });
+        list.forEach(function(p){ discoverFrames(p, isTaken).forEach(function(f){ order.push(f.url); }); });
+        var url = claim(order);
+        if(url){ closing.classList.add('is-texture'); applyBackdrop(closing, url, 'cover'); }
+      }
     }
 
     /* ---------- Examine the piece: a product film ----------
@@ -9669,8 +9712,16 @@
         ['Colours', shades > 1 ? shades + ' shades' : '']
       ].filter(function(f){ return f[1]; });
     }
-    function discoverFrames(p){
-      var imgs = (p.media || []).filter(function(m){ return m.media_type !== 'video' && m.url; })
+    function claim(urls){
+      var P = window.HS_PHOTOS;
+      urls = (urls || []).filter(Boolean);
+      return P ? P.claim(urls) : (urls[0] || null);
+    }
+    function isTaken(url){ var P = window.HS_PHOTOS; return !!(P && P.has(url)); }
+
+    // avoid(url) -> true drops a photograph before the frames are chosen.
+    function discoverFrames(p, avoid){
+      var imgs = (p.media || []).filter(function(m){ return m.media_type !== 'video' && m.url && !(avoid && avoid(m.url)); })
         .sort(function(a, b){ return (a.sort_order || 0) - (b.sort_order || 0); });
       if(!imgs.length) return [];
       var lead = imgs.find(function(m){ return m.is_primary; }) || imgs[0];
@@ -9683,7 +9734,7 @@
       if(!sec || typeof resolveMediaUrl !== 'function') return;
       var best = null, bestScore = -1;
       products.forEach(function(p){
-        var frames = discoverFrames(p), facts = discoverFacts(p);
+        var frames = discoverFrames(p, isTaken), facts = discoverFacts(p);
         if(frames.length < 3 || facts.length < 3) return;
         var score = Math.min(frames.length, facts.length) * 2
           + (/human/i.test(p.hair_type || '') ? 3 : 0)
@@ -9692,7 +9743,7 @@
       });
       if(!best){ sec.hidden = true; return; }
 
-      var shots = discoverFrames(best), facts = discoverFacts(best);
+      var shots = discoverFrames(best, isTaken), facts = discoverFacts(best);
       // Stages whose photograph exists; the last returns to the first view.
       var frames = STAGE_SHOTS.filter(function(i){ return i < shots.length; })
         .map(function(i){ return shots[i]; });
@@ -9792,21 +9843,28 @@
     function renderCampaign(products){
       var cards = document.querySelectorAll('.ai-card');
       if(!cards.length || typeof resolveMediaUrl !== 'function') return;
+      var own = function(card){ return (card.getAttribute('data-image') || '').trim(); };
+      var need = Array.prototype.filter.call(cards, function(card){ return !own(card); }).length;
       var seen = {}, picks = [];
       products.forEach(function(p){
+        if(picks.length >= need) return;
         var tex = clean(p.texture).toLowerCase();
-        var frames = discoverFrames(p);
+        var frames = discoverFrames(p, isTaken);
         if(frames.length < 3 || seen[tex]) return;
+        var url = claim([frames[2].url].concat(frames.map(function(f){ return f.url; })));
+        if(!url) return;
         seen[tex] = 1;
-        picks.push(frames[2]);
+        picks.push(url);
       });
-      if(picks.length < cards.length) return;
-      cards.forEach(function(card, i){
+      if(picks.length < need) return;
+      var k = 0;
+      cards.forEach(function(card){
         if(card.querySelector('.ai-photo')) return;
+        var url = own(card) || picks[k++];
         var ph = document.createElement('span');
         ph.className = 'ai-photo';
         ph.setAttribute('aria-hidden', 'true');
-        ph.style.backgroundImage = "url('" + cssUrl(resolveMediaUrl(picks[i].url)) + "')";
+        ph.style.backgroundImage = "url('" + cssUrl(resolveMediaUrl(url)) + "')";
         card.insertBefore(ph, card.firstChild);
         card.classList.add('is-campaign');
       });
@@ -9824,18 +9882,21 @@
     function whyPhotos(products){
       var seen = {};
       whyShots = [];
+      var need = Array.prototype.filter.call(document.querySelectorAll('#whyGrid .wy-item'),
+        function(li){ return !li.getAttribute('data-photo'); }).length;
       products.forEach(function(p){
-        var shots = discoverFrames(p);
+        if(whyShots.length >= need) return;
+        var shots = discoverFrames(p, isTaken);
         var tex = clean(p.texture).toLowerCase();
         if(shots.length < 4 || seen[tex]) return;
-        seen[tex] = 1;
         // A straight piece's fourth shot is the whole weft — a black block at
         // this size; its close-up of the ends reads as hair.
-        whyShots.push(/straight/i.test(tex) ? shots[2].url : shots[3].url);
+        var pref = /straight/i.test(tex) ? shots[2] : shots[3];
+        var url = claim([pref.url].concat(shots.map(function(f){ return f.url; })));
+        if(!url) return;
+        seen[tex] = 1;
+        whyShots.push(url);
       });
-      if(whyShots.length < 2){
-        whyShots = products.map(function(p){ return p.image_url; }).filter(Boolean);
-      }
       paintWhyVisuals();
     }
     function paintWhyVisuals(){
@@ -9843,8 +9904,9 @@
       var items = document.querySelectorAll('#whyGrid .wy-item');
       var own = Array.prototype.some.call(items, function(li){ return li.getAttribute('data-photo'); });
       if(!box || !items.length || (!whyShots.length && !own) || typeof resolveMediaUrl !== 'function') return;
-      box.innerHTML = Array.prototype.map.call(items, function(li, i){
-        var url = li.getAttribute('data-photo') || (whyShots.length ? whyShots[i % whyShots.length] : '');
+      var k = 0;   // catalogue shots go to the reasons without a photo, in turn
+      box.innerHTML = Array.prototype.map.call(items, function(li){
+        var url = li.getAttribute('data-photo') || (whyShots.length ? whyShots[k++ % whyShots.length] : '');
         if(!url) return '<div class="wy-shot"></div>';
         return '<div class="wy-shot" style="background-image:url(\'' + cssUrl(resolveMediaUrl(url)) + '\')"></div>';
       }).join('');
@@ -9911,15 +9973,16 @@
        it, the spread is filled with a real close-up of hair that bleeds off
        the edge and into the words, rather than a product in a pool of light
        (which the hero already does). */
-    function spreadTexture(products, avoid){
+    function spreadTexture(products){
       var arch = document.getElementById('editorialArch');
       var content = typeof siteContent !== 'undefined' ? siteContent : {};
       if(!arch || (content.editorial && content.editorial.image_url)) return;
       var pick = null;
       products.some(function(p){
-        var shots = discoverFrames(p);
-        if(shots.length >= 3 && avoid.indexOf(shots[2].url) === -1){ pick = shots[2].url; return true; }
-        return false;
+        var shots = discoverFrames(p, isTaken);
+        if(shots.length < 3) return false;
+        pick = claim([shots[2].url]);
+        return !!pick;
       });
       if(!pick || typeof applyBackdrop !== 'function') return;
       arch.classList.add('is-texture');
