@@ -3831,7 +3831,7 @@
       </div>
     </div>
   </div>
-  <a class="hero-cue" href="#flow" aria-label="Scroll to The Flow"><span>Scroll</span><i aria-hidden="true"></i></a>
+  <a class="hero-cue" href="#statement" aria-label="Scroll to the next section"><span>Scroll</span><i aria-hidden="true"></i></a>
 </section>
 <script>
 /* fitHeroPortrait — desktop only (see "HERO PORTRAIT" in the stylesheet).
@@ -3878,35 +3878,6 @@
 <!-- The story, in order: the film (flow, statement, texture study,
      transformation), then the collection (examine, details, shop), then
      why and help, then the close. -->
-<!-- THE FLOW — a pinned scene. The section is taller than the screen and its
-     stage sticks while you scroll through it, so scrolling plays a sequence
-     instead of moving past a block: light, then strands of hair-light that
-     bend with the scroll, then a real product surfacing through them, then
-     its name. Scroll position drives it (--pp, 0→1); under reduced motion
-     it is simply the finished frame, unpinned. -->
-<section class="cine flow" id="flow" data-tone="#0D0907" data-scroll="pin" aria-labelledby="flowHeading">
-  <div class="flow-pin">
-    <div class="flow-atmos" aria-hidden="true"><span class="fa-key"></span><span class="fa-rim"></span></div>
-    <canvas class="flow-strands" data-fx="strands" data-mode="flow" aria-hidden="true"></canvas>
-    <div class="flow-product" id="flowProduct" hidden>
-      <span class="fp-light" aria-hidden="true"></span>
-      <div class="fp-img" id="flowProductImg" role="img"></div>
-    </div>
-    <div class="wrap flow-copy">
-      <span class="cine-eyebrow">The Flow</span>
-      <h2 class="flow-title" id="flowHeading"><span class="ft-l ft-1">Hair,</span> <span class="ft-l ft-2"><em>in motion.</em></span></h2>
-      <p class="cine-lede flow-lede">Light, weight and fall — the quiet details you notice before anything else.</p>
-    </div>
-    <div class="flow-caption" id="flowCaption" hidden>
-      <span class="fc-kicker">From the collection</span>
-      <span class="fc-name" id="flowCapName"></span>
-      <span class="fc-meta" id="flowCapMeta"></span>
-      <button type="button" class="fc-cta" id="flowCapCta">Explore the piece<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
-    </div>
-    <div class="flow-meter" aria-hidden="true"><i></i></div>
-  </div>
-</section>
-
 <!-- EDITORIAL STATEMENT — the loudest moment on the page. -->
 <section class="cine statement" id="statement" data-tone="#0D0907" data-scroll aria-labelledby="stmtHeading">
   <div class="stmt-fx" aria-hidden="true">
@@ -4099,54 +4070,6 @@
 })();
 </script>
 
-<!-- THE TRANSFORMATION — two real textures from the catalogue, with a light
-     seam that sweeps between them. It shows products, never a person: there is
-     no before/after result here to invent. Filled by the cinematic module from
-     live products; stays hidden unless two photographed textures exist. -->
-<section class="cine transform" id="transformation" data-tone="#0D0907" data-scroll hidden aria-labelledby="tfHeading">
-  <div class="wrap tf-head">
-    <span class="cine-eyebrow" data-reveal="up">The Transformation</span>
-    <h2 class="tf-title" id="tfHeading" data-reveal="split" data-split>One hair.<br><em>Two worlds.</em></h2>
-    <p class="cine-lede" data-reveal="up" style="--reveal-delay:220ms;">Two textures from the collection. Draw the light across and change one into the other.</p>
-  </div>
-  <!-- Full bleed. Each side is its own lit set; the product photograph is
-       multiplied into that light. Moving the seam rescales both pieces, shifts
-       the room's colour temperature and bends the strands of light that
-       gather around the seam (canvas, drawn by the cinematic layer). -->
-  <div class="tf-stage" id="tfStage" data-reveal="fade" style="--tf:50;">
-    <span class="tf-atmos tf-atmos-a" aria-hidden="true"></span>
-    <span class="tf-atmos tf-atmos-b" aria-hidden="true"></span>
-    <figure class="tf-frame tf-a">
-      <div class="tf-img" id="tfImgA" role="img"></div>
-      <figcaption class="tf-cap"><span class="tf-tex" id="tfTexA"></span><span class="tf-name" id="tfNameA"></span></figcaption>
-    </figure>
-    <figure class="tf-frame tf-b">
-      <div class="tf-img" id="tfImgB" role="img"></div>
-      <figcaption class="tf-cap"><span class="tf-tex" id="tfTexB"></span><span class="tf-name" id="tfNameB"></span></figcaption>
-    </figure>
-    <canvas class="tf-strands" data-fx="strands" data-mode="seam" aria-hidden="true"></canvas>
-    <span class="tf-seam" aria-hidden="true"><i></i></span>
-    <span class="tf-hint" aria-hidden="true">Drag to transform</span>
-    <input class="tf-range" id="tfRange" type="range" min="0" max="100" value="50" step="1"
-           aria-label="Move between the two textures">
-  </div>
-</section>
-
-<!-- SIGNATURE — the turn from the cinematic stage into the shop. The ivory
-     rises over the dark like a curtain, and one strand of light crosses the
-     seam between them. -->
-<section class="signature" id="signature" data-tone="#EFE6D8" data-scroll aria-labelledby="sigHeading">
-  <svg class="sig-strand" viewBox="0 0 1440 260" preserveAspectRatio="none" aria-hidden="true" focusable="false">
-    <path pathLength="1" d="M-20 30C260 10 420 150 720 120S1180 -10 1460 70"/>
-    <path pathLength="1" d="M-20 60C300 40 460 190 760 150S1200 20 1460 110"/>
-  </svg>
-  <div class="wrap sig-inner">
-    <span class="sig-eyebrow" data-reveal="up">The Collection</span>
-    <h2 class="sig-title" id="sigHeading" data-reveal="split" data-split>Find your<br><em>signature.</em></h2>
-    <p class="sig-lede" data-reveal="up" style="--reveal-delay:260ms;">Every piece in the collection, ready to explore.</p>
-  </div>
-</section>
-
 <!-- EXAMINE THE PIECE — a product film. One real piece, told through its own
      photographs (one colourway, in the shop's own order): the camera enters,
      pushes into the texture, moves around it, travels down its length and
@@ -4171,20 +4094,6 @@
       <button type="button" class="fc-cta" id="dsEndCta">Explore this piece<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
     </div>
     <div class="ds-count" aria-hidden="true"><span id="dsCount">01</span><i></i><span id="dsTotal">05</span></div>
-  </div>
-</section>
-
-<!-- DETAILS THAT MAKE THE DIFFERENCE — native <details>, one row per real
-     facet of the live catalogue. A facet the shop holds no data for is simply
-     not rendered, so this can never describe an option that does not exist. -->
-<section class="details-sec" id="details" data-tone="#F2EADF" hidden aria-labelledby="detHeading">
-  <div class="wrap det-grid">
-    <div class="det-intro">
-      <span class="det-eyebrow" data-reveal="up">The Detail</span>
-      <h2 class="det-h2" id="detHeading" data-reveal="up">Details<br>that make<br><em>the difference.</em></h2>
-      <p class="det-lede" data-reveal="up" style="--reveal-delay:140ms;">Everything the collection is made from, and every choice within it — drawn straight from what is in stock.</p>
-    </div>
-    <div class="det-list" id="detList"></div>
   </div>
 </section>
 
@@ -10092,184 +10001,8 @@
       });
     }
     function clean(v){ return v == null ? '' : String(v).trim(); }
-    var HEX = /^#[0-9a-f]{3,8}$/i;
 
-    /* ---------- Details that make the difference ----------
-       Counts PRODUCTS per value: a colour sold in five variants of one wig is
-       still one piece. A facet with no data is not rendered at all. */
-    function tally(products, pick){
-      var map = new Map();
-      products.forEach(function(p){
-        var seen = new Set();
-        [].concat(pick(p) || []).forEach(function(v){
-          var key = clean(v && typeof v === 'object' ? v.name : v);
-          if(!key || seen.has(key)) return;
-          seen.add(key);
-          var cur = map.get(key) || { n:0, hex:(v && HEX.test(v.hex || '')) ? v.hex : '' };
-          cur.n++; map.set(key, cur);
-        });
-      });
-      return Array.from(map.entries())
-        .map(function(e){ return { label:e[0], n:e[1].n, hex:e[1].hex }; })
-        .sort(function(a, b){ return b.n - a.n || a.label.localeCompare(b.label); });
-    }
-    function vars(p){ return p.variants || []; }
-
-    var FACETS = [
-      { name:'Hair type',    intro:'What each piece in the collection is made from.',
-        pick:function(p){ return p.hair_type; } },
-      { name:'Texture',      intro:'The curl patterns the collection is cut in.',
-        pick:function(p){ return p.texture; } },
-      { name:'Construction', intro:'How each unit is built.',
-        pick:function(p){ return p.construction; } },
-      { name:'Length',       intro:'The lengths you can choose from.',
-        pick:function(p){ return vars(p).map(function(v){ return v.length; }); } },
-      { name:'Density',      intro:'Density options across the range.',
-        pick:function(p){ return vars(p).map(function(v){ return v.density; }); } },
-      { name:'Colour',       intro:'The shades pieces come in.',
-        pick:function(p){ return (p.colours || []).filter(function(c){ return c && c.is_active !== false; }); } }
-    ];
-
-    function detRow(i, name, body){
-      var num = String(i + 1).padStart(2, '0');
-      return '<details class="det-row" data-reveal="up">' +
-        '<summary class="det-sum">' +
-          '<span class="det-num" aria-hidden="true">' + num + '</span>' +
-          '<span class="det-name">' + esc(name) + '</span>' +
-          '<span class="det-icon" aria-hidden="true"></span>' +
-        '</summary>' +
-        '<div class="det-body">' + body + '</div>' +
-      '</details>';
-    }
-
-    function renderDetails(products){
-      var list = document.getElementById('detList');
-      var sec  = document.getElementById('details');
-      if(!list || !sec) return;
-      var html = [];
-      FACETS.forEach(function(f){
-        var values = tally(products, f.pick);
-        if(!values.length) return;
-        var chips = values.map(function(v){
-          var sw = v.hex ? '<span class="sw" style="background:' + v.hex + '" aria-hidden="true"></span>' : '';
-          return '<span class="det-chip">' + sw + esc(v.label) +
-                 ' <small>' + v.n + (v.n === 1 ? ' piece' : ' pieces') + '</small></span>';
-        }).join('');
-        html.push(detRow(html.length, f.name,
-          '<p>' + esc(f.intro) + '</p><div class="det-chips">' + chips + '</div>'));
-      });
-      // Care is free text: shown only when the shop has written some, in its own words.
-      var care = products.map(function(p){ return clean(p.care_instructions); }).filter(Boolean);
-      if(care.length) html.push(detRow(html.length, 'Care', '<p>' + esc(care[0]) + '</p>'));
-
-      if(!html.length){ sec.hidden = true; return; }
-      list.innerHTML = html.join('');
-      list.setAttribute('data-reveal-group', '');
-      list.setAttribute('data-reveal-step', '70');
-      sec.hidden = false;
-      if(M && M.scan) M.scan(sec);
-    }
-
-    /* ---------- The transformation ----------
-       One photographed product per texture; two different textures, or the
-       section stays hidden. Straight against a curl, when both exist. */
-    function renderTransformation(products){
-      var sec = document.getElementById('transformation');
-      if(!sec) return;
-      var picks = [], seen = new Set();
-      products.forEach(function(p){
-        var tex = clean(p.texture);
-        if(!tex || !p.image_url || seen.has(tex.toLowerCase())) return;
-        seen.add(tex.toLowerCase());
-        picks.push(p);
-      });
-      if(picks.length < 2){ sec.hidden = true; return; }
-      var a = picks.find(function(p){ return /straight/i.test(p.texture); }) || picks[0];
-      var b = picks.find(function(p){ return p !== a && /curl|wave|coil|kink/i.test(p.texture); })
-           || picks.find(function(p){ return p !== a; });
-
-      [[a, 'A'], [b, 'B']].forEach(function(pair){
-        var p = pair[0], k = pair[1];
-        var img = document.getElementById('tfImg' + k);
-        // The texture itself, not the packaging: each side is filled with
-        // the piece's own close-up photograph when it has one.
-        var shots = discoverFrames(p);
-        var close = shots.length >= 3 ? shots[2].url : p.image_url;
-        img.classList.toggle('is-texture', close !== p.image_url);
-        if(typeof applyBackdrop === 'function') applyBackdrop(img, close, close !== p.image_url ? 'cover' : 'contain');
-        img.setAttribute('aria-label', p.name + ', ' + p.texture);
-        document.getElementById('tfTex' + k).textContent  = p.texture;
-        document.getElementById('tfName' + k).textContent = p.name;
-      });
-      sec.hidden = false;
-      wireTransformation(sec, clean(a.texture), clean(b.texture));
-      if(M && M.scan) M.scan(sec);
-    }
-
-    function wireTransformation(sec, texA, texB){
-      var stage = document.getElementById('tfStage');
-      var range = document.getElementById('tfRange');
-      if(!stage || !range) return;
-      stage.dataset.texA = texA; stage.dataset.texB = texB;
-      function set(v){
-        v = Math.max(0, Math.min(100, Number(v)));
-        stage.__tf = v;     // read by the seam strands each frame
-        stage.style.setProperty('--tf', v.toFixed(2));
-        range.value = Math.round(v);
-        range.setAttribute('aria-valuetext',
-          Math.round(v) + '% ' + stage.dataset.texB + ', ' + (100 - Math.round(v)) + '% ' + stage.dataset.texA);
-      }
-      if(stage.dataset.wired){ set(range.value); return; }
-      stage.dataset.wired = '1';
-
-      var raf = 0, cancelled = false;
-      range.addEventListener('input', function(){
-        cancelled = true;
-        if(raf) cancelAnimationFrame(raf);
-        stage.classList.add('is-used');
-        set(range.value);
-      });
-      set(50);
-
-      // The handle leans toward the pointer's height along the seam, so it
-      // is always under the hand that is about to take it.
-      stage.addEventListener('pointermove', function(e){
-        if(e.pointerType && e.pointerType !== 'mouse') return;
-        var r = stage.getBoundingClientRect();
-        var y = Math.min(Math.max((e.clientY - r.top) / r.height, .12), .88);
-        stage.style.setProperty('--hy', (y * 100).toFixed(1) + '%');
-        var near = Math.abs((e.clientX - r.left) / r.width * 100 - (stage.__tf || 50)) < 9;
-        stage.classList.toggle('is-near', near);
-      });
-      stage.addEventListener('pointerleave', function(){
-        stage.style.removeProperty('--hy');
-        stage.classList.remove('is-near');
-      });
-
-      // First sight only: the second texture flows over the first, then the
-      // seam comes to rest in the middle. The SECTION is observed — the stage
-      // itself already belongs to the reveal observer.
-      if(still || !('IntersectionObserver' in window)) return;
-      var io = new IntersectionObserver(function(entries){
-        if(!entries[0].isIntersecting) return;
-        io.disconnect();
-        // Someone already took the handle: their position stands.
-        if(cancelled) return;
-        var from = 100, to = 50, dur = 1600, t0 = 0;
-        set(from);
-        function tick(t){
-          if(cancelled) return;
-          if(!t0) t0 = t;
-          var k = Math.min(1, (t - t0) / dur);
-          set(from + (to - from) * (1 - Math.pow(1 - k, 4)));   // ease-out, no overshoot
-          if(k < 1) raf = requestAnimationFrame(tick);
-        }
-        raf = requestAnimationFrame(tick);
-      }, {threshold:.3});
-      io.observe(sec);
-    }
-
-    /* ---------- The statement: light crosses the type with the scroll ----------
+/* ---------- The statement: light crosses the type with the scroll ----------
        One rect read per frame, and only while the section is on screen. */
     function statement(){
       var sec = document.getElementById('statement');
@@ -10292,10 +10025,9 @@
     }
 
     /* ---------- Real photographs for the film's set pieces ----------
-       The Flow surfaces one real product; the closing shot dissolves another
-       into its light. Neither repeats the hero's photograph when the
-       catalogue has alternatives, and with no photographed products both
-       simply stay empty — the strands and type carry the scene alone. */
+       The closing shot dissolves a real product into its light. It does not
+       repeat the hero's photograph when the catalogue has alternatives, and
+       with no photographed products it simply stays empty. */
     function fileOf(url){ return String(url || '').split('/').pop(); }
     function scenePhotos(products){
       if(typeof applyBackdrop !== 'function') return;
@@ -10316,32 +10048,14 @@
       }
       var fresh = pool.filter(function(p){ return taken.indexOf(fileOf(p.image_url)) === -1; });
       var list = fresh.length ? fresh : pool;
-      var flowPick = list.find(function(p){ return /curl|wave|coil|kink/i.test(p.texture || ''); }) || list[0];
-
-      var box = document.getElementById('flowProduct');
-      var img = document.getElementById('flowProductImg');
-      if(box && img && flowPick){
-        // Hair texture surfaces from the strands: the piece's own close-up,
-        // not its packaging in a pool of light (the hero already does that).
-        var flowShots = discoverFrames(flowPick);
-        if(flowShots.length >= 3){ img.classList.add('is-texture'); applyBackdrop(img, flowShots[2].url, 'cover'); }
-        else applyBackdrop(img, flowPick.image_url, 'contain');
-        img.setAttribute('aria-label', flowPick.name);
-        document.getElementById('flowCapName').textContent = flowPick.name;
-        document.getElementById('flowCapMeta').textContent =
-          [flowPick.category, clean(flowPick.texture)].filter(Boolean).join(' · ');
-        document.getElementById('flowCapCta').setAttribute('data-view-product', flowPick.id);
-        box.hidden = false;
-        document.getElementById('flowCaption').hidden = false;
-      }
-      var closePick = list.find(function(p){ return p !== flowPick; }) || flowPick;
+      var closePick = list[0];
       var closing = document.getElementById('closingPhoto');
       if(closing && closePick){
         var closeShots = discoverFrames(closePick);
         if(closeShots.length >= 3){ closing.classList.add('is-texture'); applyBackdrop(closing, closeShots[2].url, 'cover'); }
         else applyBackdrop(closing, closePick.image_url, 'contain');
       }
-      renderDiscover(products, taken.concat([flowPick, closePick].filter(Boolean)
+      renderDiscover(products, taken.concat([closePick].filter(Boolean)
         .map(function(p){ return fileOf(p.image_url); })));
       renderCampaign(products);
       whyPhotos(products);
@@ -10712,8 +10426,6 @@
 
     function build(products){
       if(!products || !products.length) return;
-      renderDetails(products);
-      renderTransformation(products);
       scenePhotos(products);
     }
 
