@@ -2920,8 +2920,6 @@
       linear-gradient(100deg,transparent 30%,rgba(255,236,210,.12) 46%,transparent 60%) no-repeat,
       radial-gradient(120% 110% at 50% 45%,transparent 62%,rgba(20,10,6,.45) 100%);
     background-size:260% 100%,100% 100%;background-position:100% 0,0 0;}
-  .ts-product{position:absolute;inset:0;opacity:0;background-color:#BE8A70;background-blend-mode:multiply;
-    background-size:cover;background-position:center;pointer-events:none;}
   .ts-copy{position:relative;z-index:3;}
   .ts-title{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(56px,7.4vw,132px);line-height:.9;
     letter-spacing:-.04em;margin-top:24px;display:flex;flex-direction:column;}
@@ -2929,16 +2927,11 @@
   .ts-w2{padding-left:.5em;}
   .ts-w2 em{font-style:italic;color:var(--champagne);}
   .ts-anno{display:none;}
-  .ts-end{grid-column:1 / -1;display:flex;flex-direction:column;align-items:flex-start;gap:10px;}
-  .ts-end[hidden]{display:none;}
   /* `hidden` means hidden. Component rules that set display (.btn, .promo,
      .tag, .ck-save, .shop-more, .foot-social…) were overriding it, so empty
      or not-applicable elements showed — an empty promo bar, a "save this
      address" box for signed-out guests. */
   [hidden]{display:none !important;}
-  .ts-end-kicker{font-size:10.5px;letter-spacing:.36em;text-transform:uppercase;color:var(--champagne);}
-  .ts-end-name{font-family:'Fraunces',serif;font-size:clamp(30px,3.2vw,52px);line-height:1;letter-spacing:-.02em;}
-  .texture-study .fc-cta{color:var(--ivory);}
   .texture-study :focus-visible{outline-color:var(--champagne);}
 
   /* ---------- The film (motion) ---------- */
@@ -2949,9 +2942,7 @@
        image, so the push must go deep enough (≈2.9×, anchored at the hair
        edge) for the face to leave and the curls to fill it; a tall frame is
        already cropped to the hair side and needs less. */
-    --zs:1.9;
-    /* The handover, 0→1 */
-    --h:clamp(0, (var(--pp,0) - .64) * 4.2, 1);}
+    --zs:1.9;}
   .motion-ready .ts-pin{position:sticky;top:0;height:100vh;height:100svh;display:block;padding:0;}
   .motion-ready .ts-frame{position:absolute;aspect-ratio:auto;z-index:1;
     top:calc(12vh * (1 - var(--k)));bottom:calc(12vh * (1 - var(--k)));
@@ -2982,35 +2973,13 @@
     opacity:min(clamp(0, (var(--pp,0) - .6) * 8, 1), clamp(0, (.76 - var(--pp,0)) * 10, 1));}
   .motion-ready .ts-a2 i{transform:scaleX(clamp(0, (var(--pp,0) - .6) * 6, 1));}
 
-  .motion-ready .ts-end{position:absolute;z-index:4;left:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));bottom:11vh;
-    opacity:clamp(0, (var(--pp,0) - .86) * 8, 1);transform:translateY(calc((1 - clamp(0, (var(--pp,0) - .86) * 8, 1)) * 28px));
-    text-shadow:0 2px 30px rgba(20,10,6,.7);}
-  .motion-ready .ts-end:focus-within{opacity:1;transform:none;}
 
-  /* ---------- The handover, as one scene ----------
-     hair texture → a bloom of warm light → a terracotta ground the same
-     colour as the product's set → the real piece emerging from that ground
-     through a soft opening. Nothing cuts. It runs only once the real product
-     photograph has loaded (.has-product); without it the campaign image
-     holds, words and all, to the end of the scene. */
-  .ts-ground{position:absolute;inset:0;pointer-events:none;opacity:0;
-    background:radial-gradient(70% 70% at 60% 50%,#BE8A70 0%,#8E5A44 55%,#3A2118 100%);}
+  /* ---------- The ending ---------- */
   .ts-bloom{position:absolute;inset:0;pointer-events:none;opacity:0;
     background:radial-gradient(45% 50% at 62% 48%,rgba(255,232,204,.42),rgba(255,232,204,0) 70%);}
   .ts-credit{position:absolute;left:14px;bottom:12px;z-index:2;font-size:9.5px;letter-spacing:.24em;text-transform:uppercase;
     color:rgba(244,236,224,.78);text-shadow:0 1px 10px rgba(20,10,6,.7);}
-  /* The ground never fully covers the hair (it stays faintly visible under
-     the light); the product opens wide from the first frame it appears,
-     so it dissolves in rather than growing out of a spot. */
-  .motion-ready .has-product .ts-ground{opacity:min(.8, calc(var(--h) * 1.6));}
-  .motion-ready .has-product .ts-bloom{opacity:min(1, calc(var(--h) * 3), calc((1 - var(--h)) * 2));}
-  .motion-ready .has-product .ts-product{opacity:clamp(0, (var(--h) - .25) * 2, 1);
-    --tr:calc(45% + var(--h) * 110%);
-    -webkit-mask-image:radial-gradient(ellipse var(--tr) var(--tr) at 60% 50%,#000 calc(var(--tr) * .5),transparent var(--tr));
-            mask-image:radial-gradient(ellipse var(--tr) var(--tr) at 60% 50%,#000 calc(var(--tr) * .5),transparent var(--tr));
-    transform:scale(calc(1.12 - var(--h) * .12));}
   .motion-ready .ts-credit{opacity:calc(1 - clamp(0, (var(--pp,0) - .6) * 6, 1));}
-  .motion-ready .has-product .ts-copy{opacity:calc(1 - clamp(0, (var(--pp,0) - .63) * 7, 1));}
 
   @media (max-width:980px){
     .ts-pin{grid-template-columns:1fr;}
@@ -3054,18 +3023,17 @@
       transform:translate3d(calc((1 - clamp(0, (var(--sv,.5) - .08) * 1.5, 1)) * 6vw),0,0) scale(1.04);}
   }
 
-  /* Texture study → next scene, when there is no product to hand over to:
-     the hair stays on screen, warm light rises over it, the words leave, and
+  /* Texture study → next scene: the hair stays on screen, warm light rises over it, the words leave, and
      the frame settles into the dark the next scene opens on. No cut, no
      empty frame. */
   .ts-exit{position:absolute;inset:0;z-index:2;pointer-events:none;opacity:0;
     /* Dark only where the next scene joins (the bottom edge); the hair stays
        faintly visible above it, so the frame never goes empty. */
     background:linear-gradient(0deg,#0D0907 0%,rgba(13,9,7,.82) 24%,rgba(13,9,7,.42) 62%,rgba(13,9,7,.22) 100%);}
-  .motion-ready .texture-study:not(.has-product) .ts-bloom{
+  .motion-ready .texture-study .ts-pin .ts-bloom{
     opacity:min(clamp(0, (var(--pp,0) - .7) * 6, 1), clamp(0, (1 - var(--pp,0)) * 4.5, 1));}
-  .motion-ready .texture-study:not(.has-product) .ts-copy{opacity:calc(1 - clamp(0, (var(--pp,0) - .86) * 8, 1));}
-  .motion-ready .texture-study:not(.has-product) .ts-exit{opacity:clamp(0, (var(--pp,0) - .84) * 6.5, 1);}
+  .motion-ready .texture-study .ts-pin .ts-copy{opacity:calc(1 - clamp(0, (var(--pp,0) - .86) * 8, 1));}
+  .motion-ready .texture-study .ts-pin .ts-exit{opacity:clamp(0, (var(--pp,0) - .84) * 6.5, 1);}
 
   /* Closing → newsletter: one closing scene. The gap between them closes,
      and a single champagne line draws down from the call to action to the
@@ -3532,7 +3500,7 @@
      image, filmed: it opens as a full frame, the camera pushes slowly into
      the curls until the hair fills the screen, three words arrive one at a
      time, a thin line picks out a curl, light moves across it, and the
-     scene hands over to a real curl texture from the collection. Everything
+     frame settles into the dark the next scene opens on. Everything
      is scroll-driven (--pp) and pure CSS on the one image — cropping, scale
      and light only; the photograph itself is never altered. Every word
      describes what is visible; none of it is a product claim, and the image
@@ -3546,9 +3514,7 @@
     <div class="ts-frame">
       <div class="ts-img" role="img" aria-label="Editorial portrait: long, defined black curls falling around the face"></div>
       <span class="ts-light" aria-hidden="true"></span>
-      <span class="ts-ground" aria-hidden="true"></span>
       <span class="ts-bloom" aria-hidden="true"></span>
-      <div class="ts-product" id="tsProduct" aria-hidden="true"></div>
       <span class="ts-credit">Campaign imagery</span>
     </div>
     <span class="ts-exit" aria-hidden="true"></span>
@@ -3558,11 +3524,6 @@
     </div>
     <div class="ts-anno ts-a1" aria-hidden="true"><i></i><span>Defined curl, root to end</span></div>
     <div class="ts-anno ts-a2" aria-hidden="true"><i></i><span>Natural volume</span></div>
-    <div class="ts-end" id="tsEnd" hidden>
-      <span class="ts-end-kicker">Curls, in the collection</span>
-      <span class="ts-end-name" id="tsEndName"></span>
-      <button type="button" class="fc-cta" id="tsEndCta">Explore the texture<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" aria-hidden="true"><path d="M5 12h14M13 5l7 7-7 7"/></svg></button>
-    </div>
   </div>
 </section>
 
@@ -9653,7 +9614,6 @@
         .map(function(p){ return fileOf(p.image_url); })));
       renderCampaign(products);
       whyPhotos(products);
-      textureStudyProduct(products);
       // The campaign frames use each piece's close-up; the spread takes one
       // they did not.
       var campaignUsed = Array.prototype.map.call(document.querySelectorAll('.ai-photo'), function(el){
@@ -9952,48 +9912,6 @@
       if(!pick || typeof applyBackdrop !== 'function') return;
       arch.classList.add('is-texture');
       applyBackdrop(arch, pick, 'cover');
-    }
-
-    /* The texture study hands over to a real piece from the catalogue, chosen
-       by what the API itself reports — never by name, never a stand-in:
-         - in stock now (in_stock true and total_stock above zero; the API's
-           is_purchasable is true even at zero stock, so it is not used);
-         - human hair (the campaign image shows natural hair; synthetic or
-           unstated hair_type does not qualify);
-         - a curl or wave texture, curls preferred;
-         - photographed.
-       No piece qualifies, no handover: the scene holds on the campaign image
-       alone. The handover layers (.has-product) run only once the product's
-       own photograph has loaded. */
-    function textureStudyPick(products){
-      var ok = products.filter(function(p){
-        return p.in_stock === true && Number(p.total_stock) > 0
-          && /human/i.test(p.hair_type || '') && !/synthetic/i.test(p.hair_type || '')
-          && /curl|coil|kink|wave/i.test(p.texture || '')
-          && (discoverFrames(p).length || p.image_url);
-      });
-      var curl = function(p){ return /curl|coil|kink/i.test(p.texture || '') ? 1 : 0; };
-      ok.sort(function(a, b){ return (curl(b) - curl(a)) || (discoverFrames(b).length - discoverFrames(a).length); });
-      return ok[0] || null;
-    }
-    function textureStudyProduct(products){
-      var sec = document.getElementById('textureStudy');
-      if(!sec || typeof resolveMediaUrl !== 'function') return;
-      var p = textureStudyPick(products);
-      if(!p) return;
-      var shots = discoverFrames(p);
-      // The third frame is the close-up; fewer frames, the best there is.
-      var url = shots.length ? shots[Math.min(2, shots.length - 1)].url : p.image_url;
-      var src = resolveMediaUrl(url);
-      var probe = new Image();
-      probe.onload = function(){
-        document.getElementById('tsProduct').style.backgroundImage = "url('" + cssUrl(src) + "')";
-        document.getElementById('tsEndName').textContent = p.name;
-        document.getElementById('tsEndCta').setAttribute('data-view-product', p.id);
-        document.getElementById('tsEnd').hidden = false;
-        sec.classList.add('has-product');
-      };
-      probe.src = src;
     }
 
     /* The texture study's photograph, named on the section (data-image).
