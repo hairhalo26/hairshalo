@@ -3117,9 +3117,8 @@
     background-size:300% 100%;background-position:100% 0;
   }
   /* The campaign film (data-video): the portrait's box, cropped to fill it,
-     its own backdrop dissolving into the set at every edge. Hidden until it
-     is playing; then the portrait and the light and sheen cut to her
-     silhouette step aside. */
+     its own backdrop dissolving into the set at every edge. heroFilm() takes
+     the portrait out when a film is named; the rule below is the backstop. */
   .hv-video{z-index:3;display:block;object-fit:cover;object-position:50% 38%;opacity:0;
     -webkit-mask-image:radial-gradient(ellipse 50% 52% at 50% 44%, #000 56%, transparent 100%);
             mask-image:radial-gradient(ellipse 50% 52% at 50% 44%, #000 56%, transparent 100%);}
@@ -3395,9 +3394,9 @@
       <div class="hero-chips" id="heroChips" data-reveal="up"></div>
     </div>
     <div class="hero-visual has-portrait" data-video="">
-      <!-- data-video: a campaign film (muted, looping, clean and licensed) that
-           takes the portrait's place once it is actually playing. The portrait
-           stays for reduced motion, Save-Data, or a film that fails to play.
+      <!-- data-video: a campaign film (muted, looping, clean and licensed).
+           Named, it replaces the portrait outright — the portrait returns only
+           if the film cannot be loaded. Empty, the portrait is the hero.
 
            A lit set, not a frame. Layers, back to front: the warm key light,
            hair-light strands running into the room, the campaign portrait (a
@@ -3460,20 +3459,34 @@
   <a class="hero-cue" href="#statement" aria-label="Scroll to the next section"><span>Scroll</span><i aria-hidden="true"></i></a>
 </section>
 <script>
-/* heroFilm — the campaign film named on .hero-visual (data-video). Nothing is
-   fetched until it is wanted: no film named, reduced motion or Save-Data, and
-   the portrait simply stays. The film is shown only once it is playing, and
-   pauses whenever the hero is off screen. */
+/* heroFilm — the campaign film named on .hero-visual (data-video). When one
+   is named it IS the hero visual: the portrait and the light and sheen cut
+   to her silhouette are taken out at once, so there is never a still first
+   and a film after. Under reduced motion or Save-Data the film holds its
+   first frame instead of playing. Only if the film cannot be loaded does the
+   portrait come back. It pauses whenever the hero is off screen. */
 (function heroFilm(){
   var box = document.querySelector('.hero-visual');
   var film = box && box.querySelector('.hv-video');
   var src = box && (box.getAttribute('data-video') || '').trim();
   if(!film || !src) return;
-  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if(navigator.connection && navigator.connection.saveData) return;
+  var stage = film.parentNode;
+  var still = Array.prototype.slice.call(stage.querySelectorAll('.hv-portrait, .hv-portrait-light, .hv-sweep'));
+  var marks = still.map(function(node){
+    var mark = document.createComment('hero still');
+    node.parentNode.replaceChild(mark, node);
+    return mark;
+  });
+  box.classList.add('has-video');
   film.muted = true;
   film.defaultMuted = true;
-  film.addEventListener('playing', function(){ box.classList.add('has-video'); }, {once:true});
+  film.addEventListener('error', function(){
+    box.classList.remove('has-video');
+    marks.forEach(function(mark, i){ mark.parentNode.replaceChild(still[i], mark); });
+  }, {once:true});
+  var calm = (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+    || (navigator.connection && navigator.connection.saveData);
+  if(calm){ film.preload = 'metadata'; film.src = src; return; }
   film.src = src;
   function play(){ var p = film.play(); if(p && p.catch) p.catch(function(){}); }
   if('IntersectionObserver' in window){
