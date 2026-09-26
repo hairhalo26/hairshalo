@@ -3071,6 +3071,7 @@
       rgba(236,214,186,.30) 0%, rgba(201,154,130,.14) 45%, rgba(13,9,7,0) 74%);
   }
   .hv-portrait,
+  .hv-video,
   .has-portrait .hv-portrait-light,
   .has-portrait .hv-sweep{
     position:absolute;top:auto;right:auto;
@@ -3115,6 +3116,15 @@
     background:linear-gradient(104deg,transparent 44%,rgba(255,238,212,.22) 50%,transparent 56%) no-repeat;
     background-size:300% 100%;background-position:100% 0;
   }
+  /* The campaign film (data-video): the portrait's box, cropped to fill it,
+     its own backdrop dissolving into the set at every edge. Hidden until it
+     is playing; then the portrait and the light and sheen cut to her
+     silhouette step aside. */
+  .hv-video{z-index:3;display:block;object-fit:cover;object-position:50% 38%;opacity:0;
+    -webkit-mask-image:radial-gradient(ellipse 50% 52% at 50% 44%, #000 56%, transparent 100%);
+            mask-image:radial-gradient(ellipse 50% 52% at 50% 44%, #000 56%, transparent 100%);}
+  .has-video .hv-video{opacity:1;}
+  .has-video :is(.hv-portrait,.hv-portrait-light,.hv-sweep){opacity:0 !important;animation:none;}
   /* Enters on load, not on a timer: never a fade into an empty frame. */
   .motion-ready .hv-stage:has(.hv-portrait:not(.is-loaded)) :is(.hv-portrait,.hv-portrait-light,.hv-sweep){opacity:0;}
   /* Breathing, not bobbing: the face travels about 4px over twenty
@@ -3133,11 +3143,13 @@
      visual column is capped, so she moves right to stay clear of it. */
   @media (min-width:1520px){
     .hv-portrait,
+    .hv-video,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:69%;height:101%;bottom:-8.7%;}
   }
   @media (min-width:2000px){
     .hv-portrait,
+    .hv-video,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:76%;}
   }
@@ -3145,6 +3157,7 @@
      and further right to keep clear of the buttons and chips. */
   @media (min-width:981px) and (max-width:1180px){
     .hv-portrait,
+    .hv-video,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:60%;height:100%;bottom:-4%;}
   }
@@ -3153,12 +3166,14 @@
      buttons rather than the headline, with her face kept whole on screen. */
   @media (min-width:700px) and (max-width:980px){
     .hv-portrait,
+    .hv-video,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:70%;height:84%;bottom:-12%;}
   }
   @media (max-width:699px){
     .has-portrait{--hvp:url("assets/campaign/hero-portrait-760.webp");}
     .hv-portrait,
+    .hv-video,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:50%;height:100%;bottom:0;}
   }
@@ -3170,6 +3185,7 @@
      first screen. */
   @media (min-width:981px){
     .has-portrait.is-fitted .hv-portrait,
+    .has-portrait.is-fitted .hv-video,
     .has-portrait.is-fitted .hv-portrait-light,
     .has-portrait.is-fitted .hv-sweep{top:var(--hvp-top);bottom:auto;height:var(--hvp-size);}
   }
@@ -3378,8 +3394,12 @@
       </div>
       <div class="hero-chips" id="heroChips" data-reveal="up"></div>
     </div>
-    <div class="hero-visual has-portrait">
-      <!-- A lit set, not a frame. Layers, back to front: the warm key light,
+    <div class="hero-visual has-portrait" data-video="">
+      <!-- data-video: a campaign film (muted, looping, clean and licensed) that
+           takes the portrait's place once it is actually playing. The portrait
+           stays for reduced motion, Save-Data, or a film that fails to play.
+
+           A lit set, not a frame. Layers, back to front: the warm key light,
            hair-light strands running into the room, the campaign portrait (a
            transparent cutout, so the set shows through around her), the light
            falling on her hair, and a sheen that crosses the curls but never
@@ -3420,6 +3440,7 @@
              width="1254" height="1254" fetchpriority="high" decoding="async" draggable="false"
              onload="this.classList.add('is-loaded')"
              alt="Editorial portrait of a woman with long, voluminous dark curly hair">
+        <video class="hv-video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
         <span class="hv-portrait-light" aria-hidden="true"></span>
         <span class="tag hv-tag" id="heroArchTag" hidden></span>
       </div>
@@ -3438,6 +3459,30 @@
   </div>
   <a class="hero-cue" href="#statement" aria-label="Scroll to the next section"><span>Scroll</span><i aria-hidden="true"></i></a>
 </section>
+<script>
+/* heroFilm — the campaign film named on .hero-visual (data-video). Nothing is
+   fetched until it is wanted: no film named, reduced motion or Save-Data, and
+   the portrait simply stays. The film is shown only once it is playing, and
+   pauses whenever the hero is off screen. */
+(function heroFilm(){
+  var box = document.querySelector('.hero-visual');
+  var film = box && box.querySelector('.hv-video');
+  var src = box && (box.getAttribute('data-video') || '').trim();
+  if(!film || !src) return;
+  if(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  if(navigator.connection && navigator.connection.saveData) return;
+  film.muted = true;
+  film.defaultMuted = true;
+  film.addEventListener('playing', function(){ box.classList.add('has-video'); }, {once:true});
+  film.src = src;
+  function play(){ var p = film.play(); if(p && p.catch) p.catch(function(){}); }
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      entries[0].isIntersecting ? play() : film.pause();
+    }).observe(box);
+  } else { play(); }
+})();
+</script>
 <script>
 /* fitHeroPortrait — desktop only (see "HERO PORTRAIT" in the stylesheet).
    Sizes the portrait to the first screen: from just under the header down
