@@ -3516,7 +3516,7 @@
 <!-- EDITORIAL STATEMENT — the loudest moment on the page. -->
 <section class="cine statement" id="statement" data-tone="#0D0907" data-scroll aria-labelledby="stmtHeading">
   <div class="stmt-fx" aria-hidden="true">
-    <canvas class="stmt-strands" data-fx="strands" data-mode="drift" aria-hidden="true"></canvas>
+    <canvas class="stmt-strands" data-fx="strands" aria-hidden="true"></canvas>
     <div class="stmt-hair" id="stmtHair"></div>
   </div>
   <div class="wrap">
@@ -3939,7 +3939,7 @@
   <div class="closing-fx" aria-hidden="true">
     <div class="closing-photo" id="closingPhoto"></div>
     <span class="closing-light"></span>
-    <canvas class="closing-strands" data-fx="strands" data-mode="drift" data-count="18"></canvas>
+    <canvas class="closing-strands" data-fx="strands" data-count="18"></canvas>
   </div>
   <div class="wrap closing-inner">
     <span class="cine-eyebrow" data-reveal="up">Hairshalo</span>
@@ -9435,29 +9435,22 @@
     }
 
     /* ---------- Strands: hair drawn in light ----------
-       Long, fine curves with a warm light travelling along some of them. One
-       renderer, three behaviours set by data-mode:
-         flow  gathers and falls as The Flow's scene plays (host --pp), and
-               bends with the speed of the scroll
-         seam  hugs the Transformation's divider and swings when it moves
-         drift slow diagonal movement behind the statement and the close
-       Shares Motion's ticker, runs only while on screen, and draws a single
-       still frame under reduced motion. */
-    function smooth(a, b, x){ var t = Math.min(Math.max((x - a) / (b - a), 0), 1); return t * t * (3 - 2 * t); }
+       Long, fine curves with a warm light travelling along some of them,
+       drifting slowly on a diagonal behind the statement and the close, and
+       bending a little with the speed of the scroll. Shares Motion's ticker,
+       runs only while on screen, and draws a single still frame under
+       reduced motion. */
 
     function strands(canvas){
       var ctx = canvas.getContext('2d');
       if(!ctx) return;
-      var host  = canvas.closest('section') || canvas.parentElement;
-      var stage = canvas.closest('.tf-stage');
-      var mode  = canvas.getAttribute('data-mode') || 'drift';
       var dpr   = Math.min(window.devicePixelRatio || 1, 1.5);
       var W = 1, H = 1, lines = [], running = false, grad = null;
-      var vel = 0, seamPrev = 50, seamVel = 0, born = performance.now();
-      var SEG = mode === 'flow' ? 40 : 30;
+      var vel = 0, born = performance.now();
+      var SEG = 30;
 
       function count(){
-        var n = Number(canvas.getAttribute('data-count')) || (mode === 'flow' ? 34 : mode === 'seam' ? 18 : 22);
+        var n = Number(canvas.getAttribute('data-count')) || 22;
         return (M.tier && M.tier() === 'full') ? n : Math.round(n * 0.7);
       }
       function size(){
@@ -9465,9 +9458,7 @@
         W = Math.max(1, r.width); H = Math.max(1, r.height);
         canvas.width = Math.round(W * dpr); canvas.height = Math.round(H * dpr);
         ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-        grad = mode === 'seam'
-          ? ctx.createLinearGradient(0, 0, 0, H)
-          : ctx.createLinearGradient(0, 0, W, 0);
+        grad = ctx.createLinearGradient(0, 0, W, 0);
         grad.addColorStop(0,   'rgba(201,154,130,0)');
         grad.addColorStop(.22, 'rgba(220,193,147,.85)');
         grad.addColorStop(.55, 'rgba(243,221,176,1)');
@@ -9493,28 +9484,7 @@
         }
       }
 
-      function point(L, u, t, p, v, sx){
-        if(mode === 'flow'){
-          // Scattered light, then gathered into one fall of hair as the
-          // scene plays; the ends drop with weight once gathered.
-          var g = smooth(.08, .55, p);
-          var base = .1 + L.f * .8;
-          var yc = base * (1 - g * .72) + .46 * g * .72;
-          var wave = Math.sin(u * L.freq * 6.283 + L.ph + t * L.sp) * L.amp * (1 - g * .45);
-          var bend = Math.sin(u * 3.1416) * v * .0035;
-          var fall = u * u * .16 * g;
-          return [-.06 * W + u * 1.12 * W, (yc + wave + bend + fall) * H];
-        }
-        if(mode === 'seam'){
-          var off  = (L.f - .5) * .38 * W;
-          var near = 1 - Math.abs(L.f - .5) * 2;          // 1 at the seam
-          var hug  = .3 + .7 * (1 - near);
-          var x = sx + off * hug * (.6 + .4 * Math.sin(u * 3.1416))
-                + Math.sin(u * L.freq * 6.283 + L.ph + t * L.sp) * L.amp * W * .45
-                + seamVel * Math.sin(u * 3.1416) * (.4 + near);
-          return [x, -.04 * H + u * 1.08 * H];
-        }
-        // drift
+      function point(L, u, t, v){
         var y = (.12 + L.f * .8 - u * .22) * H
               + Math.sin(u * L.freq * 6.283 + L.ph + t * L.sp * .6) * L.amp * H;
         return [-.08 * W + u * 1.16 * W, y + Math.sin(u * 3.1416) * v * .002 * H];
@@ -9522,19 +9492,8 @@
 
       function draw(now){
         var t = (now - born) / 1000;
-        var p = host.__pp != null ? host.__pp : (host.__sv != null ? host.__sv : .6);
-        if(still) p = 1;
         var v = M.velocity ? M.velocity() : 0;
         vel += (Math.max(-60, Math.min(60, v)) - vel) * .12;
-        var sx = W / 2;
-        if(mode === 'seam'){
-          var tf = stage && stage.__tf != null ? stage.__tf : 50;
-          seamVel += ((tf - seamPrev) * W * .02 - seamVel) * .18;
-          seamVel *= .92;
-          seamPrev = tf;
-          sx = W * tf / 100;
-        }
-        var env = mode === 'flow' ? .45 + .55 * smooth(0, .22, p) : 1;
 
         ctx.clearRect(0, 0, W, H);
         ctx.lineCap = 'round';
@@ -9543,10 +9502,10 @@
           var L = lines[i];
           ctx.beginPath();
           for(var k = 0; k <= SEG; k++){
-            var pt = point(L, k / SEG, t, p, vel, sx);
+            var pt = point(L, k / SEG, t, vel);
             if(k) ctx.lineTo(pt[0], pt[1]); else ctx.moveTo(pt[0], pt[1]);
           }
-          ctx.globalAlpha = L.a * env;
+          ctx.globalAlpha = L.a;
           ctx.lineWidth = L.w;
           ctx.stroke();
         }
@@ -9562,15 +9521,15 @@
             ctx.beginPath();
             for(var q = 0; q <= 8; q++){
               var pu = Math.max(0, u - .07 + q * .07 / 8);
-              var pq = point(S, pu, t, p, vel, sx);
+              var pq = point(S, pu, t, vel);
               if(q) ctx.lineTo(pq[0], pq[1]); else ctx.moveTo(pq[0], pq[1]);
             }
-            ctx.globalAlpha = .55 * env;
+            ctx.globalAlpha = .55;
             ctx.lineWidth = S.w + .7;
             ctx.strokeStyle = 'rgba(243,221,176,.9)';
             ctx.stroke();
-            var head = point(S, u, t, p, vel, sx), d = 22 + S.w * 14;
-            ctx.globalAlpha = .5 * env;
+            var head = point(S, u, t, vel), d = 22 + S.w * 14;
+            ctx.globalAlpha = .5;
             ctx.drawImage(sprite, head[0] - d / 2, head[1] - d / 2, d, d);
           }
           ctx.globalCompositeOperation = 'source-over';
@@ -9979,7 +9938,7 @@
     /* The Hairshalo Difference: when the Back Office has no photograph for
        it, the spread is filled with a real close-up of hair that bleeds off
        the edge and into the words, rather than a product in a pool of light
-       (which the hero and The Flow already do). */
+       (which the hero already does). */
     function spreadTexture(products, avoid){
       var arch = document.getElementById('editorialArch');
       var content = typeof siteContent !== 'undefined' ? siteContent : {};
