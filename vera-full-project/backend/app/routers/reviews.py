@@ -83,11 +83,19 @@ def recent_reviews(limit: int = Query(8, ge=1, le=50),
     but it filters real ones rather than inventing flattering copy, and the
     product's own page always shows every published review.
     """
+    # Only reviews of pieces a customer can actually see: a published, real
+    # product. Demo reviews (seeded with SEED_DEMO_DATA) and reviews of
+    # unpublished or demo products used to reach the homepage, quoting
+    # pieces the shop does not sell.
     rows = (
         db.query(models.Review)
+        .join(models.Product, models.Review.product_id == models.Product.id)
         .options(joinedload(models.Review.product))
         .filter(models.Review.status == models.ReviewStatus.published,
-                models.Review.rating >= min_rating)
+                models.Review.rating >= min_rating,
+                models.Review.is_demo == False,  # noqa: E712
+                models.Product.status == models.ProductStatus.published,
+                models.Product.is_demo == False)  # noqa: E712
     )
     if verified_only:
         rows = rows.filter(models.Review.is_verified_purchase.is_(True))

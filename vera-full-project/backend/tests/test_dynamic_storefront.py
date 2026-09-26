@@ -660,6 +660,10 @@ def test_content_blocks_are_admin_only_to_write(auth):
 def test_editing_a_block_changes_what_the_storefront_serves(auth):
     marker = f"Suite edit {uuid.uuid4().hex[:6]}"
     try:
+        # The default promo is empty (no promise until the shop writes one),
+        # so give it a call to action to prove a partial update keeps it.
+        requests.put(f"{API}/site-content/blocks/promo", headers=auth, timeout=10,
+                     json={"payload": {"cta_label": "Suite CTA"}})
         r = requests.put(f"{API}/site-content/blocks/promo", headers=auth, timeout=10,
                          json={"payload": {"heading": marker}})
         assert r.status_code == 200
@@ -677,6 +681,8 @@ def test_editing_a_block_changes_what_the_storefront_serves(auth):
 def test_a_block_can_be_switched_off_without_losing_its_text(auth):
     try:
         requests.put(f"{API}/site-content/blocks/promo", headers=auth, timeout=10,
+                     json={"payload": {"heading": "Suite promo"}})
+        requests.put(f"{API}/site-content/blocks/promo", headers=auth, timeout=10,
                      json={"is_active": False})
         public = requests.get(f"{API}/site-content", timeout=10).json()
         assert "promo" not in public                    # hidden from the storefront
@@ -686,6 +692,7 @@ def test_a_block_can_be_switched_off_without_losing_its_text(auth):
     finally:
         requests.put(f"{API}/site-content/blocks/promo", headers=auth, timeout=10,
                      json={"is_active": True})
+        requests.post(f"{API}/site-content/blocks/promo/reset", headers=auth, timeout=10)
 
 
 @live

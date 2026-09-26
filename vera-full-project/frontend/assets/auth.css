@@ -209,3 +209,11 @@ img{display:block;max-width:100%;}
   .logo{font-size:14px;}
   .auth-card{padding:22px 16px;}
 }
+
+/* Consent checkbox: a real, large target, unticked by default. */
+.field-check .check{display:flex;gap:12px;align-items:flex-start;}
+.field-check input[type="checkbox"]{width:20px;height:20px;margin-top:2px;flex:none;accent-color:var(--wine);}
+.field-check label{text-transform:none;letter-spacing:0;font-size:14px;font-weight:400;color:var(--ink);line-height:1.55;margin:0;}
+.field-check label a{color:var(--ink);text-decoration:underline;}
+.field-check input:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}

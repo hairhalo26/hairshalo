@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Create an Account | Hairshalo</title>
-<meta name="description" content="Create a Hairshalo account to track orders, save favourites and earn loyalty points on premium human hair wigs and extensions.">
+<meta name="description" content="Create a Hairshalo account to track orders, save favourites and earn loyalty points.">
 <meta name="theme-color" content="#1A2338">
 <link rel="canonical" href="https://hairshalo.com/signup">
 <link rel="icon" href="assets/favicon.ico" sizes="any">
@@ -86,6 +86,17 @@
           <p class="err" id="confirmErr"></p>
         </div>
 
+        <!-- Unticked, and required only for the account itself. There is no
+             marketing consent bundled in here: email updates are a separate,
+             double opt-in signup on the homepage. -->
+        <div class="field field-check">
+          <div class="check">
+            <input type="checkbox" id="agree" name="agree" required aria-describedby="agreeErr">
+            <label for="agree">I have read the <a href="/privacy" target="_blank" rel="noopener">Privacy Policy<span class="sr-only"> (opens in a new tab)</span></a> and agree to the <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions<span class="sr-only"> (opens in a new tab)</span></a>.</label>
+          </div>
+          <p class="err" id="agreeErr"></p>
+        </div>
+
         <button class="btn btn-primary" type="submit" id="submit" style="margin-top:8px;">
           <span class="spinner" aria-hidden="true"></span><span class="label">Create account</span>
         </button>
@@ -105,6 +116,8 @@
   var form = A.$('#form'), notice = A.$('#notice'), submit = A.$('#submit');
   var name = A.$('#name'), email = A.$('#email'), phone = A.$('#phone');
   var password = A.$('#password'), confirm = A.$('#confirm'), rules = A.$('#pwRules');
+  var agree = A.$('#agree');
+  agree.addEventListener('change', function () { if (agree.checked) A.fieldError(agree, ''); });
 
   A.attachPasswordToggle(password);
   A.attachPasswordToggle(confirm);
@@ -128,6 +141,7 @@
     ok = A.fieldError(password, A.passwordOk(password.value, email.value)
           ? '' : 'Your password does not meet the requirements above.') && ok;
     ok = A.fieldError(confirm, confirm.value === password.value ? '' : 'The two passwords do not match.') && ok;
+    ok = A.fieldError(agree, agree.checked ? '' : 'Please confirm you have read the Privacy Policy and agree to the Terms.') && ok;
     if (!ok) {
       var bad = form.querySelector('[aria-invalid="true"]');
       if (bad) bad.focus();
