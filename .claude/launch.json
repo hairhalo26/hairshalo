@@ -13,6 +13,17 @@
       "autoPort": false
     },
     {
+      "name": "storefront-qa",
+      "runtimeExecutable": "python",
+      "runtimeArgs": [
+        "vera-full-project/scripts/devserver.py",
+        "vera-full-project/frontend",
+        "5502"
+      ],
+      "port": 5502,
+      "autoPort": false
+    },
+    {
       "name": "api",
       "url": "http://localhost:8010",
       "port": 8010,
