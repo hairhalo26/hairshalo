@@ -3902,10 +3902,12 @@
 
 <!-- FINAL CTA — the closing frame, flowing straight into the footer. -->
 <section class="cine closing" id="closing" data-tone="#0D0907" data-scroll aria-labelledby="closingHeading">
-  <!-- The closing shot. A real product photograph, dissolved into warm
-       light, behind slow strands; the title recedes as the footer arrives. -->
+  <!-- The closing shot. A photograph dissolved into warm light, behind slow
+       strands; the title recedes as the footer arrives. data-image on
+       #closingPhoto names its own (clean, licensed); empty, one is taken from
+       the catalogue. -->
   <div class="closing-fx" aria-hidden="true">
-    <div class="closing-photo" id="closingPhoto"></div>
+    <div class="closing-photo" id="closingPhoto" data-image=""></div>
     <span class="closing-light"></span>
     <canvas class="closing-strands" data-fx="strands" data-count="18"></canvas>
   </div>
@@ -6673,6 +6675,9 @@
   const resolveMediaUrl = url => {
     if(!url) return '';
     if(/^(https?:)?\/\//i.test(url) || url.startsWith('data:')) return url;
+    // Only API paths ("/media/…") live on the API host; a relative path is one
+    // of the site's own files (assets/…) and is served from this page's origin.
+    if(!url.startsWith('/')) return url;
     return API_BASE.replace(/\/api\/?$/, '') + url;
   };
   const esc = s => String(s == null ? '' : s)
@@ -9664,7 +9669,9 @@
       whyPhotos(products);
       renderCampaign(products);
       var closing = document.getElementById('closingPhoto');
-      if(closing){
+      var ownClose = closing && (closing.getAttribute('data-image') || '').trim();
+      if(ownClose){ closing.classList.add('is-texture'); applyBackdrop(closing, ownClose, 'cover'); }
+      else if(closing){
         var order = [];
         list.forEach(function(p){ var s = discoverFrames(p, isTaken); if(s.length >= 3) order.push(s[2].url); });
         list.forEach(function(p){ discoverFrames(p, isTaken).forEach(function(f){ order.push(f.url); }); });
