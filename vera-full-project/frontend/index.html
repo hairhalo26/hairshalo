@@ -39,7 +39,7 @@
      implementation of "is this password acceptable", not two that drift. Only
      the JS is shared: assets/auth.css resets *, html and body and would
      restyle the storefront. -->
-<script src="assets/auth.js?v=20260918"></script>
+<script src="assets/auth.js?v=20260927"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -680,6 +680,59 @@
     color:var(--text);text-decoration:none;margin-right:18px;}
   .nav-account:hover{color:var(--wine);}
   .account-modal{max-width:640px;}
+  /* Signed out, the popup is staged like the storefront's dark movements:
+     noir, ivory type, champagne accents, hairline fields and a champagne pill
+     (matching /signin and /signup). The signed-in quick view keeps its light
+     panel, so this is scoped to .is-guest, which renderAccountUI() sets. */
+  #accountModal.is-guest{background:
+      radial-gradient(90% 55% at 85% 0%,rgba(220,193,147,.09),rgba(13,9,7,0) 60%),#0D0907;
+    color:#F4ECE0;padding:44px 42px 38px;border:1px solid rgba(244,236,224,.08);width:500px;
+    scrollbar-color:rgba(244,236,224,.22) transparent;scrollbar-width:thin;}
+  #accountModal.is-guest::-webkit-scrollbar{width:6px;}
+  #accountModal.is-guest::-webkit-scrollbar-thumb{background:rgba(244,236,224,.22);border-radius:6px;}
+  #accountModal.is-guest::-webkit-scrollbar-track{background:transparent;}
+  #accountModal.is-guest .modal-close{background:rgba(244,236,224,.08);color:#F4ECE0;}
+  #accountModal.is-guest .acct-tabs{gap:26px;border-bottom:1px solid rgba(244,236,224,.12);margin-bottom:30px;}
+  #accountModal.is-guest .acct-tab-btn{color:rgba(244,236,224,.5);font-size:11px;letter-spacing:.26em;padding:10px 0;
+    margin-bottom:-1px;}
+  #accountModal.is-guest .acct-tab-btn.active{color:#DCC193;border-bottom-color:#DCC193;}
+  #accountModal .acct-eyebrow{display:none;}
+  #accountModal.is-guest .acct-eyebrow{display:inline-flex;align-items:center;gap:14px;font-size:10.5px;font-weight:600;
+    letter-spacing:.34em;text-transform:uppercase;color:#DCC193;}
+  #accountModal.is-guest .acct-eyebrow::before{content:'';width:30px;height:1px;background:currentColor;opacity:.7;}
+  #accountModal.is-guest h3{font-family:'Fraunces',serif;font-weight:400;font-size:40px;line-height:1.02;
+    letter-spacing:-.025em;color:#F4ECE0;margin:14px 0 26px;}
+  #accountModal.is-guest h3 em{font-style:italic;color:#DCC193;}
+  #accountModal.is-guest .field label{color:rgba(244,236,224,.45);font-size:10.5px;letter-spacing:.24em;}
+  #accountModal.is-guest .field .req{color:#DCC193;}
+  #accountModal.is-guest input{background:transparent;border:0;border-bottom:1px solid rgba(244,236,224,.22);
+    border-radius:0;color:#F4ECE0;padding:11px 0 10px;font-size:15px;caret-color:#DCC193;}
+  #accountModal.is-guest input:focus{outline:none;border-bottom-color:#DCC193;box-shadow:0 1px 0 0 #DCC193;}
+  #accountModal.is-guest input:-webkit-autofill{-webkit-text-fill-color:#F4ECE0;-webkit-box-shadow:0 0 0 40px #0D0907 inset;}
+  #accountModal.is-guest .field.invalid input{border-bottom-color:#E08A7E;}
+  #accountModal.is-guest .pw-toggle{color:#DCC193;right:0;letter-spacing:.18em;}
+  #accountModal.is-guest .hint,
+  #accountModal.is-guest .pw-rules li,
+  #accountModal.is-guest .acct-muted{color:rgba(244,236,224,.5);}
+  #accountModal.is-guest .pw-rules li.ok{color:#9CCBAA;}
+  #accountModal.is-guest .err{color:#F0A195;}
+  #accountModal.is-guest .acct-msg{color:#F4C2BA;}
+  #accountModal.is-guest a{color:#DCC193;}
+  #accountModal.is-guest .btn-primary{width:100%;justify-content:center;background:#DCC193;color:#0D0907;border-color:#DCC193;
+    border-radius:100px;padding:16px 26px;font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;margin-top:6px;}
+  #accountModal.is-guest .btn-primary:hover:not([disabled]){background:#F3DDB0;border-color:#F3DDB0;}
+  #accountModal .google-block[hidden]{display:none;}
+  #accountModal .google-block [data-google-button]{min-height:44px;display:flex;justify-content:center;}
+  #accountModal .google-note{font-size:11px;line-height:1.6;color:rgba(244,236,224,.45);text-align:center;margin:10px 0 0;}
+  #accountModal .google-note a{color:rgba(244,236,224,.7);text-decoration:underline;}
+  #accountModal .auth-or{display:flex;align-items:center;gap:16px;margin:22px 0 20px;font-size:10px;letter-spacing:.3em;
+    text-transform:uppercase;color:rgba(244,236,224,.42);}
+  #accountModal .auth-or::before,#accountModal .auth-or::after{content:'';flex:1;height:1px;background:rgba(244,236,224,.14);}
+  #accountModal .google-block[hidden] + .auth-or{display:none;}
+  @media (max-width:560px){
+    #accountModal.is-guest{padding:40px 22px 30px;}
+    #accountModal.is-guest h3{font-size:34px;}
+  }
   /* Form furniture for the account popup. Deliberately scoped: assets/auth.css
      dresses the standalone pages and resets *, html, body and .logo, so pulling
      it in here would restyle the storefront. */
@@ -6429,7 +6482,12 @@
     </div>
 
     <div data-acct-tab="signin">
-      <h3>Welcome back</h3>
+      <span class="acct-eyebrow">Your account</span>
+      <h3>Welcome <em>back.</em></h3>
+      <div class="google-block" id="googleBlockSignin" hidden>
+        <div data-google-button></div>
+      </div>
+      <div class="auth-or"><span>or with email</span></div>
       <form id="loginForm" class="acct-form" novalidate>
         <div class="field">
           <label for="loginEmail">Email address <span class="req" aria-hidden="true">*</span></label>
@@ -6459,7 +6517,15 @@
     </div>
 
     <div data-acct-tab="register" style="display:none;">
-      <h3>Create an account</h3>
+      <span class="acct-eyebrow">Your account</span>
+      <h3>Create your <em>account.</em></h3>
+      <div class="google-block" id="googleBlockRegister" hidden>
+        <div data-google-button></div>
+        <p class="google-note">By continuing with Google you agree to our
+          <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a> and
+          <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</p>
+      </div>
+      <div class="auth-or"><span>or with email</span></div>
       <form id="registerForm" class="acct-form" novalidate>
         <div class="field">
           <label for="regName">Full name <span class="req" aria-hidden="true">*</span></label>
@@ -9050,6 +9116,7 @@
     const signedOut = document.getElementById('accountSignedOut');
     const signedIn = document.getElementById('accountSignedIn');
     if(!signedOut || !signedIn) return;
+    document.getElementById('accountModal').classList.toggle('is-guest', !customer);
     signedOut.style.display = customer ? 'none' : '';
     signedIn.style.display = customer ? '' : 'none';
     if(customer){
@@ -9061,10 +9128,31 @@
     }
   }
 
+  /* Sign in with Google, on whichever signed-out tab is showing. Hidden
+     unless the shop has Google set up; a Google sign-in lands exactly where a
+     password sign-in does. */
+  function mountAccountGoogle(name){
+    const auth = window.HairshaloAuth;
+    if(customer || !auth || !auth.mountGoogle) return;
+    const block = document.getElementById(name === 'register' ? 'googleBlockRegister' : 'googleBlockSignin');
+    const msg = name === 'register' ? 'regMsg' : 'loginMsg';
+    auth.mountGoogle(block, {
+      text: name === 'register' ? 'signup_with' : 'signin_with',
+      onSignedIn: (data) => {
+        setAuthToken(data.access_token);
+        customer = data.customer;
+        renderAccountUI();
+        accountTab('orders');
+      },
+      onError: (message) => accountMessage(msg, message, true)
+    });
+  }
+
   function accountTab(name){
     document.querySelectorAll('[data-acct-tab]').forEach(el => {
       el.style.display = el.dataset.acctTab === name ? '' : 'none';
     });
+    if(name === 'signin' || name === 'register') mountAccountGoogle(name);
     document.querySelectorAll('[data-acct-tab-btn]').forEach(b => {
       b.classList.toggle('active', b.dataset.acctTabBtn === name);
     });
@@ -9328,6 +9416,7 @@
   const accountOverlay = document.getElementById('accountOverlay');
 
   function openAccount(tab){
+    accountModal.classList.toggle('is-guest', !customer);
     openModal(accountModal, accountOverlay);
     accountTab(tab || (customer ? 'orders' : 'signin'));
   }

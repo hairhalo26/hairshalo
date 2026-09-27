@@ -237,6 +237,75 @@
 
   function redirect(path) { global.location.href = path; }
 
+  /* ----------------------------------------------------- Sign in with Google
+     Google Identity Services draws Google's own button (so it shows the
+     visitor's Google account when they are signed in to Google) and hands us
+     an ID token, which the backend verifies before signing anyone in. Nothing
+     loads from Google unless the shop has a client id configured. */
+  var googleSetup = null;
+  function googleConfig() {
+    if (!googleSetup) {
+      googleSetup = api('/account/google/config')
+        .then(function (cfg) { return cfg && cfg.client_id ? cfg.client_id : null; })
+        .catch(function () { return null; })
+        .then(function (clientId) {
+          if (!clientId) return null;
+          return new Promise(function (resolve) {
+            if (global.google && global.google.accounts && global.google.accounts.id) return resolve(clientId);
+            var s = document.createElement('script');
+            s.src = 'https://accounts.google.com/gsi/client';
+            s.async = true; s.defer = true;
+            s.onload = function () { resolve(clientId); };
+            s.onerror = function () { resolve(null); };
+            document.head.appendChild(s);
+          });
+        });
+    }
+    return googleSetup;
+  }
+
+  var googleHandler = null;
+  /* Renders the button into `container` (hidden until Google is available).
+     opts.text: 'signin_with' | 'signup_with' | 'continue_with'
+     opts.onSignedIn(data): called with the API's {access_token, customer}
+     opts.onError(message)
+     opts.prompt: also show Google's account chooser (One Tap) on load */
+  function mountGoogle(container, opts) {
+    opts = opts || {};
+    if (!container) return Promise.resolve(false);
+    container.hidden = true;
+    return googleConfig().then(function (clientId) {
+      if (!clientId) return false;
+      googleHandler = opts;
+      global.google.accounts.id.initialize({
+        client_id: clientId,
+        ux_mode: 'popup',
+        auto_select: false,
+        cancel_on_tap_outside: true,
+        itp_support: true,
+        use_fedcm_for_prompt: true,
+        callback: function (resp) {
+          var h = googleHandler || {};
+          api('/account/google', { method: 'POST', body: { credential: resp.credential } })
+            .then(function (data) {
+              setToken(data.access_token);
+              if (h.onSignedIn) h.onSignedIn(data);
+            })
+            .catch(function (err) { if (h.onError) h.onError(err.message); });
+        }
+      });
+      container.hidden = false;
+      var slot = container.querySelector('[data-google-button]') || container;
+      var width = Math.max(220, Math.min(400, Math.round(slot.getBoundingClientRect().width) || 360));
+      global.google.accounts.id.renderButton(slot, {
+        type: 'standard', theme: 'filled_black', size: 'large', shape: 'pill',
+        text: opts.text || 'continue_with', logo_alignment: 'left', width: width
+      });
+      if (opts.prompt) global.google.accounts.id.prompt();
+      return true;
+    });
+  }
+
   global.HairshaloAuth = {
     API_BASE: API_BASE,
     TOKEN_KEY: TOKEN_KEY,
@@ -256,6 +325,7 @@
     attachPasswordToggle: attachPasswordToggle,
     renderPasswordRules: renderPasswordRules,
     queryParam: queryParam,
-    redirect: redirect
+    redirect: redirect,
+    mountGoogle: mountGoogle
   };
 })(window);

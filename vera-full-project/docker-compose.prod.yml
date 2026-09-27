@@ -89,6 +89,8 @@ services:
       SMTP_SECURITY: ${SMTP_SECURITY:-starttls}
       ADMIN_ALERT_EMAILS: ${ADMIN_ALERT_EMAILS:-}
       STOREFRONT_URL: ${STOREFRONT_URL:-}
+      # "Sign in with Google" (OAuth client id, Web application). Empty = off.
+      GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
       # Mail cannot load a relative path, so the logo needs an absolute URL.
       BRAND_LOGO_URL: ${BRAND_LOGO_URL:-}
       LOW_STOCK_ALERT_THRESHOLD: ${LOW_STOCK_ALERT_THRESHOLD:-5}

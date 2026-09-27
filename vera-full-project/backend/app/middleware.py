@@ -151,7 +151,7 @@ class RateLimitMiddleware(BaseHTTPMiddleware):
         path, method = request.url.path, request.method
         if path.startswith(RATE_LIMIT_EXEMPT_PREFIXES):
             return None
-        if path == "/api/auth/login":
+        if path in ("/api/auth/login", "/api/account/google"):
             return "login", self.login
         if method in ("POST", "PUT", "PATCH", "DELETE"):
             return "write", self.write
