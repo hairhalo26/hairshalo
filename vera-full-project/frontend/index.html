@@ -2544,6 +2544,19 @@
   /* Only ever a real photograph: with none loaded there is nothing to show. */
   .closing-photo.brand-panel,.closing-photo:not([style*="background-image"]){display:none;}
   .closing-strands{position:absolute;inset:0;width:100%;height:100%;}
+  /* The strands run behind her: the whole canvas, minus her silhouette
+     (data-figure), laid exactly over the photograph and drifting with it. */
+  .closing-fx.has-figure .closing-strands{
+    -webkit-mask-image:linear-gradient(#000,#000),var(--fig-img);
+            mask-image:linear-gradient(#000,#000),var(--fig-img);
+    -webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;
+    -webkit-mask-size:100% 100%,var(--fig-w) var(--fig-h);
+            mask-size:100% 100%,var(--fig-w) var(--fig-h);
+    -webkit-mask-position:0 0,var(--fig-x) calc(var(--fig-y) + (var(--sv,.5) - .5) * -90px);
+            mask-position:0 0,var(--fig-x) calc(var(--fig-y) + (var(--sv,.5) - .5) * -90px);
+    -webkit-mask-composite:xor;mask-composite:exclude;}
+  html:not(.motion-ready) .closing-fx.has-figure .closing-strands{
+    -webkit-mask-position:0 0,var(--fig-x) var(--fig-y);mask-position:0 0,var(--fig-x) var(--fig-y);}
   .motion-ready .closing-photo{translate:0 calc((var(--sv,.5) - .5) * -90px);}
   .motion-ready .closing-light{translate:calc((var(--sv,.5) - .5) * -40px) 0;}
   .closing-title{font-size:clamp(76px,15vw,280px);line-height:.82;letter-spacing:-.05em;margin:30px 0 52px;
@@ -2848,6 +2861,21 @@
   .spread #editorialArch.is-texture::after{background:linear-gradient(0deg,rgba(35,24,19,.55),transparent 40%);}
   .spread .sp-light{display:none;}
   .spread:has(#editorialArch.is-texture) .editorial-copy{position:relative;z-index:1;}
+  /* The Back Office's own photograph: the whole column, in its own colour,
+     fading into the mocha stage on every side. */
+  .spread #editorialArch.is-portrait{inset:0;background-color:transparent !important;background-blend-mode:normal;
+    background-size:cover !important;background-position:52% 30% !important;
+    -webkit-mask-image:radial-gradient(ellipse 62% 58% at 50% 46%,#000 55%,rgba(0,0,0,.6) 78%,transparent 100%);
+            mask-image:radial-gradient(ellipse 62% 58% at 50% 46%,#000 55%,rgba(0,0,0,.6) 78%,transparent 100%);}
+  .spread #editorialArch.is-portrait::after{background:linear-gradient(0deg,rgba(35,24,19,.45),transparent 35%);}
+  /* The campaign film (data-video on .spread-media): the same column and the
+     same fade into the stage as the photograph it replaces. */
+  .sp-video{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover;object-position:50% 34%;
+    -webkit-mask-image:radial-gradient(ellipse 62% 58% at 50% 46%,#000 55%,rgba(0,0,0,.6) 78%,transparent 100%);
+            mask-image:radial-gradient(ellipse 62% 58% at 50% 46%,#000 55%,rgba(0,0,0,.6) 78%,transparent 100%);}
+  .spread-media.has-video .sp-video{display:block;}
+  .spread-media.has-video #editorialArch{visibility:hidden;}
+  .motion-ready .spread .sp-video{translate:0 calc((var(--sv,.5) - .5) * -80px);}
 
   @media (max-width:980px){
     .wy-copy{width:auto;right:max(var(--gutter,32px), calc((100vw - var(--container,1240px)) / 2));}
@@ -3140,6 +3168,8 @@
   }
   .hv-portrait,
   .hv-video,
+  .hv-photo,
+  .hv-pool,
   .has-portrait .hv-portrait-light,
   .has-portrait .hv-sweep{
     position:absolute;top:auto;right:auto;
@@ -3192,6 +3222,27 @@
             mask-image:radial-gradient(ellipse 50% 52% at 50% 44%, #000 56%, transparent 100%);}
   .has-video .hv-video{opacity:1;}
   .has-video :is(.hv-portrait,.hv-portrait-light,.hv-sweep){opacity:0 !important;animation:none;}
+  /* The campaign photograph (data-photo): framed exactly like the film, and
+     in only once it has loaded. */
+  .hv-photo{z-index:3;display:none;object-fit:cover;object-position:50% 30%;opacity:0;user-select:none;-webkit-user-drag:none;
+    /* Clear at every edge: unlike the film, a photograph's room can be lit
+       right up to the frame. */
+    -webkit-mask-image:radial-gradient(ellipse 50% 50% at 50% 50%, #000 50%, rgba(0,0,0,.5) 76%, transparent 100%);
+            mask-image:radial-gradient(ellipse 50% 50% at 50% 50%, #000 50%, rgba(0,0,0,.5) 76%, transparent 100%);}
+  .has-photo .hv-photo{display:block;}
+  /* Her silhouette (data-photo-figure), in the stage's own dark, just under
+     the photograph and framed exactly like it (cover, 50% 30%). The light
+     trails and strands run behind her: across the set, never through her
+     face, hair or body, even where the photograph's edge is soft. Her
+     crown touches the frame, so the silhouette fades in from the top edge
+     rather than being cut off square. */
+  .hv-pool{z-index:2;display:none;background:rgb(20,13,10);
+    -webkit-mask:var(--fig-img) 50% 30% / cover no-repeat, linear-gradient(180deg,transparent 0,#000 16%);
+    -webkit-mask-composite:source-in;
+            mask:var(--fig-img) 50% 30% / cover no-repeat, linear-gradient(180deg,transparent 0,#000 16%);
+            mask-composite:intersect;}
+  .has-photo.has-figure .hv-pool{display:block;}
+  .has-photo .hv-photo.is-loaded{opacity:1;}
   /* Enters on load, not on a timer: never a fade into an empty frame. */
   .motion-ready .hv-stage:has(.hv-portrait:not(.is-loaded)) :is(.hv-portrait,.hv-portrait-light,.hv-sweep){opacity:0;}
   /* Breathing, not bobbing: the face travels about 4px over twenty
@@ -3211,12 +3262,16 @@
   @media (min-width:1520px){
     .hv-portrait,
     .hv-video,
+    .hv-photo,
+    .hv-pool,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:69%;height:101%;bottom:-8.7%;}
   }
   @media (min-width:2000px){
     .hv-portrait,
     .hv-video,
+    .hv-photo,
+    .hv-pool,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:76%;}
   }
@@ -3225,6 +3280,8 @@
   @media (min-width:981px) and (max-width:1180px){
     .hv-portrait,
     .hv-video,
+    .hv-photo,
+    .hv-pool,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:60%;height:100%;bottom:-4%;}
   }
@@ -3234,6 +3291,8 @@
   @media (min-width:700px) and (max-width:980px){
     .hv-portrait,
     .hv-video,
+    .hv-photo,
+    .hv-pool,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:70%;height:84%;bottom:-12%;}
   }
@@ -3241,6 +3300,8 @@
     .has-portrait{--hvp:url("assets/campaign/hero-portrait-760.webp");}
     .hv-portrait,
     .hv-video,
+    .hv-photo,
+    .hv-pool,
     .has-portrait .hv-portrait-light,
     .has-portrait .hv-sweep{left:50%;height:100%;bottom:0;}
   }
@@ -3253,6 +3314,8 @@
   @media (min-width:981px){
     .has-portrait.is-fitted .hv-portrait,
     .has-portrait.is-fitted .hv-video,
+    .has-portrait.is-fitted .hv-photo,
+    .has-portrait.is-fitted .hv-pool,
     .has-portrait.is-fitted .hv-portrait-light,
     .has-portrait.is-fitted .hv-sweep{top:var(--hvp-top);bottom:auto;height:var(--hvp-size);}
   }
@@ -3461,10 +3524,17 @@
       </div>
       <div class="hero-chips" id="heroChips" data-reveal="up"></div>
     </div>
-    <div class="hero-visual has-portrait" data-video="assets/campaign/hero-film.mp4">
+    <div class="hero-visual has-portrait" data-video="" data-photo="assets/campaign/hero-photo.webp"
+      data-photo-figure="assets/campaign/hero-photo-figure.png">
       <!-- data-video: a campaign film (muted, looping, clean and licensed).
            Named, it replaces the portrait outright — the portrait returns only
            if the film cannot be loaded. Empty, the portrait is the hero.
+           data-photo: a campaign photograph (a full frame, not a cutout),
+           used when no film is named. It takes the portrait's place the same
+           way, framed like the film, and the portrait returns only if it
+           cannot be loaded. data-photo-figure is her silhouette cut from that
+           photograph (same size, alpha = her), so the lines run behind her;
+           replace both together.
 
            A lit set, not a frame. Layers, back to front: the warm key light,
            hair-light strands running into the room, the campaign portrait (a
@@ -3508,6 +3578,8 @@
              onload="this.classList.add('is-loaded')"
              alt="Editorial portrait of a woman with long, voluminous dark curly hair">
         <video class="hv-video" muted loop playsinline preload="none" aria-hidden="true" tabindex="-1"></video>
+        <span class="hv-pool" aria-hidden="true"></span>
+        <img class="hv-photo" alt="Portrait of a woman with long, glossy dark waves" decoding="async" draggable="false">
         <span class="hv-portrait-light" aria-hidden="true"></span>
         <span class="tag hv-tag" id="heroArchTag" hidden></span>
       </div>
@@ -3537,7 +3609,9 @@
   var box = document.querySelector('.hero-visual');
   var film = box && box.querySelector('.hv-video');
   var src = box && (box.getAttribute('data-video') || '').trim();
-  if(!film || !src) return;
+  var photo = box && box.querySelector('.hv-photo');
+  var photoSrc = box && (box.getAttribute('data-photo') || '').trim();
+  if(!film || !(src || (photo && photoSrc))) return;
   var stage = film.parentNode;
   var still = Array.prototype.slice.call(stage.querySelectorAll('.hv-portrait, .hv-portrait-light, .hv-sweep'));
   var marks = still.map(function(node){
@@ -3545,13 +3619,27 @@
     node.parentNode.replaceChild(mark, node);
     return mark;
   });
+  function restore(cls){
+    box.classList.remove(cls);
+    marks.forEach(function(mark, i){ mark.parentNode.replaceChild(still[i], mark); });
+  }
+  // No film: the campaign photograph takes the portrait's place.
+  if(!src){
+    var figure = (box.getAttribute('data-photo-figure') || '').trim();
+    if(figure){
+      box.style.setProperty('--fig-img', "url('" + figure.replace(/'/g, "%27") + "')");
+      box.classList.add('has-figure');
+    }
+    box.classList.add('has-photo');
+    photo.addEventListener('load', function(){ photo.classList.add('is-loaded'); }, {once:true});
+    photo.addEventListener('error', function(){ restore('has-photo'); }, {once:true});
+    photo.src = photoSrc;
+    return;
+  }
   box.classList.add('has-video');
   film.muted = true;
   film.defaultMuted = true;
-  film.addEventListener('error', function(){
-    box.classList.remove('has-video');
-    marks.forEach(function(mark, i){ mark.parentNode.replaceChild(still[i], mark); });
-  }, {once:true});
+  film.addEventListener('error', function(){ restore('has-video'); }, {once:true});
   var calm = (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
     || (navigator.connection && navigator.connection.saveData);
   if(calm){ film.preload = 'metadata'; film.src = src; return; }
@@ -3808,14 +3896,16 @@
      data-product + data-frames name the film by hand: one photograph per
      stage, in stage order, each checked by eye. A frame is the photograph's
      position in the product's gallery (its sort order), which is the same on
-     every install, where the file names are not. They are all the piece
-     worn, on the same set: a packshot never cuts into a portrait.
-       16 colour 2 front · 18 colour 2 back · 17 colour 2 profile ·
-       2 colour 1 back · 40 Natural colour front
+     every install, where the file names are not. They are all packshots of
+     the hair itself, never worn, and each one shows the note it is paired
+     with (notes run: hair type, texture, construction, length, colours):
+       3 colour 1 bundle, the whole piece · 5 colour 1 curl close-up ·
+       4 colour 1 pre-looped strands on the hanger · 54 colour 1 18" strands
+       at full length · 27 colour 30 bundle, a second shade
      A position the product does not have is dropped; with fewer than three
      left (or no such product) the film picks a piece itself. -->
 <section class="cine discover" id="discover" data-tone="#EDE3D6" data-scroll="pin" hidden aria-labelledby="dsHeading"
-  data-product="human-hair-crochet" data-frames="16 18 17 2 40">
+  data-product="human-hair-crochet" data-frames="3 5 4 54 27">
   <div class="ds-pin">
     <span class="ds-atmos" aria-hidden="true"></span>
     <div class="ds-head">
@@ -3928,9 +4018,14 @@
      edge and drifts against the scroll; the words arrive after it, one beat
      at a time — eyebrow, headline, body, call to action. -->
 <section class="section spread" id="editorial" data-tone="#231813" data-scroll>
-  <div class="spread-media">
+  <!-- data-video: a campaign film (muted, looping, clean and licensed). Named,
+       it plays in place of the Back Office photograph, which returns only if
+       the film cannot be loaded. -->
+  <div class="spread-media" data-video="assets/campaign/difference-film.mp4">
     <span class="sp-light" aria-hidden="true"></span>
     <div class="arch brand-panel" id="editorialArch" data-reveal="wipe"></div>
+    <video class="sp-video" id="editorialFilm" data-reveal="wipe" muted loop playsinline preload="none"
+      poster="assets/campaign/difference-film-poster.jpg" aria-hidden="true"></video>
     <span class="tag sp-tag" id="editorialArchTag" hidden></span>
   </div>
   <div class="editorial-copy">
@@ -3941,6 +4036,35 @@
   </div>
 </section>
 
+<script>
+/* editorialFilm — the campaign film named on the editorial spread
+   (.spread-media data-video). It stands in for the Back Office photograph;
+   if it cannot be loaded the photograph is shown instead. Under reduced
+   motion or Save-Data it holds its poster. It loads and plays only while
+   the spread is near the screen. */
+(function editorialFilm(){
+  var box = document.querySelector('#editorial .spread-media');
+  var film = document.getElementById('editorialFilm');
+  var src = box && (box.getAttribute('data-video') || '').trim();
+  if(!film || !src) return;
+  box.classList.add('has-video');
+  film.muted = true;
+  film.defaultMuted = true;
+  film.addEventListener('error', function(){ box.classList.remove('has-video'); }, {once:true});
+  var calm = (window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches)
+    || (navigator.connection && navigator.connection.saveData);
+  if(calm) return;
+  function play(){
+    if(!film.getAttribute('src')) film.src = src;
+    var p = film.play(); if(p && p.catch) p.catch(function(){});
+  }
+  if('IntersectionObserver' in window){
+    new IntersectionObserver(function(entries){
+      entries[0].isIntersecting ? play() : film.pause();
+    }, {rootMargin:'200px 0px'}).observe(box);
+  } else { play(); }
+})();
+</script>
 <!-- WHY HAIRSHALO — the brand story, one statement at a time. The words are
      Back Office → Content → Why customers choose us; each is paired with a
      large photograph of real hair from the catalogue that bleeds across the
@@ -4041,9 +4165,12 @@
   <!-- The closing shot. A photograph dissolved into warm light, behind slow
        strands; the title recedes as the footer arrives. data-image on
        #closingPhoto names its own (clean, licensed); empty, one is taken from
-       the catalogue. -->
+       the catalogue. data-figure is her silhouette, cut from that photograph
+       (same framing, alpha = her), so the strands run behind her: across the
+       set, never across her face or body. Replace both together. -->
   <div class="closing-fx" aria-hidden="true">
-    <div class="closing-photo" id="closingPhoto" data-image="assets/campaign/closing-portrait.webp"></div>
+    <div class="closing-photo" id="closingPhoto" data-image="assets/campaign/closing-portrait.webp"
+      data-figure="assets/campaign/closing-portrait-figure.png"></div>
     <span class="closing-light"></span>
     <canvas class="closing-strands" data-fx="strands" data-count="18"></canvas>
   </div>
@@ -4056,6 +4183,44 @@
     </div>
   </div>
 </section>
+<script>
+/* closingFigure — keeps the closing strands behind her. data-figure on
+   #closingPhoto is her silhouette at the photograph's own framing; this
+   works out where the photograph lands on screen (drawn "cover" at its CSS
+   background-position) and lays the silhouette over the same spot, as a
+   hole in the strands' mask (--fig-*). Only for the section's own
+   portrait: a catalogue close-up has no figure. */
+(function closingFigure(){
+  var photo = document.getElementById('closingPhoto');
+  var fx = photo && photo.parentNode;
+  var fig = photo && (photo.getAttribute('data-figure') || '').trim();
+  var src = photo && (photo.getAttribute('data-image') || '').trim();
+  if(!fx || !src || !fig) return;
+  fx.style.setProperty('--fig-img', "url('" + fig.replace(/'/g, "%27") + "')");
+  var nw = 0, nh = 0;
+  function pct(v, free){ return /%$/.test(v) ? free * parseFloat(v) / 100 : parseFloat(v) || 0; }
+  function place(){
+    var W = photo.offsetWidth, H = photo.offsetHeight;
+    if(!nw || !W || !H || !photo.classList.contains('is-portrait')){ fx.classList.remove('has-figure'); return; }
+    var k = Math.max(W / nw, H / nh), dw = nw * k, dh = nh * k;
+    var pos = getComputedStyle(photo).backgroundPosition.split(',').pop().trim().split(/\s+/);
+    var ox = pct(pos[0], W - dw), oy = pct(pos[1] || '50%', H - dh);
+    fx.style.setProperty('--fig-x', (photo.offsetLeft + ox).toFixed(1) + 'px');
+    fx.style.setProperty('--fig-y', (photo.offsetTop + oy).toFixed(1) + 'px');
+    fx.style.setProperty('--fig-w', dw.toFixed(1) + 'px');
+    fx.style.setProperty('--fig-h', dh.toFixed(1) + 'px');
+    fx.classList.add('has-figure');
+  }
+  var probe = new Image();
+  probe.onload = function(){ nw = probe.naturalWidth; nh = probe.naturalHeight; place(); };
+  probe.src = src;
+  // Re-measured whenever the photograph is set or changes size (a resize,
+  // or the section growing as its content arrives).
+  new MutationObserver(place).observe(photo, {attributes:true, attributeFilter:['class', 'style']});
+  if('ResizeObserver' in window) new ResizeObserver(place).observe(photo);
+  window.addEventListener('resize', place);
+})();
+</script>
 
 <!-- NEWSLETTER -->
 <div class="wrap nl-wrap" data-scroll>
@@ -8161,6 +8326,9 @@
       cta.hidden = !block.cta_label;
     }
     const arch = document.getElementById('editorialArch');
+    // A Back Office photograph fills the column; the spread's default
+    // framing is for a product packshot.
+    if(arch) arch.classList.toggle('is-portrait', !!block.image_url);
     applyBackdrop(arch, block.image_url);
     const tag = document.getElementById('editorialArchTag');
     if(tag){
