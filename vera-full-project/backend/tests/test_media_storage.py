@@ -195,3 +195,26 @@ def test_preflight_accepts_s3_with_a_bucket(monkeypatch):
     found = _findings(monkeypatch, PRODUCT_MEDIA_STORAGE="s3", PRODUCT_MEDIA_BUCKET="hs-products")
     assert not {"product_media_bucket_missing", "product_media_storage_unknown",
                 "media_on_local_disk"} & set(found)
+
+
+# ---------------------------------------------------------------- serving
+@pytest.mark.parametrize("ext, content_type", [
+    (".webp", "image/webp"), (".jpg", "image/jpeg"), (".png", "image/png"),
+    (".mp4", "video/mp4"), (".webm", "video/webm"),
+])
+def test_media_is_served_with_its_real_type(ext, content_type):
+    """Every type an upload may have goes out as itself, never text/plain
+    (the slim image's mimetypes table has no .webp)."""
+    from fastapi.testclient import TestClient
+    from app.config import settings
+    from app.main import app
+    name = f"type-check-{uuid.uuid4().hex}{ext}"
+    path = os.path.join(settings.MEDIA_ROOT, name)
+    with open(path, "wb") as fh:
+        fh.write(JPEG)
+    try:
+        r = TestClient(app, base_url="http://localhost").get(f"{settings.MEDIA_URL_PREFIX}/{name}")
+        assert r.status_code == 200
+        assert r.headers["content-type"].split(";")[0] == content_type
+    finally:
+        os.remove(path)

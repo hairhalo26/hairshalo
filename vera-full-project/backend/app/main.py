@@ -1,4 +1,5 @@
 import logging
+import mimetypes
 import os
 import traceback
 from contextlib import asynccontextmanager
@@ -18,6 +19,7 @@ from app.middleware import (
     RateLimitMiddleware, RequestContextMiddleware, SecurityHeadersMiddleware,
 )
 from app.observability import configure_logging
+from app.storage import IMAGE_TYPES, VIDEO_TYPES
 from app.routers import (
     auth, products, categories, product_placeholders, orders, customers,
     appointments, inventory, coupons, analytics, currency, payments,
@@ -101,6 +103,13 @@ app.add_middleware(RequestContextMiddleware)
 # Uploaded site media (Back Office content, categories), and product media
 # when PRODUCT_MEDIA_STORAGE=local. With s3, product photographs are served
 # from the bucket and never pass through here (see app/storage.py).
+#
+# StaticFiles takes each file's type from Python's mimetypes table, which on
+# the slim image has no .webp: an uploaded .webp went out as text/plain.
+# Every type an upload may have is registered here, from the same allow-list
+# the upload check uses, so the two cannot drift apart.
+for _content_type, _extension in {**IMAGE_TYPES, **VIDEO_TYPES}.items():
+    mimetypes.add_type(_content_type, _extension)
 os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
 app.mount(
     settings.MEDIA_URL_PREFIX,
