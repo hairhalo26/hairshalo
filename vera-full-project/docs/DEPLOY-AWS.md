@@ -656,8 +656,11 @@ sat in the Docker volume `vera-prod_vera_media`.
    docker volume rm vera-prod_vera_media
    ```
 
-`scripts/backup.sh` dumps the database only. The product bucket is its own
-copy of the photographs, but `media/` is not backed up anywhere else yet.
+`scripts/backup.sh` backs up both halves: the database dump, and a
+`vera-media-<stamp>.tar.gz` of everything the API sees at `/app/media` —
+which is now the `media/` folder — each copied to the backups bucket. The
+product photographs are in their own bucket and are not in that archive (the
+originals left in `media/` by the migration are, until you remove them).
 
 ### Shell access without an open SSH port
 
