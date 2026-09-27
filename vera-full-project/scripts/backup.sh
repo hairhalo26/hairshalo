@@ -1,6 +1,6 @@
 #!/bin/sh
 # Take a compressed logical backup of the Hairshalo database, and an archive of
-# the uploaded product media that goes with it.
+# the uploaded media that goes with it.
 #
 #   ./scripts/backup.sh                 # uses docker-compose.prod.yml's db service
 #   RETENTION_DAYS=30 ./scripts/backup.sh
@@ -112,13 +112,16 @@ else
 fi
 
 # --- media -------------------------------------------------------------------
-# Product images live in the vera_media volume, not in Postgres. The volume
-# survives a container rebuild, but not the loss of the instance -- which is the
-# case the off-box copy exists for, so the images have to leave the box too.
+# Uploaded images other than product photographs (Back Office content,
+# categories) live in the media/ folder on the host (MEDIA_DIR), not in
+# Postgres. The folder survives a container rebuild, but not the loss of the
+# instance -- which is the case the off-box copy exists for, so the images have
+# to leave the box too. Product photographs are in their own S3 bucket
+# (PRODUCT_MEDIA_STORAGE=s3) and need no archive here.
 #
-# The archive is streamed out of the api container rather than read from the
-# volume's directory on the host: that path is a Docker implementation detail,
-# and the volume's real name carries the compose project prefix.
+# The archive is streamed out of the api container, at the path the app itself
+# reads (/app/media), rather than from the host folder: that way it follows
+# MEDIA_DIR wherever it points, and archives exactly what the site serves.
 #
 # It is taken while the app is running, so a file being written at that instant
 # could land truncated. For a shop where uploads are an admin action rather than
