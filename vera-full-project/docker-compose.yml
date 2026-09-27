@@ -42,14 +42,13 @@ services:
       ADMIN_ALERT_EMAILS: ""
     ports:
       - "8000:8000"
-    # Uploaded product photographs live here. WITHOUT this volume they are
-    # written into the container's own filesystem and are destroyed the next
-    # time it is recreated — a rebuild silently empties the catalogue's
-    # imagery while the database keeps rows pointing at files that no longer
-    # exist. docker-compose.prod.yml has always mounted vera_media for this
-    # reason; development needs it just as much.
+    # Uploaded images live in a folder on the host (backend/media), not in
+    # the container: WITHOUT this mount they are written into the container's
+    # own filesystem and destroyed the next time it is recreated, while the
+    # database keeps rows pointing at files that no longer exist. Production
+    # does the same with ./media (docker-compose.prod.yml).
     volumes:
-      - vera_media:/app/media
+      - ./backend/media:/app/media
 
   # Uncomment to run delivery as its own process — and set NOTIFY_DISPATCH=worker
   # on `backend` so the API stops sending. Required once more than one web
@@ -72,4 +71,3 @@ services:
 
 volumes:
   vera_pgdata:
-  vera_media:

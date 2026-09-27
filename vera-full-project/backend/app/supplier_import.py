@@ -46,7 +46,7 @@ from sqlalchemy.orm import Session
 
 from app import models, inventory, currency
 from app.pricing import compute_pricing, PricingError, money
-from app.storage import get_storage, validate_and_classify, UploadRejected
+from app.storage import get_product_storage, storage_for_key, validate_and_classify, UploadRejected
 
 MAX_FILE_BYTES = 5 * 1024 * 1024
 MAX_ROWS = 5000
@@ -983,7 +983,7 @@ def store_image_bytes(data: bytes, content_type: str) -> Tuple[str, str, int]:
     if kind != "image":
         raise ValueError("only images can be attached to imported products")
     try:
-        key, size = get_storage().save(io.BytesIO(data), ext, min(cap, MAX_IMAGE_BYTES))
+        key, size = get_product_storage().save(io.BytesIO(data), ext, min(cap, MAX_IMAGE_BYTES))
     except UploadRejected as exc:
         raise ValueError(str(exc))
     return key, content_type, size
@@ -1057,7 +1057,7 @@ def commit(db: Session, supplier: models.Supplier, batch: models.SupplierImport,
         except Exception as exc:                 # noqa: BLE001 - one product, not the batch
             savepoint.rollback()
             for k in stored_keys:
-                get_storage().delete(k)
+                storage_for_key(k).delete(k)
             entry.update(outcome="error", message=str(exc)[:500])
             entry.pop("product_id", None)
             counts["errors"] += 1
@@ -1066,7 +1066,7 @@ def commit(db: Session, supplier: models.Supplier, batch: models.SupplierImport,
     # Uploaded files no product used are removed, not left orphaned on disk.
     for name, info in uploaded.items():
         if name not in used_uploads and info.get("storage_key"):
-            get_storage().delete(info["storage_key"])
+            storage_for_key(info["storage_key"]).delete(info["storage_key"])
 
     batch.results = results
     for k, v in counts.items():
@@ -1292,7 +1292,7 @@ def _attach_images(db, supplier, product, p, options, uploaded, used_uploads, st
             if _is_url(ref):
                 stored_keys.append(key)
             db.add(models.ProductMedia(
-                product_id=product.id, url=get_storage().url_for(key),
+                product_id=product.id, url=storage_for_key(key).url_for(key),
                 media_type=models.MediaType.image, alt_text=product.name,
                 sort_order=order, is_primary=not has_image,
                 storage_key=key, content_type=content_type, file_size=size,

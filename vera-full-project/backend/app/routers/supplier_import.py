@@ -180,8 +180,8 @@ async def upload_images(import_id: str, files: List[UploadFile] = File(...),
             key, ctype, size = svc.store_image_bytes(data, (f.content_type or "").lower())
             old = stored.get(fname)
             if old and old.get("storage_key"):
-                from app.storage import get_storage
-                get_storage().delete(old["storage_key"])
+                from app.storage import storage_for_key
+                storage_for_key(old["storage_key"]).delete(old["storage_key"])
             stored[fname] = {"storage_key": key, "content_type": ctype, "size": size}
         except ValueError as exc:
             rejected.append(f"{fname or 'file'}: {exc}")

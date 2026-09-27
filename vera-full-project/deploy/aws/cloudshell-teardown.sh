@@ -48,7 +48,8 @@ cat <<WARN
     IAM role         ${NAME}-backup-role
     instance profile ${NAME}-backup-profile
 
-  KEPT: the backup bucket $BUCKET and everything in it.
+  KEPT: the backup bucket $BUCKET and everything in it,
+        and the product photo bucket ${NAME}-products-${ACCOUNT_ID}.
 
 WARN
 
@@ -93,6 +94,7 @@ aws iam remove-role-from-instance-profile \
   --instance-profile-name "${NAME}-backup-profile" --role-name "${NAME}-backup-role" >/dev/null 2>&1 || true
 aws iam delete-instance-profile --instance-profile-name "${NAME}-backup-profile" >/dev/null 2>&1 || true
 aws iam delete-role-policy --role-name "${NAME}-backup-role" --policy-name "backup-write" >/dev/null 2>&1 || true
+aws iam delete-role-policy --role-name "${NAME}-backup-role" --policy-name "product-media-write" >/dev/null 2>&1 || true
 aws iam delete-role --role-name "${NAME}-backup-role" >/dev/null 2>&1 || true
 echo "    deleted"
 

@@ -139,12 +139,24 @@ class Settings:
     # Stock at or below this triggers a low-stock alert to ADMIN_ALERT_EMAILS.
     LOW_STOCK_ALERT_THRESHOLD: int = int(os.getenv("LOW_STOCK_ALERT_THRESHOLD", "5"))
 
-    # Media storage (see app/storage.py — swap for S3/Cloudinary in production)
+    # Media storage (see app/storage.py). Everything that is not a product
+    # photograph — Back Office content images, category images — is a plain
+    # file under MEDIA_ROOT, served at MEDIA_URL_PREFIX. In production that
+    # directory is a folder on the host, not a Docker volume.
     MEDIA_ROOT: str = os.getenv(
         "MEDIA_ROOT",
         os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "media"),
     )
     MEDIA_URL_PREFIX: str = os.getenv("MEDIA_URL_PREFIX", "/media")
+    # Product photographs and videos: "local" (MEDIA_ROOT, as above) or "s3".
+    # With s3 they go to PRODUCT_MEDIA_BUCKET, a bucket whose products/ prefix
+    # is publicly readable, and are served straight from it. Credentials come
+    # from the instance role (boto3's default chain), never from this file.
+    PRODUCT_MEDIA_STORAGE: str = os.getenv("PRODUCT_MEDIA_STORAGE", "local").strip().lower()
+    PRODUCT_MEDIA_BUCKET: str = os.getenv("PRODUCT_MEDIA_BUCKET", "").strip()
+    PRODUCT_MEDIA_REGION: str = os.getenv("PRODUCT_MEDIA_REGION", "ap-south-1").strip()
+    # Public base URL for the bucket; empty means the bucket's own S3 address.
+    PRODUCT_MEDIA_PUBLIC_URL: str = os.getenv("PRODUCT_MEDIA_PUBLIC_URL", "").strip().rstrip("/")
 
     @property
     def cors_is_wildcard(self) -> bool:

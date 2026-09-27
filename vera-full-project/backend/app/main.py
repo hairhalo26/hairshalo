@@ -98,8 +98,9 @@ app.add_middleware(
 
 app.add_middleware(RequestContextMiddleware)
 
-# Uploaded product media. In production this should be served by the CDN /
-# object store instead (see app/storage.py) rather than by the API process.
+# Uploaded site media (Back Office content, categories), and product media
+# when PRODUCT_MEDIA_STORAGE=local. With s3, product photographs are served
+# from the bucket and never pass through here (see app/storage.py).
 os.makedirs(settings.MEDIA_ROOT, exist_ok=True)
 app.mount(
     settings.MEDIA_URL_PREFIX,

@@ -15,6 +15,9 @@ python-multipart==0.0.9
 # Supplier catalogue import reads .xlsx; openpyxl parses its XML through defusedxml when installed.
 openpyxl==3.1.5
 defusedxml==0.7.1
+# Product photographs go to S3 in production (app/storage.py S3Storage).
+# Imported only when PRODUCT_MEDIA_STORAGE=s3.
+boto3==1.43.103
 
 # Testing (dev only)
 pytest==8.3.2

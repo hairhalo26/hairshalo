@@ -1,8 +1,18 @@
 """Media storage abstraction.
 
-Files are written through a `MediaStorage` interface so the backing store can
-move to S3/Cloudinary later without touching the product system. Only
-`LocalDiskStorage` ships today; swap the `get_storage()` return value.
+Files are written through a `MediaStorage` interface, so where a file lives
+is decided here and nowhere else. There are two stores:
+
+  * site media — Back Office content images, category images. Always
+    `LocalDiskStorage`: plain files under MEDIA_ROOT, served at /media.
+    `get_storage()`.
+  * product media — product photographs and videos. `S3Storage` when
+    PRODUCT_MEDIA_STORAGE=s3 (production), otherwise the same local disk.
+    `get_product_storage()`.
+
+A stored file is found again by its key: S3 keys start with S3_PREFIX and
+local keys never do, so `storage_for_key()` sends a delete to the store that
+actually holds the file, including rows written before the switch to S3.
 
 Security rules enforced here:
   * the client-supplied filename is NEVER used on disk — a UUID name is
@@ -11,10 +21,14 @@ Security rules enforced here:
   * a hard size cap is applied while streaming, so a huge upload cannot be
     buffered into memory first
 """
+import logging
 import os
+import tempfile
 import uuid
 from abc import ABC, abstractmethod
 from typing import BinaryIO, Tuple
+
+log = logging.getLogger(__name__)
 
 MAX_IMAGE_BYTES = 8 * 1024 * 1024     # 8 MB
 MAX_VIDEO_BYTES = 64 * 1024 * 1024    # 64 MB
@@ -142,13 +156,118 @@ class LocalDiskStorage(MediaStorage):
             pass
 
 
+# Every S3 key starts with this; no local key can (local keys are a bare
+# "<uuid>.<ext>"), which is how a key tells which store holds it.
+S3_PREFIX = "products/"
+CONTENT_TYPES = {ext: ct for ct, ext in {**IMAGE_TYPES, **VIDEO_TYPES}.items()}
+# A stored object is never rewritten (every upload gets a new name), so a
+# browser may keep it for a year.
+IMMUTABLE = "public, max-age=31536000, immutable"
+
+
+class S3Storage(MediaStorage):
+    """Product media in an S3 bucket, served straight from it.
+
+    The bucket's policy makes S3_PREFIX publicly readable; nothing else in it
+    is. The instance role needs s3:PutObject and s3:DeleteObject on that
+    prefix and nothing more.
+    """
+
+    def __init__(self, bucket: str, region: str, public_url: str = "", client=None):
+        if not bucket:
+            raise ValueError("S3Storage needs a bucket name.")
+        self.bucket = bucket
+        self.region = region
+        self.public_url = (public_url or
+                           f"https://{bucket}.s3.{region}.amazonaws.com").rstrip("/")
+        self._client = client
+
+    @property
+    def client(self):
+        if self._client is None:
+            import boto3      # only needed when S3 is actually in use
+            self._client = boto3.client("s3", region_name=self.region)
+        return self._client
+
+    def save(self, stream: BinaryIO, extension: str, max_bytes: int):
+        storage_key = f"{S3_PREFIX}{uuid.uuid4().hex}{extension}"
+        written = 0
+        # Streamed through a spooled temp file so the size cap applies before
+        # anything is sent, and a large video does not sit in memory.
+        with tempfile.SpooledTemporaryFile(max_size=CHUNK * 8) as buf:
+            while True:
+                chunk = stream.read(CHUNK)
+                if not chunk:
+                    break
+                written += len(chunk)
+                if written > max_bytes:
+                    raise UploadRejected(
+                        f"File is too large (limit {max_bytes // (1024 * 1024)} MB)."
+                    )
+                buf.write(chunk)
+            if written == 0:
+                raise UploadRejected("Uploaded file is empty.")
+            buf.seek(0)
+            self.put(buf, storage_key)
+        return storage_key, written
+
+    def put(self, fileobj: BinaryIO, storage_key: str) -> None:
+        """Upload an already-validated file under an exact key."""
+        ext = os.path.splitext(storage_key)[1].lower()
+        self.client.upload_fileobj(
+            fileobj, self.bucket, storage_key,
+            ExtraArgs={"ContentType": CONTENT_TYPES.get(ext, "application/octet-stream"),
+                       "CacheControl": IMMUTABLE},
+        )
+
+    def url_for(self, storage_key: str) -> str:
+        return f"{self.public_url}/{storage_key}"
+
+    def delete(self, storage_key: str) -> None:
+        # S3 does not fail on a missing key. Any other failure is logged, not
+        # raised: removing a product must not be blocked by a stray object.
+        try:
+            self.client.delete_object(Bucket=self.bucket, Key=storage_key)
+        except Exception:        # noqa: BLE001
+            log.warning("Could not delete s3://%s/%s", self.bucket, storage_key, exc_info=True)
+
+
 _storage: MediaStorage = None
+_product_storage: MediaStorage = None
 
 
 def get_storage() -> MediaStorage:
-    """Swap this for S3Storage/CloudinaryStorage in production."""
+    """Site media: plain files under MEDIA_ROOT."""
     global _storage
     if _storage is None:
         from app.config import settings
         _storage = LocalDiskStorage(settings.MEDIA_ROOT, settings.MEDIA_URL_PREFIX)
     return _storage
+
+
+def _s3_from_settings() -> S3Storage:
+    from app.config import settings
+    return S3Storage(settings.PRODUCT_MEDIA_BUCKET, settings.PRODUCT_MEDIA_REGION,
+                     settings.PRODUCT_MEDIA_PUBLIC_URL)
+
+
+def get_product_storage() -> MediaStorage:
+    """Where new product photographs and videos are written."""
+    global _product_storage
+    if _product_storage is None:
+        from app.config import settings
+        _product_storage = (_s3_from_settings() if settings.PRODUCT_MEDIA_STORAGE == "s3"
+                            else get_storage())
+    return _product_storage
+
+
+def storage_for_key(storage_key: str) -> MediaStorage:
+    """The store that holds an existing file, whatever new files use."""
+    if storage_key and storage_key.startswith(S3_PREFIX):
+        product = get_product_storage()
+        if isinstance(product, S3Storage):
+            return product
+        from app.config import settings
+        if settings.PRODUCT_MEDIA_BUCKET:
+            return _s3_from_settings()
+    return get_storage()
