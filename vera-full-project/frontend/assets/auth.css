@@ -217,3 +217,144 @@ img{display:block;max-width:100%;}
 .field-check label a{color:var(--ink);text-decoration:underline;}
 .field-check input:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 .sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0;}
+
+/* ======================================================================
+   THE CINEMATIC ACCOUNT PAGES (body.auth-cine)
+   Sign in, create account, password reset and email confirmation, staged
+   like the storefront: a campaign portrait on one side, the form on a noir
+   set on the other: ivory type, champagne accents, Fraunces display with an
+   italic champagne word, hairline fields and a champagne pill. The account
+   dashboard does not carry the class and keeps the light layout above.
+   ====================================================================== */
+.auth-cine{
+  --noir:#0D0907; --espresso:#17100C; --ivory:#F4ECE0;
+  --ivory-soft:rgba(244,236,224,.68); --ivory-faint:rgba(244,236,224,.42);
+  --champagne:#DCC193; --champagne-hi:#F3DDB0; --line-dark:rgba(244,236,224,.14);
+  --e-film:cubic-bezier(.19,1,.22,1);
+  background:var(--noir);color:var(--ivory);
+}
+.auth-cine .auth-shell{min-height:100vh;display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);}
+
+/* ---- the campaign side ---- */
+.auth-visual{position:relative;overflow:hidden;background:var(--espresso);min-height:100vh;}
+.auth-visual img{position:absolute;inset:0;width:100%;height:100%;max-width:none;object-fit:cover;object-position:50% 28%;
+  transform:scale(1.06);animation:authSettle 2.4s var(--e-film) both;}
+.auth-visual::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:
+    linear-gradient(90deg,rgba(13,9,7,0) 55%,rgba(13,9,7,.92) 100%),
+    linear-gradient(0deg,rgba(13,9,7,.88) 0%,rgba(13,9,7,.15) 45%,rgba(13,9,7,.35) 100%);}
+.auth-quote{position:absolute;z-index:1;left:clamp(28px,5vw,72px);right:clamp(28px,5vw,72px);bottom:clamp(36px,7vh,80px);
+  animation:authRise 1.4s var(--e-film) .25s both;}
+.auth-quote .eyebrow{display:inline-flex;align-items:center;gap:14px;font-size:11px;font-weight:600;
+  letter-spacing:.34em;text-transform:uppercase;color:var(--champagne);}
+.auth-quote .eyebrow::before{content:"";width:34px;height:1px;background:currentColor;opacity:.7;}
+.auth-quote p{font-family:"Fraunces",Georgia,serif;font-weight:400;color:var(--ivory);
+  font-size:clamp(34px,3.6vw,58px);line-height:1.02;letter-spacing:-.02em;margin-top:16px;max-width:12ch;}
+.auth-quote p em{font-style:italic;color:var(--champagne);}
+
+/* ---- the form side ---- */
+.auth-cine .auth-side{position:relative;display:flex;flex-direction:column;min-height:100vh;
+  background:radial-gradient(90% 60% at 80% 0%,rgba(220,193,147,.07),rgba(13,9,7,0) 60%),var(--noir);}
+.auth-cine .auth-top{position:static;background:none;backdrop-filter:none;border-bottom:1px solid var(--line-dark);
+  padding:22px clamp(24px,4vw,56px);}
+.auth-cine .logo{color:var(--ivory);}
+.auth-cine .logo-mark{filter:brightness(0) invert(.93) sepia(.25);}
+.auth-cine .auth-top .back{color:var(--ivory-soft);font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;}
+.auth-cine .auth-top .back:hover{color:var(--champagne);text-decoration:none;}
+.auth-cine .auth-main{padding:clamp(32px,6vh,72px) clamp(24px,4vw,56px);align-items:center;}
+.auth-cine .auth-card{max-width:420px;background:none;border:0;box-shadow:none;padding:0;border-radius:0;
+  animation:authRise 1.1s var(--e-film) both;}
+.auth-cine .auth-head{margin-bottom:30px;}
+.auth-cine .auth-head .eyebrow{display:inline-flex;align-items:center;gap:14px;font-size:11px;letter-spacing:.34em;color:var(--champagne);}
+.auth-cine .auth-head .eyebrow::before{content:"";width:34px;height:1px;background:currentColor;opacity:.7;}
+.auth-cine .auth-head h1{font-family:"Fraunces",Georgia,serif;font-weight:400;color:var(--ivory);
+  font-size:clamp(40px,4vw,56px);line-height:1;letter-spacing:-.025em;margin:18px 0 14px;}
+.auth-cine .auth-head h1 em{font-style:italic;color:var(--champagne);}
+.auth-cine .auth-head p{color:var(--ivory-soft);font-size:14.5px;line-height:1.7;}
+
+.auth-cine .field{margin-bottom:22px;}
+.auth-cine .field label{color:var(--ivory-faint);font-size:10.5px;letter-spacing:.24em;font-weight:600;margin-bottom:6px;}
+.auth-cine .field .req{color:var(--champagne);}
+.auth-cine .field input{background:transparent;border:0;border-bottom:1px solid rgba(244,236,224,.22);border-radius:0;
+  color:var(--ivory);padding:12px 0 11px;font-size:15.5px;caret-color:var(--champagne);}
+.auth-cine .field input::placeholder{color:rgba(244,236,224,.3);}
+.auth-cine .field input:focus{border-bottom-color:var(--champagne);box-shadow:0 1px 0 0 var(--champagne);}
+.auth-cine .field input[aria-invalid="true"]{border-bottom-color:#E08A7E;}
+.auth-cine .field input:-webkit-autofill{-webkit-text-fill-color:var(--ivory);
+  -webkit-box-shadow:0 0 0 40px var(--noir) inset;caret-color:var(--champagne);}
+.auth-cine .has-toggle input{padding-right:60px;}
+.auth-cine .pw-toggle{color:var(--champagne);right:0;font-size:10.5px;letter-spacing:.18em;}
+.auth-cine .pw-toggle:hover{background:none;color:var(--champagne-hi);}
+.auth-cine .hint{color:var(--ivory-faint);}
+.auth-cine .err{color:#F0A195;}
+.auth-cine .pw-rules{color:var(--ivory-faint);}
+.auth-cine .pw-rules li::before{color:var(--ivory-faint);}
+.auth-cine .pw-rules li.ok,.auth-cine .pw-rules li.ok::before{color:#9CCBAA;}
+.auth-cine .pw-rules li.bad,.auth-cine .pw-rules li.bad::before{color:#F0A195;}
+.auth-cine .field-check label{color:var(--ivory-soft);font-size:13.5px;letter-spacing:0;text-transform:none;
+  font-weight:400;margin:0;}
+.auth-cine .field-check label a{color:var(--ivory);}
+/* A hairline box on the noir set that fills champagne when ticked. */
+.auth-cine .field-check input[type="checkbox"]{-webkit-appearance:none;appearance:none;width:20px;height:20px;
+  border:1px solid rgba(244,236,224,.45);border-radius:4px;background:transparent;cursor:pointer;
+  transition:background .2s,border-color .2s;}
+.auth-cine .field-check input[type="checkbox"]:hover{border-color:var(--champagne);}
+.auth-cine .field-check input[type="checkbox"]:checked{background:var(--champagne) no-repeat center/14px
+  url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%230D0907' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7'/%3E%3C/svg%3E");
+  border-color:var(--champagne);}
+.auth-cine .field-check input[aria-invalid="true"]{border-color:#E08A7E;}
+
+.auth-cine a{color:var(--champagne);}
+.auth-cine .btn{border-radius:100px;font-size:12px;letter-spacing:.24em;text-transform:uppercase;padding:17px 30px;}
+.auth-cine .btn-primary{background:var(--champagne);color:var(--noir);width:100%;}
+.auth-cine .btn-primary:hover:not(:disabled){background:var(--champagne-hi);box-shadow:0 18px 40px -18px rgba(220,193,147,.55);}
+.auth-cine .btn-outline{border-color:rgba(244,236,224,.35);color:var(--ivory);}
+.auth-cine .btn-outline:hover:not(:disabled){background:var(--ivory);color:var(--noir);}
+.auth-cine .spinner{border-color:rgba(13,9,7,.25);border-top-color:var(--noir);}
+
+.auth-cine .notice.error{background:rgba(224,138,126,.1);color:#F4C2BA;border-color:rgba(224,138,126,.35);}
+.auth-cine .notice.ok{background:rgba(156,203,170,.1);color:#CDE6D5;border-color:rgba(156,203,170,.35);}
+.auth-cine .notice.info{background:rgba(220,193,147,.1);color:var(--champagne-hi);border-color:rgba(220,193,147,.3);}
+
+.auth-cine .auth-links{justify-content:flex-end;margin-top:-10px;}
+.auth-cine .auth-links a{font-size:12.5px;color:var(--ivory-soft);}
+.auth-cine .auth-links a:hover{color:var(--champagne);}
+.auth-cine .auth-alt{border-top:1px solid var(--line-dark);color:var(--ivory-soft);margin-top:30px;padding-top:24px;}
+
+/* ---- Google, and the line between it and the email form ---- */
+.google-block{margin-bottom:6px;}
+.google-block[hidden]{display:none;}
+.google-block [data-google-button]{min-height:44px;display:flex;justify-content:center;}
+.google-note{font-size:11.5px;line-height:1.6;color:var(--ivory-faint,#7A6A5F);text-align:center;margin-top:10px;}
+.google-note a{color:inherit;text-decoration:underline;}
+.auth-or{display:flex;align-items:center;gap:16px;margin:24px 0 22px;font-size:10.5px;letter-spacing:.3em;
+  text-transform:uppercase;color:var(--ivory-faint,#7A6A5F);}
+.auth-or::before,.auth-or::after{content:"";flex:1;height:1px;background:var(--line-dark,rgba(43,27,20,.12));}
+.google-block[hidden] + .auth-or{display:none;}
+
+@keyframes authRise{from{opacity:0;transform:translateY(22px);}to{opacity:1;transform:none;}}
+@keyframes authSettle{from{transform:scale(1.14);}to{transform:scale(1.06);}}
+
+/* ---- tablet and phone: the portrait becomes a band above the form ---- */
+@media (max-width:980px){
+  .auth-cine .auth-shell{grid-template-columns:1fr;position:relative;}
+  /* The header floats over the top of the portrait band, so it is placed
+     against the whole page rather than the form column. */
+  .auth-cine .auth-side{position:static;}
+  .auth-visual{min-height:0;height:clamp(240px,42vh,420px);}
+  .auth-visual::after{background:linear-gradient(0deg,rgba(13,9,7,1) 0%,rgba(13,9,7,.2) 55%,rgba(13,9,7,.45) 100%);}
+  .auth-quote{bottom:22px;}
+  .auth-quote p{font-size:clamp(28px,7vw,40px);}
+  .auth-cine .auth-side{min-height:0;}
+  .auth-cine .auth-top{position:absolute;top:0;left:0;right:0;z-index:5;border-bottom:0;
+    background:linear-gradient(180deg,rgba(13,9,7,.7),rgba(13,9,7,0));}
+  .auth-cine .auth-main{padding-top:28px;}
+}
+@media (max-width:560px){
+  .auth-cine .auth-top{padding:16px 18px;}
+  .auth-cine .auth-main{padding:24px 18px 48px;}
+  .auth-cine .auth-head h1{font-size:38px;}
+}
+@media (prefers-reduced-motion: reduce){
+  .auth-visual img,.auth-quote,.auth-cine .auth-card{animation:none;}
+}

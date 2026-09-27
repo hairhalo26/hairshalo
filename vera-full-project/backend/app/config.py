@@ -132,6 +132,10 @@ class Settings:
 
     # Public storefront URL, used to build links inside emails.
     STOREFRONT_URL: str = os.getenv("STOREFRONT_URL", "http://localhost:5500")
+    # "Sign in with Google": the OAuth client id from Google Cloud Console
+    # (APIs & Services -> Credentials -> OAuth client ID, type "Web
+    # application"). Empty means the Google button is not shown at all.
+    GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
     # Stock at or below this triggers a low-stock alert to ADMIN_ALERT_EMAILS.
     LOW_STOCK_ALERT_THRESHOLD: int = int(os.getenv("LOW_STOCK_ALERT_THRESHOLD", "5"))
 

@@ -1153,6 +1153,11 @@ class CustomerProfileOut(BaseModel):
     last_login_at: Optional[datetime] = None
 
 
+class GoogleCredential(BaseModel):
+    """The ID token Google Identity Services hands the storefront."""
+    credential: str
+
+
 class CustomerToken(BaseModel):
     access_token: str
     token_type: str = "bearer"

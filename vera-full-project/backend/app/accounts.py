@@ -222,6 +222,42 @@ def authenticate(db: Session, email: str, password: str) -> models.Customer:
     return customer
 
 
+def google_sign_in(db: Session, claims: dict) -> models.Customer:
+    """Sign in (or sign up) with claims from a VERIFIED Google ID token.
+
+    Google has proved control of the mailbox, so the address is matched to an
+    existing customer and marked confirmed. Where nobody had proved that
+    before — a checkout-only row, or a password registration never confirmed
+    by email — the unconfirmed password is replaced and older sessions end,
+    so an account someone pre-registered with this address cannot be shared
+    with them. A confirmed account keeps its password; Google is simply a
+    second way in.
+    """
+    if not claims.get("email") or claims.get("email_verified") not in (True, "true"):
+        raise AccountError("Your Google account's email address is not verified with Google.")
+    address = normalise_email(claims["email"])
+    now = datetime.utcnow()
+
+    customer = db.query(models.Customer).filter(models.Customer.email == address).first()
+    if customer and not customer.is_active:
+        raise AccountError(
+            "This account has been disabled. Please contact us if that is unexpected.")
+    if not customer:
+        name = (claims.get("name") or claims.get("given_name") or address.split("@")[0]).strip()
+        customer = models.Customer(name=name[:120], email=address, is_active=True)
+        db.add(customer)
+        db.flush()
+
+    if not customer.has_account or not customer.email_verified:
+        customer.hashed_password = hash_password(secrets.token_urlsafe(32))
+        customer.password_changed_at = now
+        customer.registered_at = customer.registered_at or now
+        customer.token_version = (customer.token_version or 0) + 1
+    customer.email_verified = True
+    customer.last_login_at = now
+    return customer
+
+
 def change_password(db: Session, customer: models.Customer,
                     current_password: str, new_password: str) -> models.Customer:
     if not customer.hashed_password or not verify_password(

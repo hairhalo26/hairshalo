@@ -39,7 +39,7 @@
      implementation of "is this password acceptable", not two that drift. Only
      the JS is shared: assets/auth.css resets *, html and body and would
      restyle the storefront. -->
-<script src="assets/auth.js?v=20260918"></script>
+<script src="assets/auth.js?v=20260927"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -680,6 +680,59 @@
     color:var(--text);text-decoration:none;margin-right:18px;}
   .nav-account:hover{color:var(--wine);}
   .account-modal{max-width:640px;}
+  /* Signed out, the popup is staged like the storefront's dark movements:
+     noir, ivory type, champagne accents, hairline fields and a champagne pill
+     (matching /signin and /signup). The signed-in quick view keeps its light
+     panel, so this is scoped to .is-guest, which renderAccountUI() sets. */
+  #accountModal.is-guest{background:
+      radial-gradient(90% 55% at 85% 0%,rgba(220,193,147,.09),rgba(13,9,7,0) 60%),#0D0907;
+    color:#F4ECE0;padding:44px 42px 38px;border:1px solid rgba(244,236,224,.08);width:500px;
+    scrollbar-color:rgba(244,236,224,.22) transparent;scrollbar-width:thin;}
+  #accountModal.is-guest::-webkit-scrollbar{width:6px;}
+  #accountModal.is-guest::-webkit-scrollbar-thumb{background:rgba(244,236,224,.22);border-radius:6px;}
+  #accountModal.is-guest::-webkit-scrollbar-track{background:transparent;}
+  #accountModal.is-guest .modal-close{background:rgba(244,236,224,.08);color:#F4ECE0;}
+  #accountModal.is-guest .acct-tabs{gap:26px;border-bottom:1px solid rgba(244,236,224,.12);margin-bottom:30px;}
+  #accountModal.is-guest .acct-tab-btn{color:rgba(244,236,224,.5);font-size:11px;letter-spacing:.26em;padding:10px 0;
+    margin-bottom:-1px;}
+  #accountModal.is-guest .acct-tab-btn.active{color:#DCC193;border-bottom-color:#DCC193;}
+  #accountModal .acct-eyebrow{display:none;}
+  #accountModal.is-guest .acct-eyebrow{display:inline-flex;align-items:center;gap:14px;font-size:10.5px;font-weight:600;
+    letter-spacing:.34em;text-transform:uppercase;color:#DCC193;}
+  #accountModal.is-guest .acct-eyebrow::before{content:'';width:30px;height:1px;background:currentColor;opacity:.7;}
+  #accountModal.is-guest h3{font-family:'Fraunces',serif;font-weight:400;font-size:40px;line-height:1.02;
+    letter-spacing:-.025em;color:#F4ECE0;margin:14px 0 26px;}
+  #accountModal.is-guest h3 em{font-style:italic;color:#DCC193;}
+  #accountModal.is-guest .field label{color:rgba(244,236,224,.45);font-size:10.5px;letter-spacing:.24em;}
+  #accountModal.is-guest .field .req{color:#DCC193;}
+  #accountModal.is-guest input{background:transparent;border:0;border-bottom:1px solid rgba(244,236,224,.22);
+    border-radius:0;color:#F4ECE0;padding:11px 0 10px;font-size:15px;caret-color:#DCC193;}
+  #accountModal.is-guest input:focus{outline:none;border-bottom-color:#DCC193;box-shadow:0 1px 0 0 #DCC193;}
+  #accountModal.is-guest input:-webkit-autofill{-webkit-text-fill-color:#F4ECE0;-webkit-box-shadow:0 0 0 40px #0D0907 inset;}
+  #accountModal.is-guest .field.invalid input{border-bottom-color:#E08A7E;}
+  #accountModal.is-guest .pw-toggle{color:#DCC193;right:0;letter-spacing:.18em;}
+  #accountModal.is-guest .hint,
+  #accountModal.is-guest .pw-rules li,
+  #accountModal.is-guest .acct-muted{color:rgba(244,236,224,.5);}
+  #accountModal.is-guest .pw-rules li.ok{color:#9CCBAA;}
+  #accountModal.is-guest .err{color:#F0A195;}
+  #accountModal.is-guest .acct-msg{color:#F4C2BA;}
+  #accountModal.is-guest a{color:#DCC193;}
+  #accountModal.is-guest .btn-primary{width:100%;justify-content:center;background:#DCC193;color:#0D0907;border-color:#DCC193;
+    border-radius:100px;padding:16px 26px;font-size:11.5px;letter-spacing:.24em;text-transform:uppercase;margin-top:6px;}
+  #accountModal.is-guest .btn-primary:hover:not([disabled]){background:#F3DDB0;border-color:#F3DDB0;}
+  #accountModal .google-block[hidden]{display:none;}
+  #accountModal .google-block [data-google-button]{min-height:44px;display:flex;justify-content:center;}
+  #accountModal .google-note{font-size:11px;line-height:1.6;color:rgba(244,236,224,.45);text-align:center;margin:10px 0 0;}
+  #accountModal .google-note a{color:rgba(244,236,224,.7);text-decoration:underline;}
+  #accountModal .auth-or{display:flex;align-items:center;gap:16px;margin:22px 0 20px;font-size:10px;letter-spacing:.3em;
+    text-transform:uppercase;color:rgba(244,236,224,.42);}
+  #accountModal .auth-or::before,#accountModal .auth-or::after{content:'';flex:1;height:1px;background:rgba(244,236,224,.14);}
+  #accountModal .google-block[hidden] + .auth-or{display:none;}
+  @media (max-width:560px){
+    #accountModal.is-guest{padding:40px 22px 30px;}
+    #accountModal.is-guest h3{font-size:34px;}
+  }
   /* Form furniture for the account popup. Deliberately scoped: assets/auth.css
      dresses the standalone pages and resets *, html, body and .logo, so pulling
      it in here would restyle the storefront. */
@@ -2849,6 +2902,21 @@
     background-size:cover !important;
     -webkit-mask-image:radial-gradient(ellipse 50% 50% at 55% 50%,#000 25%,rgba(0,0,0,.4) 62%,transparent 100%);
             mask-image:radial-gradient(ellipse 50% 50% at 55% 50%,#000 25%,rgba(0,0,0,.4) 62%,transparent 100%);}
+  /* …unless the section names its own portrait (data-image). A portrait is a
+     person, so it is framed on her face rather than on the middle of the
+     picture: anchored near the top, lit at full strength, and the soft edge
+     is drawn around the head and shoulders instead of the centre. */
+  .closing-photo.is-texture.is-portrait{top:0;bottom:0;right:0;width:52vw;opacity:.9;
+    background-color:transparent !important;background-blend-mode:normal;
+    background-position:50% 12% !important;
+    -webkit-mask-image:radial-gradient(ellipse 58% 62% at 52% 36%,#000 42%,rgba(0,0,0,.55) 68%,transparent 100%);
+            mask-image:radial-gradient(ellipse 58% 62% at 52% 36%,#000 42%,rgba(0,0,0,.55) 68%,transparent 100%);}
+  @media (max-width:900px){
+    /* On a phone the title runs full width: the portrait sits above it, to
+       the right, and quieter, so her face stays clear of the words. */
+    .closing-photo.is-texture.is-portrait{width:78vw;right:-12vw;bottom:auto;height:78vw;top:0;opacity:.55;
+      background-position:50% 10% !important;}
+  }
 
   /* Italic descenders at display sizes need more room inside word masks. */
   .m-word{padding-bottom:.34em;margin-bottom:-.34em;}
@@ -3736,8 +3804,18 @@
      settles. Each stage lights one real attribute from the catalogue, joined
      to the piece by a line. Built by the cinematic layer; stays hidden unless
      a product has at least three photographs and real attributes to show.
-     Under reduced motion it is a still, stacked sequence. -->
-<section class="cine discover" id="discover" data-tone="#EDE3D6" data-scroll="pin" hidden aria-labelledby="dsHeading">
+     Under reduced motion it is a still, stacked sequence.
+     data-product + data-frames name the film by hand: one photograph per
+     stage, in stage order, each checked by eye. A frame is the photograph's
+     position in the product's gallery (its sort order), which is the same on
+     every install, where the file names are not. They are all the piece
+     worn, on the same set: a packshot never cuts into a portrait.
+       16 colour 2 front · 18 colour 2 back · 17 colour 2 profile ·
+       2 colour 1 back · 40 Natural colour front
+     A position the product does not have is dropped; with fewer than three
+     left (or no such product) the film picks a piece itself. -->
+<section class="cine discover" id="discover" data-tone="#EDE3D6" data-scroll="pin" hidden aria-labelledby="dsHeading"
+  data-product="human-hair-crochet" data-frames="16 18 17 2 40">
   <div class="ds-pin">
     <span class="ds-atmos" aria-hidden="true"></span>
     <div class="ds-head">
@@ -6429,7 +6507,12 @@
     </div>
 
     <div data-acct-tab="signin">
-      <h3>Welcome back</h3>
+      <span class="acct-eyebrow">Your account</span>
+      <h3>Welcome <em>back.</em></h3>
+      <div class="google-block" id="googleBlockSignin" hidden>
+        <div data-google-button></div>
+      </div>
+      <div class="auth-or"><span>or with email</span></div>
       <form id="loginForm" class="acct-form" novalidate>
         <div class="field">
           <label for="loginEmail">Email address <span class="req" aria-hidden="true">*</span></label>
@@ -6459,7 +6542,15 @@
     </div>
 
     <div data-acct-tab="register" style="display:none;">
-      <h3>Create an account</h3>
+      <span class="acct-eyebrow">Your account</span>
+      <h3>Create your <em>account.</em></h3>
+      <div class="google-block" id="googleBlockRegister" hidden>
+        <div data-google-button></div>
+        <p class="google-note">By continuing with Google you agree to our
+          <a href="/privacy" target="_blank" rel="noopener">Privacy Policy</a> and
+          <a href="/terms" target="_blank" rel="noopener">Terms &amp; Conditions</a>.</p>
+      </div>
+      <div class="auth-or"><span>or with email</span></div>
       <form id="registerForm" class="acct-form" novalidate>
         <div class="field">
           <label for="regName">Full name <span class="req" aria-hidden="true">*</span></label>
@@ -7556,6 +7647,18 @@
       .sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0))
       .map(m => m.url).filter(url => photoKey(url) !== photoKey(p.image_url));
   }
+  // A section's hand-picked photographs: data-product names the piece by
+  // slug, data-frames lists gallery positions (sort order) in the order they
+  // are shown. Positions the piece does not have are skipped.
+  function namedFrames(el, products){
+    const slug = el.getAttribute('data-product');
+    const piece = slug && (products || []).find(p => p.slug === slug);
+    if(!piece) return [];
+    const stills = (piece.media || []).filter(m => m.media_type !== 'video' && m.url);
+    return (el.getAttribute('data-frames') || '').split(/\s+/).filter(Boolean)
+      .map(pos => stills.find(m => String(m.sort_order || 0) === pos))
+      .filter(Boolean);
+  }
   function reservePhotos(){
     usedPhotos.clear();
     const c = siteContent || {};
@@ -7565,11 +7668,14 @@
         el => el.getAttribute('data-image')))
       .concat(Array.prototype.map.call(document.querySelectorAll('[data-cat-image]'),
         el => el.getAttribute('data-cat-image')))
+      .concat(Array.prototype.reduce.call(document.querySelectorAll('[data-frames]'),
+        (all, el) => all.concat(namedFrames(el, liveProducts).map(m => m.url)), []))
       .concat(liveProducts.map(p => p.image_url))
       .forEach(url => { if(url) usedPhotos.add(photoKey(url)); });
   }
   window.HS_PHOTOS = {
     claim: claimPhoto,
+    named: namedFrames,
     has: url => usedPhotos.has(photoKey(url))
   };
 
@@ -9050,6 +9156,7 @@
     const signedOut = document.getElementById('accountSignedOut');
     const signedIn = document.getElementById('accountSignedIn');
     if(!signedOut || !signedIn) return;
+    document.getElementById('accountModal').classList.toggle('is-guest', !customer);
     signedOut.style.display = customer ? 'none' : '';
     signedIn.style.display = customer ? '' : 'none';
     if(customer){
@@ -9061,10 +9168,31 @@
     }
   }
 
+  /* Sign in with Google, on whichever signed-out tab is showing. Hidden
+     unless the shop has Google set up; a Google sign-in lands exactly where a
+     password sign-in does. */
+  function mountAccountGoogle(name){
+    const auth = window.HairshaloAuth;
+    if(customer || !auth || !auth.mountGoogle) return;
+    const block = document.getElementById(name === 'register' ? 'googleBlockRegister' : 'googleBlockSignin');
+    const msg = name === 'register' ? 'regMsg' : 'loginMsg';
+    auth.mountGoogle(block, {
+      text: name === 'register' ? 'signup_with' : 'signin_with',
+      onSignedIn: (data) => {
+        setAuthToken(data.access_token);
+        customer = data.customer;
+        renderAccountUI();
+        accountTab('orders');
+      },
+      onError: (message) => accountMessage(msg, message, true)
+    });
+  }
+
   function accountTab(name){
     document.querySelectorAll('[data-acct-tab]').forEach(el => {
       el.style.display = el.dataset.acctTab === name ? '' : 'none';
     });
+    if(name === 'signin' || name === 'register') mountAccountGoogle(name);
     document.querySelectorAll('[data-acct-tab-btn]').forEach(b => {
       b.classList.toggle('active', b.dataset.acctTabBtn === name);
     });
@@ -9328,6 +9456,7 @@
   const accountOverlay = document.getElementById('accountOverlay');
 
   function openAccount(tab){
+    accountModal.classList.toggle('is-guest', !customer);
     openModal(accountModal, accountOverlay);
     accountTab(tab || (customer ? 'orders' : 'signin'));
   }
@@ -9728,7 +9857,7 @@
       renderCampaign(products);
       var closing = document.getElementById('closingPhoto');
       var ownClose = closing && (closing.getAttribute('data-image') || '').trim();
-      if(ownClose){ closing.classList.add('is-texture'); applyBackdrop(closing, ownClose, 'cover'); }
+      if(ownClose){ closing.classList.add('is-texture', 'is-portrait'); applyBackdrop(closing, ownClose, 'cover'); }
       else if(closing){
         var order = [];
         list.forEach(function(p){ var s = discoverFrames(p, isTaken); if(s.length >= 3) order.push(s[2].url); });
@@ -9798,8 +9927,13 @@
     function renderDiscover(products, taken){
       var sec = document.getElementById('discover');
       if(!sec || typeof resolveMediaUrl !== 'function') return;
-      var best = null, bestScore = -1;
-      products.forEach(function(p){
+      var best = null, bestScore = -1, frames = null;
+      // The film named on the section, if its piece and photographs exist.
+      var P = window.HS_PHOTOS;
+      var own = products.find(function(p){ return p.slug === sec.getAttribute('data-product'); });
+      var picked = own && P && P.named ? P.named(sec, products) : [];
+      if(picked.length >= 3 && discoverFacts(own).length >= 3){ best = own; frames = picked; }
+      if(!best) products.forEach(function(p){
         var frames = discoverFrames(p, isTaken), facts = discoverFacts(p);
         if(frames.length < 3 || facts.length < 3) return;
         var score = Math.min(frames.length, facts.length) * 2
@@ -9809,10 +9943,13 @@
       });
       if(!best){ sec.hidden = true; return; }
 
-      var shots = discoverFrames(best, isTaken), facts = discoverFacts(best);
-      // Stages whose photograph exists; with fewer photographs, fewer stages.
-      var frames = STAGE_SHOTS.filter(function(i){ return i < shots.length; })
-        .map(function(i){ return shots[i]; });
+      var facts = discoverFacts(best);
+      if(!frames){
+        var shots = discoverFrames(best, isTaken);
+        // Stages whose photograph exists; with fewer photographs, fewer stages.
+        frames = STAGE_SHOTS.filter(function(i){ return i < shots.length; })
+          .map(function(i){ return shots[i]; });
+      }
       var n = Math.min(frames.length, facts.length, CAMERA.length);
       var win = document.getElementById('dsWindow');
       var notes = document.getElementById('dsNotes');

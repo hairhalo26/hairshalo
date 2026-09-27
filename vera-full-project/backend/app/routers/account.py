@@ -16,9 +16,10 @@ from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Query
 from sqlalchemy.orm import Session, joinedload
 
 from app import (
-    accounts, addresses, loyalty as loyalty_service, models,
+    accounts, addresses, google_auth, loyalty as loyalty_service, models,
     notifications as notify, schemas,
 )
+from app.config import settings
 from app.database import get_db
 from app.deps import get_current_customer, get_verified_customer
 
@@ -112,6 +113,31 @@ def login(payload: schemas.CustomerLoginRequest, db: Session = Depends(get_db)):
         customer = accounts.authenticate(db, str(payload.email), payload.password)
     except accounts.AccountError as exc:
         raise HTTPException(status_code=401, detail=str(exc))
+    token = accounts.issue_customer_token(customer)
+    db.commit()
+    return schemas.CustomerToken(access_token=token, customer=_profile(customer))
+
+
+@router.get("/google/config")
+def google_config():
+    """The public OAuth client id for the storefront's Google button, or null
+    when Google sign-in is not set up (the button then stays hidden)."""
+    return {"client_id": settings.GOOGLE_CLIENT_ID or None}
+
+
+@router.post("/google", response_model=schemas.CustomerToken)
+def google_login(payload: schemas.GoogleCredential, db: Session = Depends(get_db)):
+    """Sign in or sign up with a Google ID token (Google Identity Services)."""
+    if not settings.GOOGLE_CLIENT_ID:
+        raise HTTPException(status_code=404, detail="Google sign-in is not set up.")
+    try:
+        claims = google_auth.verify_credential(payload.credential)
+    except google_auth.GoogleAuthError as exc:
+        raise HTTPException(status_code=401, detail=str(exc))
+    try:
+        customer = accounts.google_sign_in(db, claims)
+    except accounts.AccountError as exc:
+        raise HTTPException(status_code=403, detail=str(exc))
     token = accounts.issue_customer_token(customer)
     db.commit()
     return schemas.CustomerToken(access_token=token, customer=_profile(customer))

@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sign In | Hairshalo</title>
 <meta name="description" content="Sign in to your Hairshalo account to track orders, manage your wishlist and see your loyalty points.">
-<meta name="theme-color" content="#1A2338">
+<meta name="theme-color" content="#0D0907">
 <link rel="canonical" href="https://hairshalo.com/signin">
 <link rel="icon" href="assets/favicon.ico" sizes="any">
 <link rel="apple-touch-icon" href="assets/apple-touch-icon.png">
@@ -17,10 +17,16 @@
 <meta property="og:image" content="https://hairshalo.com/assets/og-image.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="assets/auth.css?v=20260918">
+<link rel="stylesheet" href="assets/auth.css?v=20260927">
 </head>
-<body>
+<body class="auth-cine">
 <div class="auth-shell">
+  <aside class="auth-visual" aria-hidden="true">
+    <img src="assets/campaign/closing-portrait.webp" alt="" decoding="async" fetchpriority="high">
+    <div class="auth-quote"><span class="eyebrow">Hairshalo</span>
+      <p>Your hair. <em>Your presence.</em></p></div>
+  </aside>
+  <div class="auth-side">
   <header class="auth-top">
     <a href="/" class="logo" aria-label="Hairshalo — home">
       <img class="logo-mark" src="assets/hairshalo-mark.png" alt="" width="23" height="28">HAIRSHALO
@@ -32,11 +38,16 @@
     <div class="auth-card">
       <div class="auth-head">
         <span class="eyebrow">Your Account</span>
-        <h1>Welcome back</h1>
+        <h1>Welcome <em>back.</em></h1>
         <p>Sign in to track orders, save favourites and use your loyalty points.</p>
       </div>
 
       <div class="notice" id="notice"></div>
+
+      <div class="google-block" id="googleBlock" hidden>
+        <div data-google-button></div>
+      </div>
+      <div class="auth-or"><span>or with email</span></div>
 
       <form id="form" novalidate>
         <div class="field">
@@ -71,12 +82,21 @@
       </p>
     </div>
   </main>
+  </div>
 </div>
 
-<script src="assets/auth.js?v=20260918"></script>
+<script src="assets/auth.js?v=20260927"></script>
 <script>
 (function () {
   var A = window.HairshaloAuth;
+  // Sign in with Google: shown only when the shop has it set up.
+  A.mountGoogle(A.$('#googleBlock'), { text: 'signin_with', prompt: true,
+    onSignedIn: function () {
+      var next = A.queryParam('next');
+      A.redirect(next && /^\/[^/\\]/.test(next) ? next : '/account');
+    },
+    onError: function (message) { A.showNotice(A.$('#notice'), 'error', message); }
+  });
   var form = A.$('#form'), notice = A.$('#notice'), submit = A.$('#submit');
   var email = A.$('#email'), password = A.$('#password');
 
