@@ -107,8 +107,19 @@ services:
       RATE_LIMIT_PUBLIC: ${RATE_LIMIT_PUBLIC:-60/60}
       RATE_LIMIT_WRITE: ${RATE_LIMIT_WRITE:-12/60}
       RATE_LIMIT_LOGIN: ${RATE_LIMIT_LOGIN:-8/300}
+      # Product photographs and videos go to S3 (deploy/aws/cloudshell-product-media.sh
+      # creates the bucket and grants the instance role access to it).
+      PRODUCT_MEDIA_STORAGE: ${PRODUCT_MEDIA_STORAGE:-local}
+      PRODUCT_MEDIA_BUCKET: ${PRODUCT_MEDIA_BUCKET:-}
+      PRODUCT_MEDIA_REGION: ${PRODUCT_MEDIA_REGION:-ap-south-1}
+      PRODUCT_MEDIA_PUBLIC_URL: ${PRODUCT_MEDIA_PUBLIC_URL:-}
     volumes:
-      - vera_media:/app/media
+      # Every other uploaded image (Back Office content, categories) is a plain
+      # file in this folder on the host, not in a Docker volume: it can be
+      # listed, backed up and copied like any other directory, and survives
+      # the containers and volumes being removed. The container runs as uid
+      # 10001, which must own it: sudo chown -R 10001:10001 media
+      - ${MEDIA_DIR:-./media}:/app/media
     expose:
       - "8000"
     deploy:
@@ -172,6 +183,5 @@ services:
 
 volumes:
   vera_pgdata:
-  vera_media:
   caddy_data:
   caddy_config:

@@ -598,6 +598,67 @@ Directory mounts do not have this problem, which is why a change under
 A frontend-only change (anything under `frontend/`) needs neither command — it
 is a directory mount, so the pull alone puts it live.
 
+### Images
+
+| What | Where it lives |
+|---|---|
+| Product photographs and videos (admin uploads, supplier imports) | S3 bucket `hairshalo-products-<account-id>`, under `products/`, served straight from the bucket |
+| Every other uploaded image (Back Office content, categories) | `media/` on the instance (`MEDIA_DIR`), a plain folder served at `/media/…` |
+| The site's own images (`frontend/assets/…`) | the git checkout, served by Caddy |
+
+None of them live inside a Docker volume, so removing or rebuilding the
+containers never touches an image.
+
+**Moving an existing install over (once).** Before this change every upload
+sat in the Docker volume `vera-prod_vera_media`.
+
+1. In CloudShell, set `EXPECTED_ACCOUNT` and run
+   `deploy/aws/cloudshell-product-media.sh`. It prints three lines for
+   `.env.prod`.
+2. On the instance, back up and pull:
+
+   ```bash
+   cd /srv/hairshalo/vera-full-project && ./scripts/backup.sh && git pull
+   ```
+
+3. Copy the old volume into the folder, and give it to the container's user
+   (uid 10001). The volume is read, not changed:
+
+   ```bash
+   mkdir -p media && docker run --rm -v vera-prod_vera_media:/from:ro -v "$PWD/media":/to alpine cp -a /from/. /to/ && sudo chown -R 10001:10001 media
+   ```
+
+   (`docker volume ls` shows the exact volume name if it differs.)
+4. Add the printed `PRODUCT_MEDIA_*` lines to `.env.prod`, then rebuild:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
+   ```
+
+5. Move the existing product photographs into S3. Dry run first; it lists
+   every file and changes nothing:
+
+   ```bash
+   docker compose -f docker-compose.prod.yml --env-file .env.prod exec api python -m app.migrate_product_media
+   ```
+
+   ```bash
+   docker compose -f docker-compose.prod.yml --env-file .env.prod exec api python -m app.migrate_product_media --apply
+   ```
+
+   Each row is repointed only after its upload succeeds, so an interrupted run
+   can simply be started again. The originals stay in `media/`.
+6. Check the storefront: product photos now load from
+   `https://hairshalo-products-….s3.ap-south-1.amazonaws.com/products/…`.
+   Once you are satisfied, the old volume can go:
+
+   ```bash
+   docker volume rm vera-prod_vera_media
+   ```
+
+`scripts/backup.sh` dumps the database only. The product bucket is its own
+copy of the photographs, but `media/` is not backed up anywhere else yet.
+
 ### Shell access without an open SSH port
 
 Step 1.2 allows SSH from **My IP**, which is right — an SSH port open to the

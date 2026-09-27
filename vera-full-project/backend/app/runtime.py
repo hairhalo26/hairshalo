@@ -221,19 +221,25 @@ def collect_findings(db=None) -> List[Finding]:
                     "Set EXCHANGE_RATE_API_KEY, or set EXCHANGE_RATE_PROVIDER=static "
                     "and accept indicative rates."))
 
-    if production:
-        add_media = True
-        try:
-            from app import storage
-            add_media = storage.get_storage().__class__.__name__ == "LocalDiskStorage"
-        except Exception:          # noqa: BLE001
-            pass
-        if add_media:
-            add(Finding("warning", "media_on_local_disk",
-                        "Uploaded media is stored on the API container's local disk, "
-                        "so it is lost when the container is replaced and cannot be "
-                        "shared between replicas.",
-                        "Point MEDIA storage at S3 or Cloudinary (see app/storage.py)."))
+    media_store = settings.PRODUCT_MEDIA_STORAGE
+    if media_store not in ("local", "s3"):
+        add(Finding("error", "product_media_storage_unknown",
+                    f"PRODUCT_MEDIA_STORAGE is '{media_store}', which is neither "
+                    "'local' nor 's3', so product uploads have nowhere to go.",
+                    "Set PRODUCT_MEDIA_STORAGE=s3 (with PRODUCT_MEDIA_BUCKET) or local."))
+    elif media_store == "s3" and not settings.PRODUCT_MEDIA_BUCKET:
+        add(Finding("error", "product_media_bucket_missing",
+                    "PRODUCT_MEDIA_STORAGE=s3 but PRODUCT_MEDIA_BUCKET is empty, so "
+                    "every product upload would fail.",
+                    "Set PRODUCT_MEDIA_BUCKET to the bucket from "
+                    "deploy/aws/cloudshell-product-media.sh."))
+    elif production and media_store == "local":
+        add(Finding("warning", "media_on_local_disk",
+                    "Product photographs are stored on this server's disk rather "
+                    "than in S3.",
+                    "Run deploy/aws/cloudshell-product-media.sh, set "
+                    "PRODUCT_MEDIA_STORAGE=s3 and PRODUCT_MEDIA_BUCKET, then "
+                    "python -m app.migrate_product_media --apply."))
 
     # ---- checks that need the database --------------------------------
     if db is not None:

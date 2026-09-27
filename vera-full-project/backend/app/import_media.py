@@ -43,7 +43,7 @@ from sqlalchemy.orm import Session
 
 from app import models
 from app.database import SessionLocal
-from app.storage import get_storage
+from app.storage import S3_PREFIX, get_product_storage, get_storage
 
 # Trusted local files, so the cap is generous. This does NOT change the HTTP
 # upload endpoint, which keeps its own 8 MB limit for anonymous callers.
@@ -273,7 +273,8 @@ def read_member(archive_path, member_name):
 
 def import_all(source: str, db: Session, commit: bool, report: Report):
     products = collect(source, report)
-    storage = get_storage()
+    storage = get_product_storage()
+    disk = get_storage()
     seen_hashes = {}
 
     for label, bucket in products.items():
@@ -317,8 +318,13 @@ def import_all(source: str, db: Session, commit: bool, report: Report):
             for m in candidates:
                 if not m.storage_key:
                     continue
+                # A photograph already in S3 is not read back (the instance
+                # role cannot); the same byte count on the same product is
+                # taken as the same file.
+                if m.storage_key.startswith(S3_PREFIX):
+                    return True
                 try:
-                    with open(storage._path(m.storage_key), "rb") as fh:
+                    with open(disk._path(m.storage_key), "rb") as fh:
                         if hashlib.sha256(fh.read()).hexdigest() == hashlib.sha256(blob).hexdigest():
                             return True
                 except (OSError, AttributeError):

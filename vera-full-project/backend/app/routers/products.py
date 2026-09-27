@@ -11,7 +11,7 @@ from app.database import get_db
 from app.deps import get_current_admin, get_optional_admin
 from app import models, schemas, inventory
 from app.pricing import compute_pricing, PricingError
-from app.storage import get_storage, validate_and_classify, UploadRejected
+from app.storage import get_product_storage, storage_for_key, validate_and_classify, UploadRejected
 
 router = APIRouter(prefix="/api/products", tags=["products"])
 
@@ -760,7 +760,7 @@ def delete_product(
         )
     for m in product.media:
         if m.storage_key:
-            get_storage().delete(m.storage_key)
+            storage_for_key(m.storage_key).delete(m.storage_key)
     db.delete(product)
     db.commit()
     return None
@@ -938,7 +938,7 @@ async def upload_media(
 
     await file.seek(0)
     try:
-        storage_key, size = get_storage().save(file.file, ext, cap)
+        storage_key, size = get_product_storage().save(file.file, ext, cap)
     except UploadRejected as exc:
         raise HTTPException(status_code=400, detail=str(exc))
 
@@ -954,7 +954,7 @@ async def upload_media(
 
     media = models.ProductMedia(
         product_id=product.id,
-        url=get_storage().url_for(storage_key),
+        url=get_product_storage().url_for(storage_key),
         media_type=media_type,
         alt_text=alt_text or product.name,
         sort_order=len(product.media),
@@ -1036,7 +1036,7 @@ def delete_media(
     was_primary = media.is_primary
     product_id = media.product_id
     if media.storage_key:
-        get_storage().delete(media.storage_key)
+        storage_for_key(media.storage_key).delete(media.storage_key)
     db.delete(media)
     db.flush()
     # Promote another image so a product never loses its primary silently.
