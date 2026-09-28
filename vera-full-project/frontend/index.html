@@ -7171,7 +7171,14 @@
     const HOVER_VIDEO_MAX = 4 * 1024 * 1024;
     const hoverVideo = gallery.find(m => m.media_type === 'video' && m.url
       && (m.file_size == null || m.file_size <= HOVER_VIDEO_MAX));
-    const hoverStill = gallery.find(m => m.media_type !== 'video' && m.url && !m.is_primary && m.url !== shown);
+    // The photo after the one on the card, from the same colour: the same
+    // model, turned (front -> side). Main can be any colour's photo, so
+    // "first other photo in the gallery" would jump to another model.
+    const stills = gallery.filter(m => m.media_type !== 'video' && m.url);
+    const lead = stills.find(m => m.url === shown) || stills.find(m => m.is_primary);
+    const after = lead ? stills.slice(stills.indexOf(lead) + 1) : stills;
+    const hoverStill = (lead && after.find(m => m.variant_id === lead.variant_id))
+      || after[0] || stills.find(m => m !== lead && m.url !== shown);
     let hoverAttrs = '';
     if(hoverVideo)      hoverAttrs = ` data-hover-media data-hover-video="${esc(resolveMediaUrl(hoverVideo.url))}"`;
     else if(hoverStill) hoverAttrs = ` data-hover-media data-hover-image="${esc(resolveMediaUrl(hoverStill.url))}"`;
