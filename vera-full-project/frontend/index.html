@@ -3431,8 +3431,13 @@
   /* !important: the older staggering rules are more specific than this. */
   .prod-grid .prod-card:nth-child(n){margin-top:0 !important;grid-column:auto !important;}
   .prod-card{display:flex;flex-direction:column;min-width:0;}
+  /* An arched window, the site's own arch (see .arch), not a rectangle:
+     the photograph is framed like a portrait in a gallery alcove, with a
+     fine gold line tracing the arch just outside it. */
   .prod-media,
-  .prod-grid .prod-card:first-child .prod-media{aspect-ratio:4/5;border-radius:0;
+  .prod-grid .prod-card:first-child .prod-media{aspect-ratio:4/5;
+    border-radius:50% 50% 3px 3px / 26% 26% 0 0;
+    outline:1px solid rgba(184,146,94,.55);outline-offset:6px;
     background:radial-gradient(80% 70% at 50% 30%,#3A2A21 0%,#1E1510 70%,#140E0B 100%);
     box-shadow:0 28px 50px -38px rgba(20,12,8,.7);}
   .prod-media.has-photo{background-color:#1A120E !important;background-blend-mode:normal;
@@ -3448,11 +3453,15 @@
       radial-gradient(90% 80% at 50% 36%,rgba(0,0,0,0) 60%,rgba(20,12,8,.22) 100%);}
   /* The gold hairline, inset from the edge, drawn in on hover. */
   .prod-media::before{content:'';position:absolute;inset:12px;z-index:3;pointer-events:none;
-    border:1px solid rgba(226,196,146,.75);opacity:0;transform:scale(1.03);
+    border:1px solid rgba(226,196,146,.75);border-radius:inherit;opacity:0;transform:scale(1.03);
     transition:opacity .9s var(--e-film), transform 1.1s var(--e-film);}
   .prod-card:hover .prod-media::before,.prod-card:focus-within .prod-media::before{opacity:1;transform:scale(1);}
   .prod-floor{display:none;}
-  .prod-card:hover .prod-media{transform:scale(1.012);box-shadow:0 44px 70px -44px rgba(20,12,8,.75);}
+  .prod-card:hover .prod-media{transform:scale(1.012);box-shadow:0 44px 70px -44px rgba(20,12,8,.75);
+    outline-color:rgba(184,146,94,.9);}
+  .prod-media{transition:transform 1s var(--e-film), box-shadow 1s var(--e-film), outline-color .9s var(--e-film);}
+  /* The badge and Quick Add stay clear of the curve. */
+  .prod-media .prod-badge,.prod-media .ph-badge{top:9%;left:50%;transform:translateX(-50%);white-space:nowrap;}
   .motion-full .prod-media.has-photo{transition:transform 1.4s var(--e-film), box-shadow 1.2s var(--e-film);}
 
   .prod-info{flex:1;display:flex;flex-direction:column;padding:22px 2px 0;}
@@ -3471,6 +3480,7 @@
   @media (max-width:699px){
     .prod-grid{column-gap:14px;row-gap:36px;}
     .prod-media::before{inset:8px;}
+    .prod-media{outline-offset:4px;}
     .prod-info{padding-top:14px;}
     .prod-info h3,
     .prod-grid .prod-card:first-child .prod-info h3{font-size:18px;}
