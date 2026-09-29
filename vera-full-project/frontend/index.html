@@ -3614,6 +3614,75 @@
   /* The empty bag, restated in the shared vocabulary. */
   .cart-empty{align-items:stretch;padding-top:0;}
   .cart-empty .hs-state{padding-top:clamp(28px,6vh,56px);}
+
+  /* ==================== Product cards — one card, every product ====================
+     Every piece is presented the same way: an equal column, the same 4:5
+     portrait frame filled edge to edge by its own photograph (the model
+     shots lead each gallery), on a deep espresso ground, with a gold hairline
+     that draws in on hover and a slow camera push. The text block has the
+     same rhythm on every card and "Explore" sits on one line across the row.
+     Last in the stylesheet on purpose: it replaces the earlier staggered,
+     packshot-on-cream tiles at every width. */
+  .prod-grid{grid-template-columns:repeat(4,minmax(0,1fr));column-gap:clamp(16px,2vw,34px);
+    row-gap:clamp(44px,6vh,76px);align-items:stretch;}
+  /* !important: the older staggering rules are more specific than this. */
+  .prod-grid .prod-card:nth-child(n){margin-top:0 !important;grid-column:auto !important;}
+  .prod-card{display:flex;flex-direction:column;min-width:0;}
+  /* An arched window, the site's own arch (see .arch), not a rectangle:
+     the photograph is framed like a portrait in a gallery alcove, with a
+     fine gold line tracing the arch just outside it. */
+  .prod-media,
+  .prod-grid .prod-card:first-child .prod-media{aspect-ratio:4/5;
+    border-radius:50% 50% 3px 3px / 26% 26% 0 0;
+    outline:1px solid rgba(184,146,94,.55);outline-offset:6px;
+    background:radial-gradient(80% 70% at 50% 30%,#3A2A21 0%,#1E1510 70%,#140E0B 100%);
+    box-shadow:0 28px 50px -38px rgba(20,12,8,.7);}
+  .prod-media.has-photo{background-color:#1A120E !important;background-blend-mode:normal;
+    background-size:cover !important;background-position:50% 24% !important;
+    transform-origin:50% 30%;}
+  .prod-card:hover .prod-media.has-photo{background-size:cover !important;}
+  .media-alt{background-color:#1A120E;background-blend-mode:normal;background-size:cover !important;
+    background-position:50% 24% !important;}
+  /* Light that frames the portrait: a soft fall-off to a warm dark at the
+     foot of the frame, so the photograph sits in the card like a print. */
+  .prod-media.has-photo::after{
+    background:linear-gradient(180deg,rgba(20,12,8,0) 58%,rgba(20,12,8,.30) 100%),
+      radial-gradient(90% 80% at 50% 36%,rgba(0,0,0,0) 60%,rgba(20,12,8,.22) 100%);}
+  /* The gold hairline, inset from the edge, drawn in on hover. */
+  .prod-media::before{content:'';position:absolute;inset:12px;z-index:3;pointer-events:none;
+    border:1px solid rgba(226,196,146,.75);border-radius:inherit;opacity:0;transform:scale(1.03);
+    transition:opacity .9s var(--e-film), transform 1.1s var(--e-film);}
+  .prod-card:hover .prod-media::before,.prod-card:focus-within .prod-media::before{opacity:1;transform:scale(1);}
+  .prod-floor{display:none;}
+  .prod-card:hover .prod-media{transform:scale(1.012);box-shadow:0 44px 70px -44px rgba(20,12,8,.75);
+    outline-color:rgba(184,146,94,.9);}
+  .prod-media{transition:transform 1s var(--e-film), box-shadow 1s var(--e-film), outline-color .9s var(--e-film);}
+  /* The badge and Quick Add stay clear of the curve. */
+  .prod-media .prod-badge,.prod-media .ph-badge{top:9%;left:50%;transform:translateX(-50%);white-space:nowrap;}
+  .motion-full .prod-media.has-photo{transition:transform 1.4s var(--e-film), box-shadow 1.2s var(--e-film);}
+
+  .prod-info{flex:1;display:flex;flex-direction:column;padding:22px 2px 0;}
+  .prod-kicker{margin-bottom:10px;padding-bottom:10px;border-bottom:1px solid rgba(184,146,94,.28);}
+  .prod-num{font-size:14px;}
+  .prod-info .cat{font-size:10px;letter-spacing:.28em;text-transform:uppercase;color:var(--gold-ink);}
+  .prod-info h3,
+  .prod-grid .prod-card:first-child .prod-info h3{font-size:clamp(20px,1.55vw,26px);line-height:1.12;margin:0 0 12px;}
+  .prod-price{font-size:12px;letter-spacing:.2em;text-transform:uppercase;}
+  .prod-variant-summary{font-size:12px;letter-spacing:.06em;opacity:.7;margin-top:4px;}
+  .view-product{margin-top:auto;padding-top:14px;align-self:flex-start;}
+
+  @media (max-width:1100px){
+    .prod-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+  }
+  @media (max-width:699px){
+    .prod-grid{column-gap:14px;row-gap:36px;}
+    .prod-media::before{inset:8px;}
+    .prod-media{outline-offset:4px;}
+    .prod-info{padding-top:14px;}
+    .prod-info h3,
+    .prod-grid .prod-card:first-child .prod-info h3{font-size:18px;}
+    .prod-kicker{padding-bottom:8px;margin-bottom:8px;}
+  }
 </style>
 
 <script>
@@ -7788,7 +7857,14 @@
     const HOVER_VIDEO_MAX = 4 * 1024 * 1024;
     const hoverVideo = gallery.find(m => m.media_type === 'video' && m.url
       && (m.file_size == null || m.file_size <= HOVER_VIDEO_MAX));
-    const hoverStill = gallery.find(m => m.media_type !== 'video' && m.url && !m.is_primary && m.url !== shown);
+    // The photo after the one on the card, from the same colour: the same
+    // model, turned (front -> side). Main can be any colour's photo, so
+    // "first other photo in the gallery" would jump to another model.
+    const stills = gallery.filter(m => m.media_type !== 'video' && m.url);
+    const lead = stills.find(m => m.url === shown) || stills.find(m => m.is_primary);
+    const after = lead ? stills.slice(stills.indexOf(lead) + 1) : stills;
+    const hoverStill = (lead && after.find(m => m.variant_id === lead.variant_id))
+      || after[0] || stills.find(m => m !== lead && m.url !== shown);
     let hoverAttrs = '';
     if(hoverVideo)      hoverAttrs = ` data-hover-media data-hover-video="${esc(resolveMediaUrl(hoverVideo.url))}"`;
     else if(hoverStill) hoverAttrs = ` data-hover-media data-hover-image="${esc(resolveMediaUrl(hoverStill.url))}"`;
