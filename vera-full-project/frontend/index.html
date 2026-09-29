@@ -281,7 +281,6 @@
   .pdp-swatch{display:inline-block;width:11px;height:11px;border-radius:50%;margin-right:6px;vertical-align:-1px;border:1px solid rgba(0,0,0,.15);}
   .shop-sort{padding:9px 12px;border-radius:999px;border:1px solid var(--line);background:transparent;font:inherit;font-size:13px;color:var(--ink);}
   .shop-more{display:flex;justify-content:center;margin-top:30px;}
-  .shop-empty{padding:40px 0;text-align:center;color:var(--text-soft);}
   /* ---- Policy / contact dialog ---- */
   .policy-body{white-space:pre-line;line-height:1.7;font-size:14.5px;color:var(--text-soft);max-height:60vh;overflow:auto;}
   .policy-body a{color:var(--wine);}
@@ -574,26 +573,6 @@
     .pdp{width:96vw;}
   }
 
-  /* Catalog-unavailable state — shown when the API cannot be reached.
-     Deliberately distinct from a product card: we never fabricate products. */
-  .catalog-unavailable{
-    grid-column:1 / -1;display:flex;flex-direction:column;align-items:center;justify-content:center;
-    text-align:center;gap:14px;padding:64px 28px;border-radius:var(--radius);
-    background:linear-gradient(160deg,#F6EFE5,#EFE3D5);border:1px solid var(--line);
-  }
-  .catalog-unavailable .cu-mark{
-    font-family:'Balldoug','Fraunces',serif;font-weight:400;font-size:20px;
-    letter-spacing:.16em;text-indent:.16em;color:var(--ink);
-  }
-  .catalog-unavailable .cu-rule{width:40px;height:1px;background:var(--blush);}
-  .catalog-unavailable h3{font-family:'Fraunces',serif;font-weight:500;font-size:19px;color:var(--ink);}
-  .catalog-unavailable p{font-size:13.5px;color:var(--text-soft);max-width:420px;line-height:1.7;}
-  .catalog-unavailable .cu-retry{
-    margin-top:4px;background:var(--ink);color:var(--cream);border-radius:100px;
-    padding:11px 26px;font-size:12.5px;font-weight:700;cursor:pointer;
-  }
-  .catalog-unavailable .cu-retry:hover{background:var(--wine);}
-
   /* Placeholder cards are not purchasable, so the cursor must not imply it. */
   .prod-placeholder .prod-media{cursor:default;}
   .prod-placeholder .prod-price{font-weight:600;color:var(--text-soft);}
@@ -668,14 +647,10 @@
   .faq-a p{padding:0 4px 22px;font-size:14.5px;color:var(--text-soft);line-height:1.75;max-width:600px;}
 
   /* ---------- Newsletter ---------- */
+  /* The payment step's words and actions are the shared UI states (.hs-state);
+     only the figures it adds are styled here. */
   .pay-panel{padding:4px 0 2px;}
-  .pay-panel h3{font-size:19px;font-weight:500;margin-bottom:10px;}
-  .pay-panel p{font-size:14px;line-height:1.6;margin-bottom:10px;}
-  .pay-panel .pay-muted{font-size:13px;color:var(--text-soft);}
-  .pay-panel .pay-amount{font-size:22px;font-family:'Fraunces',serif;margin:6px 0 12px;}
-  .pay-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:16px;}
-  .pay-panel[data-state="paid"] h3{color:#4C8C5C;}
-  .pay-panel[data-state="failed"] h3, .pay-panel[data-state="cancelled"] h3{color:#B5443A;}
+  .pay-panel .pay-amount{font-size:22px;font-family:'Fraunces',serif;color:var(--ink);}
   .nav-account{font-size:13px;letter-spacing:.04em;text-transform:uppercase;
     color:var(--text);text-decoration:none;margin-right:18px;}
   .nav-account:hover{color:var(--wine);}
@@ -3418,6 +3393,228 @@
     .stmt-line{background-position:50% 0;}
   }
 
+  /* ==================== UI states ====================
+     The nine states a shopper meets when something is loading, empty, done,
+     or wrong. One vocabulary for all of them, drawn from the rest of the
+     page: the arch, the eyebrow in small caps, a Fraunces line, one ink pill.
+
+     Colour is never the only signal. Every state carries an icon and words;
+     the tints only group them — wine for "our side", ink for "your
+     connection", gold for "needs a moment" or "worth knowing". */
+  .hs-state{
+    display:flex;flex-direction:column;align-items:center;text-align:center;gap:10px;
+    padding:clamp(36px,7vh,64px) 20px;max-width:520px;margin:0 auto;
+  }
+  .hs-state.is-wide{grid-column:1 / -1;}
+  .hs-state.is-compact{padding:28px 6px;gap:8px;}
+  .hs-state.is-start{align-items:flex-start;text-align:left;margin:0;}
+  .hs-state__icon{
+    width:64px;height:78px;flex-shrink:0;display:flex;align-items:center;justify-content:center;
+    border:1px solid rgba(173,135,82,.55);background:#F3EADF;color:var(--gold-ink);
+    border-radius:50% 50% 4px 4px / 30% 30% 0 0;margin-bottom:6px;
+  }
+  .hs-state__icon svg{width:26px;height:26px;fill:none;stroke:currentColor;stroke-width:1.4;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .hs-state.is-compact .hs-state__icon{width:52px;height:64px;}
+  .hs-state__tag{
+    display:inline-flex;align-items:center;gap:7px;min-height:28px;padding:0 12px;border-radius:100px;
+    font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;
+    border:1px solid rgba(43,27,20,.28);color:var(--ink);
+  }
+  .hs-state__tag svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;}
+  .hs-state__eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;color:var(--gold-ink);margin-top:4px;}
+  .hs-state__title{
+    font-family:'Fraunces',serif;font-weight:400;color:var(--ink);
+    font-size:clamp(24px,3vw,30px);line-height:1.1;letter-spacing:-.02em;margin:0;
+  }
+  .hs-state__title em{font-style:italic;}
+  .hs-state__body{font-size:14.5px;line-height:1.65;color:var(--text-soft);max-width:34em;margin:0;}
+  .hs-state__body strong{color:var(--ink);font-weight:600;}
+  .hs-state__safe{
+    list-style:none;margin:6px 0 0;padding:12px 16px;border-radius:16px;background:#F3EADF;
+    display:flex;flex-direction:column;gap:7px;text-align:left;align-self:stretch;
+  }
+  .hs-state__safe li{display:flex;align-items:flex-start;gap:10px;font-size:13.5px;color:var(--ink);line-height:1.45;}
+  .hs-state__safe svg{width:16px;height:16px;flex-shrink:0;margin-top:2px;fill:none;stroke:var(--gold-ink);stroke-width:2;
+    stroke-linecap:round;stroke-linejoin:round;}
+  .hs-state__actions{display:flex;flex-direction:column;gap:10px;align-self:stretch;margin-top:10px;}
+  .hs-state__actions .btn{width:100%;justify-content:center;min-height:52px;}
+  .hs-state__link{
+    align-self:center;min-height:44px;display:inline-flex;align-items:center;gap:6px;background:none;border:0;
+    font:inherit;font-size:14px;font-weight:500;color:var(--ink);cursor:pointer;
+    text-decoration:underline;text-underline-offset:4px;text-decoration-color:rgba(43,27,20,.35);
+  }
+  .hs-state__link:hover{color:var(--wine);}
+  .hs-state__ref{font-size:12px;color:var(--text-soft);margin:0;}
+  .hs-state__chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:4px;}
+  .hs-state__chips button{
+    min-height:40px;padding:0 16px;border-radius:100px;border:1px solid rgba(43,27,20,.25);
+    background:transparent;font:inherit;font-size:13px;color:var(--ink);cursor:pointer;
+  }
+  .hs-state__chips button:hover{border-color:var(--ink);}
+  @media (min-width:640px){
+    .hs-state__actions{flex-direction:row;flex-wrap:wrap;justify-content:center;align-self:center;}
+    .hs-state__actions .btn{width:auto;min-width:200px;}
+    .hs-state.is-start .hs-state__actions{justify-content:flex-start;align-self:flex-start;}
+  }
+  /* Our problem, not the shopper's: wine. */
+  .hs-state.is-error .hs-state__eyebrow{color:var(--wine);}
+  .hs-state.is-error .hs-state__tag{border-color:rgba(92,36,49,.3);background:rgba(92,36,49,.06);color:var(--wine);}
+  .hs-state.is-error .hs-state__icon{border-color:rgba(92,36,49,.35);background:rgba(92,36,49,.06);color:var(--wine);}
+  /* The shopper's connection: plain ink, no alarm. */
+  .hs-state.is-offline .hs-state__eyebrow{color:var(--ink);}
+  .hs-state.is-offline .hs-state__icon{border-style:dashed;border-color:rgba(43,27,20,.4);background:transparent;color:var(--ink);}
+  /* Done: a champagne ring around an ink disc. */
+  .hs-state.is-success .hs-state__icon{
+    width:64px;height:64px;border-radius:50%;border:1px solid #DCC193;background:transparent;
+  }
+  .hs-state.is-success .hs-state__icon::before{
+    content:'';position:absolute;width:50px;height:50px;border-radius:50%;background:var(--ink);
+  }
+  .hs-state.is-success .hs-state__icon{position:relative;}
+  .hs-state.is-success .hs-state__icon svg{position:relative;stroke:#DCC193;stroke-width:1.8;}
+
+  /* Dark surfaces (the 404 inside the product view shares the same markup). */
+  .hs-state.is-dark .hs-state__title{color:var(--ivory,#F4ECE0);}
+  .hs-state.is-dark .hs-state__body{color:rgba(244,236,224,.72);}
+  .hs-state.is-dark .hs-state__eyebrow{color:#DCC193;}
+
+  /* ---------- Loading: arch skeletons that match the real cards ---------- */
+  .hs-loading{grid-column:1 / -1;display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0 26px;text-align:center;}
+  .hs-loading__line{font-family:'Fraunces',serif;font-style:italic;font-size:clamp(20px,2.4vw,26px);color:var(--ink);margin:0;}
+  .hs-loading__bar{width:120px;height:2px;border-radius:2px;background:rgba(43,27,20,.1);overflow:hidden;}
+  .hs-loading__bar i{display:block;width:40%;height:100%;background:var(--gold);animation:hsBar 1.8s cubic-bezier(.65,.05,.25,1) infinite;}
+  @keyframes hsBar{from{transform:translateX(-100%)}to{transform:translateX(250%)}}
+  .hs-skel{background:linear-gradient(100deg,#EFE5D8 30%,#F7F0E6 50%,#EFE5D8 70%);background-size:300% 100%;
+    animation:hsShim 1.6s linear infinite;border-radius:6px;}
+  @keyframes hsShim{from{background-position:100% 0}to{background-position:0 0}}
+  .hs-skel-card{display:flex;flex-direction:column;gap:10px;}
+  .hs-skel-card .hs-skel.is-media{aspect-ratio:4/5;border-radius:50% 50% 4px 4px / 22% 22% 0 0;}
+  .hs-skel-card .hs-skel.is-line{height:12px;width:78%;}
+  .hs-skel-card .hs-skel.is-line.is-short{width:42%;}
+  .hs-inline-loading{display:flex;align-items:center;gap:10px;font-size:13px;color:var(--text-soft);padding:14px 0;}
+  .hs-inline-loading::before{content:'';width:14px;height:14px;border-radius:50%;
+    border:1.5px solid rgba(43,27,20,.18);border-top-color:var(--gold-ink);animation:hsSpin .9s linear infinite;}
+  @keyframes hsSpin{to{transform:rotate(360deg)}}
+  [aria-busy="true"].view-product{opacity:.6;cursor:progress;}
+  @media (prefers-reduced-motion: reduce){
+    .hs-skel,.hs-loading__bar i,.hs-inline-loading::before{animation:none;}
+  }
+
+  /* ---------- Notices: partial data, availability, a changed bag ---------- */
+  .hs-notice{
+    display:flex;gap:10px;align-items:flex-start;padding:12px 14px;border-radius:14px;
+    background:#F3EADF;border:1px solid rgba(173,135,82,.35);font-size:13px;line-height:1.5;color:var(--text);
+    text-align:left;margin:0 0 14px;
+  }
+  .hs-notice > svg{width:18px;height:18px;flex-shrink:0;margin-top:1px;fill:none;stroke:var(--gold-ink);stroke-width:1.7;stroke-linecap:round;}
+  .hs-notice__title{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--gold-ink);margin-bottom:2px;}
+  .hs-notice ul{margin:6px 0 0;padding-left:18px;}
+  .hs-notice li{margin:2px 0;}
+  .hs-notice.is-warn{background:rgba(92,36,49,.05);border-color:rgba(92,36,49,.3);}
+  .hs-notice.is-warn > svg{stroke:var(--wine);}
+  .hs-notice.is-warn .hs-notice__title{color:var(--wine);}
+  .hs-notice.is-offline{background:transparent;border:1px dashed rgba(43,27,20,.4);}
+  .hs-notice.is-offline > svg{stroke:var(--ink);}
+  .hs-notice.is-offline .hs-notice__title{color:var(--ink);}
+  .hs-notice__actions{display:flex;flex-wrap:wrap;gap:6px 14px;margin-top:6px;}
+  .hs-notice__actions button,.hs-notice__actions a{
+    min-height:36px;padding:0;background:none;border:0;font:inherit;font-size:13px;font-weight:600;color:var(--ink);
+    cursor:pointer;text-decoration:underline;text-underline-offset:3px;
+  }
+  .hs-retry{background:none;border:0;padding:0 2px;min-height:32px;font:inherit;font-size:12.5px;font-weight:600;
+    color:var(--ink);cursor:pointer;text-decoration:underline;text-underline-offset:3px;}
+
+  /* Bag lines whose product changed under them. */
+  .cart-item.is-unavailable .thumb{opacity:.45;filter:grayscale(.6);}
+  .cart-item.is-unavailable h5{color:var(--text-soft);}
+  .cart-line-status{display:flex;gap:6px;align-items:flex-start;font-size:12px;line-height:1.45;margin-top:5px;color:var(--gold-ink);}
+  .cart-line-status svg{width:14px;height:14px;flex-shrink:0;margin-top:1px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;}
+  .cart-line-status.is-warn{color:var(--wine);}
+  #checkoutBtn[aria-disabled="true"]{opacity:.45;cursor:not-allowed;}
+
+  /* Product view: what cannot be chosen says so in words, not only by fading. */
+  .pdp-chip.disabled{position:relative;}
+  .pdp-opt-note{font-size:12px;color:var(--text-soft);margin:6px 0 0;}
+  .pdp-actions .pdp-wish{
+    flex:0 0 auto;width:52px;height:52px;border-radius:50%;border:1.5px solid var(--ink);background:transparent;
+    display:inline-flex;align-items:center;justify-content:center;color:var(--ink);cursor:pointer;
+  }
+  .pdp-actions .pdp-wish svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round;}
+  .pdp-actions .pdp-wish[aria-pressed="true"] svg{fill:var(--wine);stroke:var(--wine);}
+  .pdp-state{padding:40px 8px;}
+
+  /* ---------- Forms: an error names the field and the fix ---------- */
+  .ck-err{font-size:12.5px;line-height:1.45;color:#9A3B34;}
+  .ck-err:not(:empty)::before,.hs-field-err::before{
+    content:'';display:inline-block;width:13px;height:13px;margin:0 6px -2px 0;flex-shrink:0;
+    background:currentColor;
+    -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 2a10 10 0 100 20 10 10 0 000-20zm-1 5h2v7h-2zm0 9h2v2h-2z'/%3E%3C/svg%3E") center/contain no-repeat;
+            mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill-rule='evenodd' d='M12 2a10 10 0 100 20 10 10 0 000-20zm-1 5h2v7h-2zm0 9h2v2h-2z'/%3E%3C/svg%3E") center/contain no-repeat;
+  }
+  .ck-field.invalid input,.ck-field.invalid select{border-color:#9A3B34;border-width:1.5px;background:#FDF6F5;}
+  .hs-errsum{
+    border-radius:16px;padding:14px 16px;margin:0 0 16px;background:rgba(92,36,49,.05);
+    border:1px solid rgba(92,36,49,.35);color:var(--ink);font-size:13.5px;line-height:1.5;
+  }
+  .hs-errsum:focus{outline:2px solid var(--wine);outline-offset:2px;}
+  .hs-errsum__title{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:.18em;text-transform:uppercase;font-weight:600;color:var(--wine);margin-bottom:4px;}
+  .hs-errsum__title svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;}
+  .hs-errsum ul{margin:6px 0 0;padding-left:18px;}
+  .hs-errsum a{color:var(--wine);font-weight:600;}
+  .ck-form-error .hs-state{padding:10px 4px 4px;}
+  .btn[hidden]{display:none !important;}
+  .ck-form-error.is-state{background:transparent;border:0;padding:0;}
+
+  /* ---------- Connection banner ---------- */
+  .hs-net{
+    position:fixed;left:50%;top:12px;transform:translate(-50%,-140%);z-index:2000;
+    width:min(560px, calc(100% - 24px));display:flex;align-items:center;gap:12px;
+    padding:10px 10px 10px 16px;border-radius:18px;background:#17100C;color:#F4ECE0;
+    box-shadow:0 18px 40px -16px rgba(13,9,7,.6);font-size:13px;line-height:1.4;
+    visibility:hidden;transition:transform .45s var(--ease),visibility 0s linear .45s;
+  }
+  .hs-net.show{transform:translate(-50%,0);visibility:visible;transition:transform .45s var(--ease);}
+  .hs-net svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;}
+  .hs-net__text{flex:1;}
+  .hs-net__text strong{display:block;font-size:10.5px;letter-spacing:.18em;text-transform:uppercase;color:#DCC193;font-weight:600;}
+  .hs-net button{min-height:44px;padding:0 16px;border-radius:100px;border:1px solid rgba(244,236,224,.35);
+    background:transparent;color:#F4ECE0;font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;flex-shrink:0;}
+  .hs-net button:focus-visible{outline:2px solid #DCC193;outline-offset:2px;}
+  .hs-net.is-back{background:var(--ink);}
+
+  /* ---------- Session expired: a sheet over the page, not a redirect ---------- */
+  .hs-sheet-overlay{position:fixed;inset:0;background:rgba(23,16,12,.55);z-index:1500;opacity:0;pointer-events:none;transition:opacity .3s;}
+  .hs-sheet-overlay.active{opacity:1;pointer-events:auto;}
+  .hs-sheet{
+    position:fixed;z-index:1501;left:0;right:0;bottom:0;max-height:92vh;overflow:auto;
+    background:var(--cream);border-radius:28px 28px 0 0;padding:10px 20px 24px;
+    transform:translateY(105%);transition:transform .45s var(--ease);visibility:hidden;
+    box-shadow:0 -20px 50px -20px rgba(13,9,7,.5);
+  }
+  .hs-sheet.active{transform:translateY(0);visibility:visible;}
+  .hs-sheet__grab{display:block;width:40px;height:4px;border-radius:2px;background:rgba(43,27,20,.18);margin:0 auto 6px;}
+  .hs-sheet .hs-state{padding:14px 0 0;max-width:none;}
+  @media (min-width:640px){
+    .hs-sheet{left:50%;right:auto;bottom:auto;top:50%;width:min(460px, calc(100% - 32px));border-radius:24px;
+      transform:translate(-50%,-46%);opacity:0;padding:20px 28px 28px;transition:transform .4s var(--ease),opacity .3s;}
+    .hs-sheet.active{transform:translate(-50%,-50%);opacity:1;}
+    .hs-sheet__grab{display:none;}
+  }
+  @media (prefers-reduced-motion: reduce){
+    .hs-net,.hs-sheet,.hs-sheet-overlay{transition:none;}
+  }
+
+  /* The payment step reuses the same states. */
+  .pay-panel .hs-state{padding:8px 0 4px;}
+  .pay-panel .hs-state p{margin:0;}
+  .pay-panel .pay-details{align-self:stretch;}
+  .pay-panel .pay-amount{margin:2px 0;}
+
+  /* The empty bag, restated in the shared vocabulary. */
+  .cart-empty{align-items:stretch;padding-top:0;}
+  .cart-empty .hs-state{padding-top:clamp(28px,6vh,56px);}
+
   /* ==================== Product cards — one card, every product ====================
      Every piece is presented the same way: an equal column, the same 4:5
      portrait frame filled edge to edge by its own photograph (the model
@@ -4352,7 +4549,351 @@
   </div>
 </div>
 
-<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14"><path d="M20 6L9 17l-5-5"/></svg><span id="toastMsg">Added to bag</span></div>
+<div class="toast" id="toast" role="status" aria-live="polite"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="14" height="14" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg><span id="toastMsg">Added to bag</span></div>
+
+<!-- UI STATES — the connection banner, the session sheet and a polite live
+     region for loading announcements. Their behaviour is the HS module below. -->
+<div class="hs-net" id="hsNet" role="status" aria-live="polite">
+  <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M2 8.5a15 15 0 0 1 5-2.9M22 8.5A15 15 0 0 0 11 5M5.5 12a10 10 0 0 1 3.4-1.9M18.5 12a10 10 0 0 0-4.8-2.2M9 15.5a5 5 0 0 1 6 0M12 19h.01M3 3l18 18"/></svg>
+  <span class="hs-net__text" id="hsNetText"></span>
+  <button type="button" id="hsNetRetry">Try again</button>
+</div>
+<div class="sr-only" id="hsLive" aria-live="polite"></div>
+<div class="hs-sheet-overlay" id="hsSheetOverlay"></div>
+<div class="hs-sheet" id="hsSheet" role="dialog" aria-modal="true" aria-labelledby="hsSheetTitle">
+  <span class="hs-sheet__grab" aria-hidden="true"></span>
+  <div id="hsSheetBody"></div>
+</div>
+
+<script>
+  /* ===== UI states =====
+     Before the Motion block on purpose: the bag renders from storage before
+     anything else runs, and its empty state is built here.
+
+     Everything that tells a shopper "loading", "nothing here", "done" or
+     "that went wrong" is built by view(), so every one of those moments reads
+     as the same shop. Three rules run through it:
+
+       * An error says whose problem it is. A connection that dropped is the
+         shopper's to fix and says so plainly; a failure on our side says it
+         is ours. diagnose() tells them apart instead of guessing.
+       * Nothing is claimed that has not been confirmed. Wording about money
+         lives with the payment code, which only repeats what the server said.
+       * Progress is kept. The bag, the checkout form and the product being
+         looked at survive the error; the message says what was kept. */
+  window.HS = (function(){
+    'use strict';
+
+    const E = s => String(s == null ? '' : s)
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+      .replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+    const ICONS = {
+      search:  '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/>',
+      bag:     '<path d="M5 8h14l-1 12H6L5 8z"/><path d="M9 8V6a3 3 0 0 1 6 0v2"/>',
+      heart:   '<path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/>',
+      check:   '<path d="M5 12.5l4.5 4.5L19 7.5"/>',
+      alert:   '<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/>',
+      info:    '<circle cx="12" cy="12" r="9"/><path d="M12 11v5M12 8h.01"/>',
+      offline: '<path d="M2 8.5a15 15 0 0 1 5-2.9M22 8.5A15 15 0 0 0 11 5M5.5 12a10 10 0 0 1 3.4-1.9M18.5 12a10 10 0 0 0-4.8-2.2M9 15.5a5 5 0 0 1 6 0M12 19h.01M3 3l18 18"/>',
+      lock:    '<rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+      clock:   '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+      box:     '<path d="M3 7l9-4 9 4v10l-9 4-9-4z"/><path d="M3 7l9 4 9-4M12 11v10"/>',
+      compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+      strand:  '<path d="M8 3c-4 7 4 11 0 18M12 3c-3 7 5 11 1 18M16 3c-3 7 4 10 1 17"/>'
+    };
+    const svg = (name) => `<svg viewBox="0 0 24 24" aria-hidden="true">${ICONS[name] || ICONS.info}</svg>`;
+
+    /* One action: a real <a> when it goes somewhere, a real <button> when it
+       does something. `attrs` carries the data-* hook the caller listens for. */
+    function actionHtml(a){
+      const cls = a.variant === 'link' ? 'hs-state__link'
+        : 'btn ' + (a.variant === 'outline' ? 'btn-outline' : 'btn-primary');
+      const attrs = Object.entries(a.attrs || {}).map(([k, v]) => ` ${k}="${E(v)}"`).join('');
+      return a.href
+        ? `<a class="${cls}" href="${E(a.href)}"${attrs}>${E(a.label)}</a>`
+        : `<button type="button" class="${cls}"${attrs}>${E(a.label)}</button>`;
+    }
+
+    /* The shared state. `titleHtml` / `bodyHtml` are for markup this file
+       builds itself (an <em>, a <strong> around an escaped order number) —
+       anything from the network goes through E() first. */
+    function view(o){
+      const cls = ['hs-state'];
+      if(o.kind && o.kind !== 'empty') cls.push('is-' + o.kind);
+      if(o.compact) cls.push('is-compact');
+      if(o.wide) cls.push('is-wide');
+      if(o.start) cls.push('is-start');
+      if(o.dark) cls.push('is-dark');
+      const level = o.level || 'h3';
+      const id = o.id ? ` id="${E(o.id)}"` : '';
+      const role = o.role ? ` role="${E(o.role)}"` : '';
+      const tabindex = o.focusable ? ' tabindex="-1"' : '';
+      const title = o.titleHtml != null ? o.titleHtml : E(o.title);
+      const body = o.bodyHtml != null ? o.bodyHtml : (o.body ? E(o.body) : '');
+      const safe = (o.safe || []).length
+        ? `<ul class="hs-state__safe" aria-label="What’s safe">${o.safe.map(s =>
+            `<li>${svg('check')}<span>${E(s)}</span></li>`).join('')}</ul>` : '';
+      const actions = (o.actions || []).length
+        ? `<div class="hs-state__actions">${o.actions.filter(a => a.variant !== 'link').map(actionHtml).join('')}</div>` +
+          o.actions.filter(a => a.variant === 'link').map(actionHtml).join('') : '';
+      return `<div class="${cls.join(' ')}"${role}${tabindex}>
+          ${o.icon === false ? '' : `<div class="hs-state__icon">${svg(o.icon || 'info')}</div>`}
+          ${o.tag ? `<span class="hs-state__tag">${o.tagIcon ? svg(o.tagIcon) : ''}${E(o.tag)}</span>` : ''}
+          ${o.eyebrow ? `<div class="hs-state__eyebrow">${E(o.eyebrow)}</div>` : ''}
+          <${level} class="hs-state__title"${id}>${title}</${level}>
+          ${body ? `<p class="hs-state__body">${body}</p>` : ''}
+          ${o.extraHtml || ''}
+          ${safe}
+          ${actions}
+          ${o.ref ? `<p class="hs-state__ref">Reference ${E(o.ref)} — quote it and we can find exactly what happened.</p>` : ''}
+        </div>`;
+    }
+
+    /* The two failures, worded once. Callers add what was kept (`safe`) and
+       their own recovery actions. */
+    function offlineView(o){
+      o = o || {};
+      return view(Object.assign({
+        kind:'offline', icon:'offline', tag:'Your connection', tagIcon:'offline',
+        eyebrow:'You’re offline', title:'We can’t reach Hairshalo right now',
+        body:'Check your Wi-Fi or mobile data and try again.'
+      }, o));
+    }
+    function serverErrorView(o){
+      o = o || {};
+      return view(Object.assign({
+        kind:'error', icon:'alert', tag:'Hairshalo · site issue',
+        eyebrow:'Something went wrong', title:'We couldn’t complete that request',
+        body:'It’s on our side, not yours. Please try again in a moment.'
+      }, o));
+    }
+
+    function loadingHtml(line, cards){
+      const n = cards == null ? 4 : cards;
+      const card = '<div class="hs-skel-card" aria-hidden="true"><div class="hs-skel is-media"></div>' +
+                   '<div class="hs-skel is-line"></div><div class="hs-skel is-line is-short"></div></div>';
+      return `<div class="hs-loading" role="status">
+          <span class="sr-only">Loading.</span>
+          <p class="hs-loading__line">${E(line || 'Finding your perfect hair')}</p>
+          <div class="hs-loading__bar" aria-hidden="true"><i></i></div>
+        </div>` + card.repeat(n);
+    }
+
+    function inlineLoading(text){
+      return `<div class="hs-inline-loading" role="status">${E(text || 'Loading…')}</div>`;
+    }
+
+    function notice(o){
+      const kind = o.kind ? ' is-' + o.kind : '';
+      const icon = o.kind === 'warn' ? 'alert' : (o.kind === 'offline' ? 'offline' : 'info');
+      const actions = (o.actions || []).length
+        ? `<span class="hs-notice__actions">${o.actions.map(a => {
+            const attrs = Object.entries(a.attrs || {}).map(([k, v]) => ` ${k}="${E(v)}"`).join('');
+            return a.href ? `<a href="${E(a.href)}"${attrs}>${E(a.label)}</a>`
+                          : `<button type="button"${attrs}>${E(a.label)}</button>`;
+          }).join('')}</span>` : '';
+      const list = (o.items || []).length ? `<ul>${o.items.map(i => `<li>${E(i)}</li>`).join('')}</ul>` : '';
+      return `<div class="hs-notice${kind}"${o.role ? ` role="${o.role}"` : ''}>${svg(icon)}<div>
+          ${o.title ? `<span class="hs-notice__title">${E(o.title)}</span>` : ''}
+          ${o.bodyHtml != null ? o.bodyHtml : E(o.body || '')}${list}${actions}</div></div>`;
+    }
+
+    /* ---- Whose problem is it? ------------------------------------------
+       A fetch that throws a TypeError never got an HTTP answer. That is
+       either the shopper's connection or our server being unreachable, and
+       the two need different words. The page's own origin is asked for a
+       tiny file: if even that fails the connection is down; if it answers,
+       the problem is on our side. */
+    async function diagnose(err){
+      if(navigator.onLine === false) return 'offline';
+      const networkish = err && (err.name === 'TypeError' || err.name === 'AbortError' || err.hsNetwork);
+      if(!networkish) return 'server';
+      try{
+        const ctl = new AbortController();
+        const t = setTimeout(() => ctl.abort(), 4000);
+        const res = await fetch('/assets/favicon.ico?hs=' + Date.now(), {cache:'no-store', signal: ctl.signal});
+        clearTimeout(t);
+        return res ? 'server' : 'offline';
+      }catch(e){ return 'offline'; }
+    }
+
+    /* fetch, with a ceiling on how long a shopper waits for an answer. */
+    function fetchWithTimeout(url, opts, ms){
+      const ctl = new AbortController();
+      const t = setTimeout(() => ctl.abort(), ms || 12000);
+      return fetch(url, Object.assign({}, opts || {}, {signal: ctl.signal}))
+        .then(res => {
+          // Any answer at all means the connection is back.
+          if(offlineShown) showBack();
+          return res;
+        })
+        .finally(() => clearTimeout(t));
+    }
+
+    /* The id the API stamps on every response, so a shopper who writes in
+       leads us straight to the log lines. */
+    async function requestIdOf(res){
+      if(!res) return '';
+      const h = res.headers && res.headers.get('X-Request-ID');
+      if(h) return h;
+      try{ const d = await res.clone().json(); return (d && d.request_id) || ''; }catch(e){ return ''; }
+    }
+
+    /* ---- Support ---------------------------------------------------------
+       Whatever contact the shop has published in the Back Office, in that
+       order; the chat assistant when it has published none. */
+    function supportAction(reference, label){
+      const content = (typeof siteContent !== 'undefined' && siteContent) || {};
+      const b = content.business || {};
+      const subject = reference ? `Help with ${reference}` : 'Help with my order';
+      if(b.email) return {label: label || 'Contact support', variant:'link',
+        href:`mailto:${b.email}?subject=${encodeURIComponent(subject)}`};
+      const wa = String(b.whatsapp || '').replace(/\D/g, '');
+      if(wa) return {label: label || 'Message us on WhatsApp', variant:'link',
+        href:`https://wa.me/${wa}?text=${encodeURIComponent(subject)}`};
+      if(b.phone) return {label: label || 'Call us', variant:'link',
+        href:'tel:' + String(b.phone).replace(/\s+/g, '')};
+      return {label: label || 'Contact support', variant:'link', attrs:{'data-hs-support':'1'}};
+    }
+    document.addEventListener('click', (e) => {
+      if(!e.target.closest('[data-hs-support]')) return;
+      if(typeof toggleChat === 'function') toggleChat(true);
+    });
+
+    function announce(text){
+      const el = document.getElementById('hsLive');
+      if(!el) return;
+      el.textContent = '';
+      setTimeout(() => { el.textContent = text; }, 40);
+    }
+
+    /* ---- Connection banner ---------------------------------------------- */
+    const net = document.getElementById('hsNet');
+    const netText = document.getElementById('hsNetText');
+    const netRetry = document.getElementById('hsNetRetry');
+    let netTimer = null;
+    let offlineShown = false;
+
+    function showOffline(){
+      if(!net) return;
+      clearTimeout(netTimer);
+      offlineShown = true;
+      net.classList.remove('is-back');
+      netText.innerHTML = '<strong>You’re offline</strong>We can’t reach Hairshalo. Your bag is saved on this device.';
+      netRetry.hidden = false;
+      net.classList.add('show');
+    }
+    function showBack(){
+      if(!net || !offlineShown) return;
+      offlineShown = false;
+      net.classList.add('is-back');
+      netText.innerHTML = '<strong>You’re back online</strong>Picking up where you left off.';
+      netRetry.hidden = true;
+      net.classList.add('show');
+      clearTimeout(netTimer);
+      netTimer = setTimeout(() => net.classList.remove('show'), 3200);
+      document.dispatchEvent(new CustomEvent('hs:online'));
+    }
+    async function probeApi(){
+      try{
+        const base = (typeof API_BASE !== 'undefined') ? API_BASE : '/api';
+        const res = await fetchWithTimeout(base + '/health', {cache:'no-store'}, 5000);
+        return res.ok;
+      }catch(e){ return false; }
+    }
+    window.addEventListener('offline', showOffline);
+    window.addEventListener('online', async () => {
+      // The OS says the link is back; believe it once the API answers.
+      if(await probeApi()) showBack();
+    });
+    if(netRetry) netRetry.addEventListener('click', async () => {
+      netRetry.disabled = true; netRetry.textContent = 'Checking…';
+      const ok = navigator.onLine !== false && await probeApi();
+      netRetry.disabled = false; netRetry.textContent = 'Try again';
+      if(ok) showBack();
+      else { netText.innerHTML = '<strong>Still offline</strong>Check your Wi-Fi or mobile data. Your bag is saved on this device.'; }
+    });
+    if(navigator.onLine === false) document.addEventListener('DOMContentLoaded', showOffline);
+
+    /* A request failed with no answer while the browser still believed it was
+       online — a dropped connection the OS has not noticed yet. */
+    async function reportNetworkFailure(err){
+      const kind = await diagnose(err);
+      if(kind === 'offline') showOffline();
+      return kind;
+    }
+
+    /* ---- Checkout draft --------------------------------------------------
+       What the shopper typed at checkout, for this tab only (sessionStorage:
+       gone when the tab closes, never shared with another). It is what lets a
+       dropped connection, an expired sign-in or an accidental refresh cost
+       nothing. Card details never pass through this form. */
+    const DRAFT_KEY = 'hairshalo.checkout.draft.v1';
+    const draft = {
+      save(values){ try{ sessionStorage.setItem(DRAFT_KEY, JSON.stringify(values)); }catch(e){} },
+      load(){ try{ return JSON.parse(sessionStorage.getItem(DRAFT_KEY) || 'null'); }catch(e){ return null; } },
+      clear(){ try{ sessionStorage.removeItem(DRAFT_KEY); }catch(e){} }
+    };
+
+    /* ---- Session expired -------------------------------------------------
+       A sheet over the page the shopper was on, so the bag and the half-typed
+       form stay visibly where they were. `saved` lists what was kept, in
+       words; `onSignIn` / `onGuest` decide where they go next. */
+    const sheet = document.getElementById('hsSheet');
+    const sheetOverlay = document.getElementById('hsSheetOverlay');
+    const sheetBody = document.getElementById('hsSheetBody');
+    let sheetHandlers = null;
+    if(sheet) sheet.inert = true;
+
+    function closeSheet(){
+      if(!sheet || !sheet.classList.contains('active')) return;
+      if(typeof closeModal === 'function') closeModal(sheet, sheetOverlay);
+      else { sheet.classList.remove('active'); sheetOverlay.classList.remove('active'); sheet.inert = true; }
+    }
+
+    function sessionExpired(o){
+      if(!sheet) return;
+      o = o || {};
+      sheetHandlers = o;
+      const actions = [{label:'Sign in again', attrs:{'data-hs-sheet':'signin'}}];
+      if(o.guest) actions.push({label: o.guestLabel || 'Continue as guest', variant:'link', attrs:{'data-hs-sheet':'guest'}});
+      else actions.push({label:'Not now', variant:'link', attrs:{'data-hs-sheet':'close'}});
+      sheetBody.innerHTML = view({
+        kind:'session', icon:'lock', eyebrow:'Your session has expired',
+        titleHtml:'Sign in to pick up <em>where you left off</em>', id:'hsSheetTitle', level:'h2',
+        body:'For your security, please sign in again to continue.',
+        safe: o.saved || [], actions
+      });
+      if(typeof openModal === 'function'){
+        openModal(sheet, sheetOverlay, sheet.querySelector('[data-hs-sheet="signin"]'), () => {
+          const h = sheetHandlers; sheetHandlers = null;
+          if(h && h.onDismiss) h.onDismiss();
+        });
+      }
+      announce('Your session has expired. Sign in again to continue.');
+    }
+    if(sheet) sheet.addEventListener('click', (e) => {
+      const b = e.target.closest('[data-hs-sheet]');
+      if(!b) return;
+      const h = sheetHandlers || {};
+      sheetHandlers = null;             // the choice below replaces "dismissed"
+      closeSheet();
+      if(b.dataset.hsSheet === 'signin' && h.onSignIn) h.onSignIn();
+      if(b.dataset.hsSheet === 'guest' && h.onGuest) h.onGuest();
+    });
+    if(sheetOverlay) sheetOverlay.addEventListener('click', () => {
+      const h = sheetHandlers; sheetHandlers = null;
+      closeSheet();
+      if(h && h.onDismiss) h.onDismiss();
+    });
+
+    return { esc: E, svg, view, offlineView, serverErrorView, loadingHtml, inlineLoading, notice,
+             diagnose, fetchWithTimeout, requestIdOf, supportAction, announce,
+             showOffline, reportNetworkFailure, draft, sessionExpired, closeSheet };
+  })();
+</script>
+
 
 <script>
   /* ===== Motion =====
@@ -5823,18 +6364,30 @@
     const list = document.getElementById('pdpReviewList');
     if(!wrap || !list) return;
     wrap.style.display = 'none';
+    const json = r => { if(!r.ok) throw new Error('reviews ' + r.status); return r.json(); };
     try{
       const [reviews, summary] = await Promise.all([
-        fetch(`${API_BASE}/reviews/product/${productId}`).then(r => r.json()),
-        fetch(`${API_BASE}/reviews/product/${productId}/summary`).then(r => r.json())
+        fetch(`${API_BASE}/reviews/product/${productId}`).then(json),
+        fetch(`${API_BASE}/reviews/product/${productId}/summary`).then(json)
       ]);
       if(!Array.isArray(reviews) || !reviews.length) return;   // stays hidden
       document.getElementById('pdpReviewsTitle').textContent =
         `Reviews — ${summary.average.toFixed(1)} out of 5 (${summary.count})`;
       list.innerHTML = reviews.map(reviewCardHtml).join('');
       wrap.style.display = '';
-    }catch(err){ /* leave the section hidden rather than showing a lie */ }
+    }catch(err){
+      // The piece itself loaded; only its reviews did not. Say that, with a
+      // retry — never a made-up rating, and never a silently missing section.
+      document.getElementById('pdpReviewsTitle').textContent = 'Reviews';
+      list.innerHTML = `<p class="acct-muted">Reviews couldn’t load just now.
+        <button type="button" class="hs-retry" data-pdp-reviews="${esc(productId)}">Retry</button></p>`;
+      wrap.style.display = '';
+    }
   }
+  document.addEventListener('click', (e) => {
+    const retry = e.target.closest('[data-pdp-reviews]');
+    if(retry) loadProductReviews(retry.dataset.pdpReviews);
+  });
 
   /* The live catalogue, once loadProductsFromAPI has it (or [] if it could
      not be loaded — then nothing that depends on it is shown). */
@@ -5914,7 +6467,8 @@
     toastMsg.textContent = msg;
     toast.classList.add('show');
     clearTimeout(toastTimer);
-    toastTimer = setTimeout(()=> toast.classList.remove('show'), 2200);
+    // Long enough to read: a short confirmation goes quickly, a sentence stays.
+    toastTimer = setTimeout(()=> toast.classList.remove('show'), Math.max(2200, String(msg).length * 60));
   }
 
   // Cart state. Starts empty — the bag was previously pre-filled with two
@@ -5938,30 +6492,105 @@
     try{
       localStorage.setItem(CART_KEY, JSON.stringify(cart.map(c => ({
         id: c.id, variantId: c.variantId || null, variantLabel: c.variantLabel || null,
-        name: c.name, price: c.price, qty: c.qty, max: c.max }))));
+        name: c.name, price: c.price, qty: c.qty, max: c.max,
+        state: c.state || null, note: c.note || '' }))));
     }catch(e){ /* private mode: the bag simply lasts for this page */ }
   }
-  function reconcileCartWithCatalog(){
-    if(!apiConnected) return;
-    const before = cart.length;
-    cart = cart.filter(line => {
-      const product = liveProducts.find(p => p.id === line.id);
-      if(!product) return false;                       // unpublished or removed
-      const variant = line.variantId ? (product.variants || []).find(v => v.id === line.variantId) : null;
-      if(line.variantId && (!variant || !variant.is_available || variant.stock <= 0)) return false;
-      // A product can lose its price (back to "price on request"). Number(null)
-      // is 0, which would leave a ₹0 line in the bag — drop it instead.
-      const price = variant ? variant.price : product.price;
-      if(price == null || !isFinite(Number(price))) return false;
-      line.price = Number(price);
-      line.max = Number(variant ? variant.stock : product.total_stock);
-      line.qty = Math.min(line.qty, line.max);
-      line.name = product.name;
-      return line.qty > 0;
-    });
-    if(cart.length < before) showToast('Some items in your bag are no longer available and were removed');
-    renderCart();
+
+  /* ---- Is every line still what the shopper thinks it is? ----
+     A line is never deleted because the catalogue changed under it. It used
+     to be — silently, with a toast — which meant a bag could empty itself
+     between visits, and a line merely missing from the first 200 products of
+     the catalogue request was thrown away too. Now each line is checked
+     against the product itself and says what changed:
+
+       * gone, unpublished, sold out or unpriced  -> kept, marked unavailable,
+         left out of the subtotal and of checkout, removable in one tap
+       * fewer in stock than the quantity        -> quantity lowered, and said
+       * a different price                       -> the new price, and said
+
+     A product that cannot be looked up right now (offline, a server error) is
+     left exactly as it was: "unknown" is not "unavailable". The server
+     re-checks everything at checkout regardless. */
+  const liveProductList = () => (typeof liveProducts !== 'undefined' && Array.isArray(liveProducts)) ? liveProducts : [];
+
+  async function freshProduct(id, force){
+    if(!force){
+      const known = liveProductList().find(p => p.id === id);
+      if(known) return known;
+    }
+    const res = await HS.fetchWithTimeout(API_BASE + '/products/' + encodeURIComponent(id), {cache:'no-store'}, 8000);
+    if(res.status === 404) return null;              // unpublished or removed
+    if(!res.ok) throw Object.assign(new Error('Product lookup failed'), {status: res.status});
+    return res.json();
   }
+
+  function markUnavailable(line, why){
+    line.state = 'unavailable';
+    line.note = why;
+  }
+
+  // Returns a sentence when something the shopper would care about changed.
+  function applyLineTruth(line, product){
+    const before = {state: line.state || null, price: Number(line.price), qty: line.qty};
+    if(!product){
+      markUnavailable(line, 'This piece is no longer available.');
+    } else {
+      line.name = product.name;
+      const variant = line.variantId ? (product.variants || []).find(v => v.id === line.variantId) : null;
+      const price = variant ? variant.price : product.price;
+      const stock = Number(variant ? variant.stock : product.total_stock);
+      if(line.variantId && !variant) markUnavailable(line, 'This option is no longer offered.');
+      else if(variant && !variant.is_available) markUnavailable(line, 'This option is currently unavailable.');
+      // A product can lose its price (back to "price on request"). Number(null)
+      // is 0, which would put a ₹0 line in the bag.
+      else if(price == null || !isFinite(Number(price))) markUnavailable(line, 'This piece is now price on request.');
+      else if(!(stock > 0)) markUnavailable(line, 'Sold out since you added it.');
+      else {
+        const notes = [];
+        if(before.state === 'unavailable') line.note = '';
+        if(Number(price) !== before.price) notes.push(`Price updated from ${money(before.price)} to ${money(price)}.`);
+        if(line.qty > stock) notes.push(`Only ${stock} left — quantity changed from ${line.qty} to ${stock}.`);
+        line.state = null;
+        line.price = Number(price);
+        line.max = stock;
+        line.qty = Math.min(line.qty, stock);
+        if(notes.length) line.note = notes.join(' ');
+      }
+    }
+    const changed = (line.state || null) !== before.state || Number(line.price) !== before.price || line.qty !== before.qty;
+    return changed ? `${line.name}${line.variantLabel ? ' (' + line.variantLabel + ')' : ''}: ${line.note}` : '';
+  }
+
+  /* `force` asks the server about every line (checkout); otherwise the
+     catalogue already in memory answers first. Resolves to the sentences
+     describing what changed — [] when nothing did. */
+  let cartCheck = null;
+  function revalidateCart(opts){
+    opts = opts || {};
+    if(!cart.length) return Promise.resolve([]);
+    if(cartCheck && !opts.force) return cartCheck;
+    cartCheck = Promise.all(cart.map(async line => {
+      if(!line.id) return '';
+      let product;
+      try{ product = await freshProduct(line.id, opts.force); }
+      catch(e){ return ''; }                     // unknown, so unchanged
+      return applyLineTruth(line, product);
+    })).then(changes => {
+      cartCheck = null;
+      renderCart();
+      return changes.filter(Boolean);
+    });
+    return cartCheck;
+  }
+
+  async function reconcileCartWithCatalog(){
+    if(!apiConnected) return;
+    const changes = await revalidateCart();
+    if(changes.length) showToast('We’ve updated your bag — see the note on each item');
+  }
+
+  const unavailableLines = () => cart.filter(c => c.state === 'unavailable');
   let cart = readStoredCart();
 
   // The subtotal at which shipping is waived, as published by
@@ -5980,7 +6609,11 @@
   function cartAdd(entry){
     const key = cartKey(entry);
     const existing = cart.find(c => cartKey(c) === key);
-    if(existing){
+    if(existing && existing.state === 'unavailable'){
+      // Added again from a live product view: it is sellable now, so the
+      // stale line gives way to what the shopper just chose.
+      Object.assign(existing, entry, {qty:1, state:null, note:''});
+    } else if(existing){
       if(existing.max != null && existing.qty + 1 > existing.max){
         showToast(`Only ${existing.max} of that option are in stock`);
         return false;
@@ -6002,55 +6635,85 @@
       qty = line.max;
     }
     line.qty = qty;
+    line.note = '';                    // the shopper has acted on it
     renderCart();
   }
 
-  const cartSubtotal = () => cart.reduce((s,i)=>s + i.price * (i.qty||1), 0);
-  const cartUnits = () => cart.reduce((s,i)=>s + (i.qty||1), 0);
+  // Unavailable lines stay visible but are not bought, so they are not counted.
+  const sellableLines = () => cart.filter(c => c.state !== 'unavailable');
+  const cartSubtotal = () => sellableLines().reduce((s,i)=>s + i.price * (i.qty||1), 0);
+  const cartUnits = () => sellableLines().reduce((s,i)=>s + (i.qty||1), 0);
+
+  function signedInCustomer(){
+    // `customer` belongs to a later script; before it has run it does not exist yet.
+    try{ return customer; }catch(e){ return null; }
+  }
 
   function renderCart(){
     storeCart();
     if(cart.length === 0){
-      cartItemsEl.innerHTML =
-        '<div class="cart-empty">' +
-          '<p class="ce-title">Your bag<br><em>is waiting.</em></p>' +
-          '<p class="ce-sub">Nothing here yet — the collection is a moment away.</p>' +
-          '<a class="btn btn-primary ce-cta" href="#shop" data-close-cart>Continue shopping</a>' +
-        '</div>';
+      const actions = [{label:'Continue shopping', href:'#shop', attrs:{'data-close-cart':''}}];
+      if(signedInCustomer()) actions.push({label:'View your wishlist', variant:'link', attrs:{'data-open-wishlist':''}});
+      cartItemsEl.innerHTML = '<div class="cart-empty">' + HS.view({
+        icon:'bag', compact:true, level:'h4', eyebrow:'Your bag is empty',
+        titleHtml:'Your bag is waiting for <em>something beautiful</em>',
+        body:'Find the wig, closure or topper that feels like you.',
+        actions
+      }) + '</div>';
     } else {
       cartItemsEl.innerHTML = cart.map((item, index) => {
         const key = cartKey(item);
-        const atMax = item.max != null && item.qty >= item.max;
+        const gone = item.state === 'unavailable';
+        const atMax = !gone && item.max != null && item.qty >= item.max;
         // The line's own product photo, from the catalogue already loaded.
-        const product = typeof liveProducts !== 'undefined' ? liveProducts.find(p => p.id === item.id) : null;
+        const product = liveProductList().find(p => p.id === item.id);
         const photo = product && product.image_url
           ? ` style="background:#fff url('${cssUrl(resolveMediaUrl(product.image_url))}') center / contain no-repeat"` : '';
+        const status = item.note
+          ? `<div class="cart-line-status${gone ? ' is-warn' : ''}">${HS.svg(gone ? 'alert' : 'info')}<span>${esc(item.note)}</span></div>`
+          : '';
         return `
-        <div class="cart-item" style="--i:${Math.min(index, 6)}">
+        <div class="cart-item${gone ? ' is-unavailable' : ''}" style="--i:${Math.min(index, 6)}">
           <div class="thumb"${photo}></div>
           <div class="cart-item-info">
             <h5>${esc(item.name)}</h5>
             <small>${esc(item.variantLabel || 'Standard')}</small>
-            ${atMax ? `<div class="cart-line-note">Maximum available in stock</div>` : ''}
+            ${status}
+            ${atMax && !item.note ? `<div class="cart-line-note">Maximum available in stock</div>` : ''}
             <div class="cart-item-bottom">
-              <div class="qty-ctl">
-                <button type="button" data-cart-dec="${esc(key)}" aria-label="Decrease quantity">−</button>
-                <span class="qv">${item.qty}</span>
-                <button type="button" data-cart-inc="${esc(key)}" ${atMax?'disabled':''} aria-label="Increase quantity">+</button>
-              </div>
+              ${gone ? '<span class="sr-only">Unavailable</span><span></span>' : `<div class="qty-ctl">
+                <button type="button" data-cart-dec="${esc(key)}" aria-label="Decrease quantity of ${esc(item.name)}">−</button>
+                <span class="qv" aria-label="Quantity">${item.qty}</span>
+                <button type="button" data-cart-inc="${esc(key)}" ${atMax?'disabled':''} aria-label="Increase quantity of ${esc(item.name)}">+</button>
+              </div>`}
               <div>
-                <strong>${money(item.price*item.qty)}</strong>
-                <button type="button" class="cart-item-rm" data-cart-rm="${esc(key)}">Remove</button>
+                ${gone ? '' : `<strong>${money(item.price*item.qty)}</strong>`}
+                <button type="button" class="cart-item-rm" data-cart-rm="${esc(key)}" aria-label="Remove ${esc(item.name)}">Remove</button>
               </div>
             </div>
           </div>
         </div>`;
       }).join('');
+      const blocked = unavailableLines().length;
+      if(blocked){
+        cartItemsEl.insertAdjacentHTML('afterbegin', HS.notice({
+          kind:'warn', role:'status',
+          title: blocked === 1 ? '1 item is unavailable' : `${blocked} items are unavailable`,
+          body: 'It stays here so you can see what changed. Remove it to check out the rest of your bag.',
+          actions:[{label: blocked === 1 ? 'Remove unavailable item' : 'Remove unavailable items', attrs:{'data-cart-prune':''}}]
+        }));
+      }
     }
     cartCountEl.textContent = cartUnits();
     cartSubtotalEl.textContent = money(cartSubtotal());
     // An empty bag has nothing to total or check out: no "₹0", no dead button.
     document.querySelector('.cart-foot').hidden = cart.length === 0;
+    const checkoutLink = document.getElementById('checkoutBtn');
+    if(checkoutLink){
+      const blocked = unavailableLines().length > 0 || sellableLines().length === 0;
+      if(blocked) checkoutLink.setAttribute('aria-disabled', 'true');
+      else checkoutLink.removeAttribute('aria-disabled');
+    }
     updateCartProgress();
     // Any basket change invalidates a previously previewed coupon.
     if(typeof refreshTotals === 'function') refreshTotals();
@@ -6087,9 +6750,22 @@
     const inc = e.target.closest('[data-cart-inc]');
     const dec = e.target.closest('[data-cart-dec]');
     const rm  = e.target.closest('[data-cart-rm]');
+    const prune = e.target.closest('[data-cart-prune]');
+    const wish = e.target.closest('[data-open-wishlist]');
     if(inc){ const l=cart.find(c=>cartKey(c)===inc.dataset.cartInc); if(l) cartSetQty(inc.dataset.cartInc, l.qty+1); }
     else if(dec){ const l=cart.find(c=>cartKey(c)===dec.dataset.cartDec); if(l) cartSetQty(dec.dataset.cartDec, l.qty-1); }
-    else if(rm){ cartSetQty(rm.dataset.cartRm, 0); }
+    else if(rm){ cartSetQty(rm.dataset.cartRm, 0); HS.announce('Removed from your bag'); }
+    else if(prune){
+      cart = cart.filter(c => c.state !== 'unavailable');
+      renderCart();
+      HS.announce('Unavailable items removed. Your bag is ready to check out.');
+      const first = cartDrawer.querySelector('.cart-item button, #checkoutBtn');
+      if(first) first.focus();
+    }
+    else if(wish){
+      closeCart();
+      if(typeof openAccount === 'function') openAccount('wishlist');
+    }
   });
   // After every script has run: a bag restored from storage renders item rows,
   // which use helpers (esc, inr) defined in a later <script> block.
@@ -6876,6 +7552,10 @@
   <button class="modal-close" id="checkoutClose" aria-label="Close checkout"><svg aria-hidden="true" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   <div class="modal-head"><span>Checkout</span><h3 id="checkoutTitle">Complete your order</h3></div>
   <form id="checkoutForm" novalidate>
+    <!-- What changed in the bag since it was filled, and the validation
+         summary. Both are filled by the checkout code below. -->
+    <div id="ckBagNotice"></div>
+    <div class="hs-errsum" id="ckErrSummary" tabindex="-1" role="alert" hidden></div>
     <div class="ck-section">
       <h4 class="ck-legend">Contact</h4>
       <div class="ck-grid">
@@ -6888,7 +7568,7 @@
           <label for="ckEmail">Email address</label>
           <input type="email" id="ckEmail" autocomplete="email" required>
           <span class="ck-err" data-err="customer_email"></span>
-          <span class="ck-hint">Your order confirmation and tracking go here.</span>
+          <span class="ck-hint" id="ckEmailHint">Your order confirmation and tracking go here.</span>
         </div>
       </div>
     </div>
@@ -6913,7 +7593,7 @@
           <label for="ckPhone">Phone number</label>
           <input type="tel" id="ckPhone" autocomplete="shipping tel" inputmode="tel" required>
           <span class="ck-err" data-err="phone"></span>
-          <span class="ck-hint">So the courier can reach you on delivery day.</span>
+          <span class="ck-hint" id="ckPhoneHint">So the courier can reach you on delivery day.</span>
         </div>
         <div class="ck-field ck-span2">
           <label for="ckLine1">Address</label>
@@ -6970,7 +7650,7 @@
       <div class="totals-row grand"><span>Total</span><span id="ttTotal">₹0</span></div>
     </div>
 
-    <div class="ck-form-error" id="ckFormError" hidden></div>
+    <div class="ck-form-error" id="ckFormError" role="alert" hidden></div>
     <p id="checkoutNote" class="tryon-note" style="margin-bottom:16px;" role="status" hidden></p>
     <button type="submit" class="btn btn-primary" style="width:100%;" id="checkoutSubmit">Place Order</button>
     <!-- A notice, not a tick-box: nothing is recorded by ticking, so a box
@@ -6981,10 +7661,8 @@
 
     <!-- Payment step. Every message shown here is driven by what the BACKEND
          reported, never by the gateway callback firing. -->
-    <div class="pay-panel" id="paymentPanel" style="display:none;">
-      <h3 data-pay-title></h3>
+    <div class="pay-panel" id="paymentPanel" style="display:none;" aria-live="polite">
       <div data-pay-body></div>
-      <div class="pay-actions" data-pay-actions></div>
     </div>
 </div>
 
@@ -6996,7 +7674,7 @@
     <button type="button" id="searchGo">Search</button>
     <button type="button" class="search-close" id="searchClose" aria-label="Close search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
   </div>
-  <div class="search-status" id="searchStatus">Search by name, texture or description.</div>
+  <div class="search-status" id="searchStatus" role="status" aria-live="polite">Search by name, texture or description.</div>
   <div class="search-results" id="searchResults"></div>
 </div>
 
@@ -7004,12 +7682,16 @@
 <div class="pdp-overlay" id="pdpOverlay"></div>
 <div class="pdp" id="pdp" role="dialog" aria-modal="true" aria-labelledby="pdpName">
   <button class="pdp-close" id="pdpClose" aria-label="Close product details">&times;</button>
-  <div class="pdp-inner">
+  <!-- Shown instead of the product when it cannot be: removed from the
+       collection, or not reachable right now. -->
+  <div class="pdp-state" id="pdpState" hidden></div>
+  <div class="pdp-inner" id="pdpInner">
     <div>
       <div class="pdp-gallery-main" id="pdpGalleryMain"></div>
       <div class="pdp-thumbs" id="pdpThumbs"></div>
     </div>
     <div class="pdp-info">
+      <div id="pdpNotice" role="status"></div>
       <span class="cat" id="pdpCat"></span>
       <h2 id="pdpName"></h2>
       <div class="prod-rating"><span class="stars" id="pdpStars"></span><span id="pdpRating"></span></div>
@@ -7022,6 +7704,8 @@
       <div class="pdp-details" id="pdpDetails" hidden></div>
       <div class="pdp-actions">
         <button class="btn btn-primary" id="pdpAdd">Add to Bag</button>
+        <!-- /api/account/wishlist, which the account pages already list. -->
+        <button class="pdp-wish" id="pdpWish" type="button" data-wish-add="" aria-pressed="false" aria-label="Save to wishlist"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg></button>
       </div>
       <!-- Real, moderated reviews of this product. Empty until someone who
            bought it writes one. -->
@@ -7039,6 +7723,8 @@
   let liveCategories = [];
   let livePlaceholders = [];
   let apiConnected = false;
+  // Why the catalogue could not be loaded: {kind:'offline'|'server', ref}.
+  let catalogFailure = null;
 
   // How the Best Sellers section is composed. Placeholders are only ever used
   // to top up this section because it is explicitly configured to allow them —
@@ -7230,59 +7916,81 @@
     closeModal(document.getElementById('searchPanel'), document.getElementById('searchOverlay'));
   }
 
+  let searchTicket = 0;
   async function runSearch(){
     const term = document.getElementById('searchInput').value.trim();
     const status = document.getElementById('searchStatus');
     const results = document.getElementById('searchResults');
+    const ticket = ++searchTicket;         // a later keystroke wins over a slow answer
     if(term.length < 2){
       status.textContent = 'Type at least two characters.';
       results.innerHTML = '';
       return;
     }
     status.textContent = 'Searching…';
-    results.innerHTML = '';
+    results.innerHTML = HS.inlineLoading(`Finding pieces that match “${term}”…`);
+    let hits;
     try{
-      const res = await fetch(`${API_BASE}/products?q=${encodeURIComponent(term)}&limit=20`);
-      if(!res.ok) throw new Error('search failed');
-      const hits = await res.json();
-      if(hits.length === 0){
-        status.textContent = `No products match “${term}”.`;
-        return;
-      }
-      status.textContent = `${hits.length} ${hits.length===1?'result':'results'} for “${term}”`;
-      results.innerHTML = hits.map(p => {
-        // cssUrl, not esc: the HTML parser decodes &#39; back to a quote
-        // inside a style attribute, which would end the CSS string.
-        const img = p.image_url ? `style="background-image:url('${cssUrl(resolveMediaUrl(p.image_url))}')"` : '';
-        // Match the card and the detail view: a product can be published
-        // before it is priced. Take the price from its first sellable variant,
-        // fall back to the product, and never format a null — inr(null) is
-        // "₹0", which reads as free. Such a product says "Price on request".
-        const variants  = p.variants || [];
-        const dv        = variants.find(v => v.is_available && v.stock > 0)
-                       || variants.find(v => v.is_available) || null;
-        const unitPrice = dv ? dv.price : p.price;
-        const compareAt = dv ? dv.compare_at_price : p.compare_at_price;
-        const onSale    = dv ? dv.on_sale : p.on_sale;
-        const price = unitPrice == null
-          ? '<span class="price-on-request">Price on request</span>'
-          : (onSale
-            ? `${inr(unitPrice)} <span style="color:var(--text-soft);text-decoration:line-through;font-weight:500;font-size:12px;">${inr(compareAt)}</span>`
-            : inr(unitPrice));
-        // A real button, so every result is reachable by Tab and opens on
-        // Enter or Space. Spans inside: a button may only hold phrasing content.
-        return `<button type="button" class="search-hit" data-search-hit="${esc(p.id)}">
-            <span class="thumb" ${img}></span>
-            <span class="search-hit-text">
-              <span class="search-hit-name">${esc(p.name)}</span>
-              <small>${esc(p.category || '')}${p.total_stock===0?' · Out of stock':''}</small>
-            </span>
-            <span class="p">${price}</span>
-          </button>`;
-      }).join('');
+      const res = await HS.fetchWithTimeout(`${API_BASE}/products?q=${encodeURIComponent(term)}&limit=20`, {}, 12000);
+      if(!res.ok) throw Object.assign(new Error('search failed'), {status: res.status});
+      hits = await res.json();
     }catch(err){
-      status.textContent = 'Search is unavailable right now. Please try again.';
+      if(ticket !== searchTicket) return;
+      const kind = err.status ? 'server' : await HS.reportNetworkFailure(err);
+      status.textContent = kind === 'offline' ? 'You’re offline.' : 'Search is unavailable right now.';
+      const retry = [{label:'Try again', attrs:{'data-search-retry':''}}];
+      results.innerHTML = kind === 'offline'
+        ? HS.offlineView({compact:true, level:'h4', body:`Check your connection and try again — “${term}” is kept.`, actions: retry})
+        : HS.serverErrorView({compact:true, level:'h4', title:'Search isn’t working right now',
+            body:`It’s on our side, not yours. Try again in a moment — “${term}” is kept.`, actions: retry});
+      return;
     }
+    if(ticket !== searchTicket) return;
+    if(hits.length === 0){
+      status.textContent = `No products match “${term}”.`;
+      // Real ways on: the collection's own top-level categories, not
+      // invented suggestions.
+      const cats = (typeof liveCategories !== 'undefined' ? liveCategories : [])
+        .filter(c => c.is_active !== false && !c.parent_id && c.product_count !== 0).slice(0, 5);
+      results.innerHTML = HS.view({compact:true, level:'h4', icon:'search', eyebrow:'No matches found',
+        titleHtml:`Nothing matches “${esc(term)}” <em>yet</em>`,
+        body:'Check the spelling, or try a broader word — a texture, a length or a colour.',
+        extraHtml: cats.length ? `<div class="hs-state__chips" role="group" aria-label="Browse a category">${cats.map(c =>
+          `<button type="button" data-search-cat="${esc(c.id)}">${esc(c.name)}</button>`).join('')}</div>` : '',
+        actions:[{label:'Browse the collection', attrs:{'data-search-browse':''}}]});
+      return;
+    }
+    status.textContent = `${hits.length} ${hits.length===1?'result':'results'} for “${term}”`;
+    results.innerHTML = hits.map(p => {
+      // cssUrl, not esc: the HTML parser decodes &#39; back to a quote
+      // inside a style attribute, which would end the CSS string.
+      const img = p.image_url ? `style="background-image:url('${cssUrl(resolveMediaUrl(p.image_url))}')"` : '';
+      // Match the card and the detail view: a product can be published
+      // before it is priced. Take the price from its first sellable variant,
+      // fall back to the product, and never format a null — inr(null) is
+      // "₹0", which reads as free. Such a product says "Price on request".
+      const variants  = p.variants || [];
+      const dv        = variants.find(v => v.is_available && v.stock > 0)
+                     || variants.find(v => v.is_available) || null;
+      const unitPrice = dv ? dv.price : p.price;
+      const compareAt = dv ? dv.compare_at_price : p.compare_at_price;
+      const onSale    = dv ? dv.on_sale : p.on_sale;
+      const price = unitPrice == null
+        ? '<span class="price-on-request">Price on request</span>'
+        : (onSale
+          ? `${inr(unitPrice)} <span style="color:var(--text-soft);text-decoration:line-through;font-weight:500;font-size:12px;">${inr(compareAt)}</span>`
+          : inr(unitPrice));
+      // A real button, so every result is reachable by Tab and opens on
+      // Enter or Space. Spans inside: a button may only hold phrasing content.
+      return `<button type="button" class="search-hit" data-search-hit="${esc(p.id)}">
+          <span class="thumb" ${img}></span>
+          <span class="search-hit-text">
+            <span class="search-hit-name">${esc(p.name)}</span>
+            <small>${esc(p.category || '')}${p.total_stock===0?' · Out of stock':''}</small>
+          </span>
+          <span class="p">${price}</span>
+        </button>`;
+    }).join('');
   }
 
   document.getElementById('searchBtn').addEventListener('click', openSearch);
@@ -7309,14 +8017,35 @@
     else if(i <= 0) input.focus();
     else hits[i - 1].focus();
   });
+  document.addEventListener('click', (e) => {
+    if(e.target.closest('[data-search-retry]')){ runSearch(); return; }
+    const cat = e.target.closest('[data-search-cat]');
+    if(cat || e.target.closest('[data-search-browse]')){
+      closeSearch();
+      if(cat) showShopCategory(cat.dataset.searchCat);
+      const shop = document.getElementById('shop');
+      if(shop) shop.scrollIntoView({behavior:'smooth', block:'start'});
+    }
+  });
   document.addEventListener('click', async (e) => {
     const hit = e.target.closest('[data-search-hit]');
     if(!hit) return;
     closeSearch();
-    try{
-      const res = await fetch(`${API_BASE}/products/${hit.dataset.searchHit}`);
-      if(res.ok) openProductDetail(await res.json());
-    }catch(err){ showToast('Could not open that product'); }
+    openProductById(hit.dataset.searchHit);
+  });
+
+  /* A search handed over in the address — the 404 page's search box sends
+     /?search=… here. Opened once the page has settled. */
+  document.addEventListener('DOMContentLoaded', () => {
+    const q = new URLSearchParams(location.search);
+    const term = q.get('search');
+    if(!term) return;
+    // Used once: a reload should not reopen the search.
+    q.delete('search');
+    try{ history.replaceState(null, '', location.pathname + (q.toString() ? '?' + q : '') + location.hash); }catch(e){}
+    openSearch();
+    document.getElementById('searchInput').value = term.slice(0, 80);
+    runSearch();
   });
 
   /* ================= Product detail (PDP) ================= */
@@ -7369,7 +8098,8 @@
       // Fall back to the branded panel if the image fails to load.
       const img = main.querySelector('img');
       img.onerror = () => {
-        main.innerHTML = veraPlaceholderPanel('Product Image Coming Soon')
+        // The piece is real and still for sale; only this photograph failed.
+        main.innerHTML = veraPlaceholderPanel('Photo unavailable right now')
           .replace('class="prod-placeholder-content"', 'class="prod-placeholder-content" style="display:flex"');
       };
     }
@@ -7377,6 +8107,8 @@
       <div class="pdp-thumb ${i===pdpMediaIndex?'active':''} ${x.media_type==='video'?'video-thumb':''}" data-pdp-thumb="${i}">
         ${x.media_type==='image' ? `<img src="${esc(resolveMediaUrl(x.url))}" alt="">` : ''}
       </div>`).join('');
+    // A thumbnail that fails shows its plain frame, never a broken-image icon.
+    pdpEl('pdpThumbs').querySelectorAll('img').forEach(img => { img.onerror = () => img.remove(); });
 
     /* Motion for the frame. Four or more photographs of the same unit scrub
        like a turntable, so those get drag-to-spin; anything smaller gets
@@ -7469,7 +8201,8 @@
       if(key === 'color') values = values.slice().sort((a, b) =>
         (colourRank[a] ?? 1e6) - (colourRank[b] ?? 1e6));
       if(values.length === 0) return;
-      html += `<div class="pdp-opt"><label>${label}</label><div class="pdp-opt-values">` +
+      const soldOut = [];
+      html += `<div class="pdp-opt" role="group" aria-label="${label}"><label>${label}${pdpVariant && pdpVariant[key] ? ` · <span class="sr-only">selected </span>${esc(pdpVariant[key])}` : ''}</label><div class="pdp-opt-values">` +
         values.map(val => {
           // A value is selectable if some variant with it is compatible with
           // the rest of the current selection.
@@ -7477,10 +8210,16 @@
             || variants.find(v => v[key] === val);
           const active = pdpVariant && pdpVariant[key] === val;
           const disabled = !candidate || !candidate.is_available || candidate.stock <= 0;
-          return `<button class="pdp-chip ${active?'active':''} ${disabled&&!active?'disabled':''}"
+          if(disabled) soldOut.push(val);
+          // Not a disabled <button>: it stays in the Tab order and is read out
+          // with its reason, where a disabled one would simply vanish.
+          return `<button type="button" class="pdp-chip ${active?'active':''} ${disabled&&!active?'disabled':''}"
+            aria-pressed="${active ? 'true' : 'false'}"${disabled ? ' aria-disabled="true"' : ''}
             data-pdp-opt="${key}" data-pdp-val="${esc(val)}">${key === 'color' && swatch[val]
-              ? `<span class="pdp-swatch" style="background:${esc(swatch[val])}"></span>` : ''}${esc(val)}</button>`;
-        }).join('') + '</div></div>';
+              ? `<span class="pdp-swatch" style="background:${esc(swatch[val])}"></span>` : ''}${esc(val)}${disabled ? '<span class="sr-only"> — sold out</span>' : ''}</button>`;
+        }).join('') + '</div>' +
+        (soldOut.length ? `<p class="pdp-opt-note">${esc(soldOut.join(', '))} ${soldOut.length === 1 ? 'is' : 'are'} sold out right now.</p>` : '') +
+        '</div>';
     });
     pdpEl('pdpOptions').innerHTML = html;
   }
@@ -7494,6 +8233,7 @@
     pdpVariant = match;
     pdpRenderOptions();
     pdpRenderPricing();
+    pdpSyncWish();
     if(changed && pdpHasVariantMedia()){
       // Back to the first image of the newly chosen colour: keeping the old
       // index would land on an unrelated photograph, or out of range.
@@ -7502,11 +8242,49 @@
     }
   }
 
-  function openProductDetail(product){
+  // The wishlist button always names the piece and the option it will save.
+  function pdpSyncWish(){
+    const wish = pdpEl('pdpWish');
+    if(!wish || !pdpProduct) return;
+    wish.dataset.wishAdd = pdpProduct.id;
+    wish.dataset.wishVariant = pdpVariant ? pdpVariant.id : '';
+    wish.setAttribute('aria-pressed', 'false');
+    wish.setAttribute('aria-label', `Save ${pdpProduct.name} to your wishlist`);
+  }
+
+  function pdpNotice(html){
+    const slot = pdpEl('pdpNotice');
+    if(slot) slot.innerHTML = html || '';
+  }
+
+  /* The address follows the piece being looked at (?product=<id>), so it can
+     be shared, reloaded or returned to — and a link to a piece that has since
+     left the collection meets a real "not here" instead of a blank page. */
+  function setProductInUrl(id){
+    try{
+      const q = new URLSearchParams(location.search);
+      if(id) q.set('product', id); else q.delete('product');
+      const query = q.toString();
+      history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
+    }catch(e){ /* a sandboxed preview may refuse; nothing depends on it */ }
+  }
+
+  // `opts.partial`: what is shown came from the catalogue list, because the
+  // fresh read failed — said so, and the server re-checks at checkout.
+  function openProductDetail(product, opts){
+    opts = opts || {};
     pdpProduct = product;
     const variants = product.variants || [];
-    pdpVariant = variants.find(v => v.is_available && v.stock > 0) || variants[0] || null;
+    // A variant carried in (from the bag or a re-check) stays chosen.
+    pdpVariant = (opts.variantId && variants.find(v => v.id === opts.variantId))
+      || variants.find(v => v.is_available && v.stock > 0) || variants[0] || null;
     pdpMediaIndex = 0;
+    pdpEl('pdpState').hidden = true;
+    pdpEl('pdpInner').hidden = false;
+    pdpEl('pdp').setAttribute('aria-labelledby', 'pdpName');
+    pdpNotice(opts.partial ? HS.notice({kind:'info', title:'Some details are still loading',
+      body:'We’ve loaded the product, but couldn’t refresh its live stock and price just now. You can still add it to your bag — we confirm both before you pay.',
+      actions:[{label:'Refresh details', attrs:{'data-pdp-refresh':''}}]}) : '');
 
     pdpEl('pdpCat').textContent = product.subcategory
       ? product.main_category + ' › ' + product.subcategory : (product.category || '');
@@ -7521,6 +8299,7 @@
     pdpRenderGallery();
     pdpRenderOptions();
     pdpRenderPricing();
+    pdpSyncWish();
     const lines = t => String(t || '').split('\n').map(x => x.trim()).filter(Boolean);
     const list = t => `<ul>${lines(t).map(x => `<li>${esc(x)}</li>`).join('')}</ul>`;
     const sections = [
@@ -7530,7 +8309,12 @@
     ].join('');
     pdpEl('pdpDetails').innerHTML = sections;
     pdpEl('pdpDetails').hidden = !sections;
+    setProductInUrl(product.id);
+    pdpOpen();
+  }
 
+  function pdpOpen(){
+    if(pdpEl('pdp').classList.contains('active')) return;
     // A fresh product starts at the top, not wherever the last one was left.
     pdpEl('pdp').scrollTop = 0;
     document.body.style.overflow = 'hidden';
@@ -7538,10 +8322,68 @@
     // gallery thumbnail, and nothing here is a field worth raising a keyboard for.
     openModal(pdpEl('pdp'), pdpEl('pdpOverlay'), pdpEl('pdpClose'), () => {
       document.body.style.overflow = '';
+      setProductInUrl(null);
       // Stop any playing video so it doesn't keep running in the background.
       const v = pdpEl('pdpGalleryMain').querySelector('video');
       if(v) v.pause();
     });
+  }
+
+  /* The product view in place of a product: the piece has left the
+     collection (404), or it could not be reached. Always with a way on. */
+  function showProductState(kind, id){
+    pdpProduct = null; pdpVariant = null;
+    pdpEl('pdpInner').hidden = true;
+    const box = pdpEl('pdpState');
+    box.hidden = false;
+    pdpEl('pdp').setAttribute('aria-labelledby', 'pdpStateTitle');
+    const onward = [{label:'Shop the collection', attrs:{'data-pdp-shop':''}},
+                    {label:'Back to home', variant:'link', attrs:{'data-pdp-home':''}}];
+    if(kind === 'gone'){
+      box.innerHTML = HS.view({level:'h2', id:'pdpStateTitle', icon:'compass', eyebrow:'This look isn’t here',
+        titleHtml:'This look has <em>moved on</em>',
+        body:'The piece you’re looking for may have sold out for good or left the collection. Let’s find you something just as beautiful.',
+        extraHtml:`<div class="hs-state__chips"><button type="button" data-open-search>Search the collection</button></div>`,
+        actions: onward});
+    } else {
+      const retry = {label:'Try again', attrs:{'data-pdp-retry': id || ''}};
+      box.innerHTML = kind === 'offline'
+        ? HS.offlineView({level:'h2', id:'pdpStateTitle', title:'We can’t load this piece right now',
+            body:'Check your Wi-Fi or mobile data and try again.', safe:['Your bag is saved on this device'],
+            actions:[retry, onward[0]]})
+        : HS.serverErrorView({level:'h2', id:'pdpStateTitle', title:'We couldn’t load this piece',
+            body:'It’s on our side, not yours. Please try again in a moment.', safe:['Your bag is saved on this device'],
+            actions:[retry, onward[0]]});
+    }
+    setProductInUrl(kind === 'gone' ? null : id);
+    pdpOpen();
+  }
+
+  /* Every way into a product goes through here: a card, a search result, a
+     wishlist entry, a shared link. The detail view always shows current stock
+     and pricing, so it is read fresh; the list copy is the fallback when that
+     read fails, and says so. */
+  let pdpRequest = 0;
+  async function openProductById(id, opts){
+    opts = opts || {};
+    const ticket = ++pdpRequest;
+    const trigger = opts.trigger;
+    if(trigger){ trigger.setAttribute('aria-busy', 'true'); }
+    let product = null, failure = null;
+    try{
+      const res = await HS.fetchWithTimeout(API_BASE + '/products/' + encodeURIComponent(id), {cache:'no-store'}, 10000);
+      if(res.status === 404) failure = 'gone';
+      else if(!res.ok) failure = 'server';
+      else product = await res.json();
+    }catch(err){
+      failure = await HS.reportNetworkFailure(err);
+    }
+    if(trigger) trigger.removeAttribute('aria-busy');
+    if(ticket !== pdpRequest) return;       // a later choice won
+    if(product){ openProductDetail(product, opts); return; }
+    const listed = failure !== 'gone' && liveProductList().find(p => p.id === id);
+    if(listed){ openProductDetail(listed, Object.assign({}, opts, {partial:true})); return; }
+    showProductState(failure, id);
   }
 
   function closeProductDetail(){
@@ -7561,26 +8403,74 @@
     const thumb = e.target.closest('[data-pdp-thumb]');
     const opt = e.target.closest('[data-pdp-opt]');
     if(view){
-      const id = view.dataset.viewProduct;
-      let product = liveProducts.find(p => p.id === id);
-      try{
-        // Re-fetch so the detail view always shows current stock and pricing.
-        const res = await fetch(API_BASE + '/products/' + id);
-        if(res.ok) product = await res.json();
-      }catch(err){ /* fall back to the list payload */ }
-      if(product) openProductDetail(product);
+      openProductById(view.dataset.viewProduct, {trigger: view});
     } else if(thumb){
       pdpMediaIndex = parseInt(thumb.dataset.pdpThumb, 10) || 0;
       pdpRenderGallery();
-    } else if(opt && !opt.classList.contains('disabled')){
+    } else if(opt){
+      if(opt.getAttribute('aria-disabled') === 'true'){
+        HS.announce(`${opt.dataset.pdpVal} is sold out right now.`);
+        return;
+      }
       pdpSelectVariantBy(opt.dataset.pdpOpt, opt.dataset.pdpVal);
+    } else if(e.target.closest('[data-pdp-retry]')){
+      openProductById(e.target.closest('[data-pdp-retry]').dataset.pdpRetry);
+    } else if(e.target.closest('[data-pdp-refresh]') && pdpProduct){
+      openProductById(pdpProduct.id, {variantId: pdpVariant && pdpVariant.id});
+    } else if(e.target.closest('[data-pdp-shop]')){
+      closeProductDetail();
+      const shop = document.getElementById('shop');
+      if(shop) shop.scrollIntoView({behavior:'smooth', block:'start'});
+    } else if(e.target.closest('[data-pdp-home]')){
+      closeProductDetail();
+      window.scrollTo({top:0, behavior:'smooth'});
     }
   });
 
-  pdpEl('pdpAdd').addEventListener('click', () => {
+  /* Add to Bag asks the server once more, because stock can change while a
+     shopper reads. If the chosen option has just sold out, the view updates
+     in place — same piece, same choices — and says so; nothing is added. If
+     the server cannot be asked, the add goes ahead: the bag is local, and
+     checkout re-checks everything anyway. */
+  pdpEl('pdpAdd').addEventListener('click', async () => {
     if(!pdpProduct) return;
-    const p = pdpCurrentPricing();
+    const addBtn = pdpEl('pdpAdd');
+    let p = pdpCurrentPricing();
     if(!p.available || p.stock <= 0){ showToast('That option is out of stock'); return; }
+    addBtn.setAttribute('aria-busy', 'true');
+    let fresh;
+    try{ fresh = await freshProduct(pdpProduct.id, true); }
+    catch(e){ fresh = undefined; }          // unknown: go ahead
+    addBtn.removeAttribute('aria-busy');
+    if(fresh === null){
+      showProductState('gone');
+      return;
+    }
+    if(fresh){
+      const chosen = pdpVariant ? pdpVariant.id : null;
+      const before = Number(p.price);
+      pdpProduct = fresh;
+      pdpVariant = chosen ? (fresh.variants || []).find(v => v.id === chosen) || null : null;
+      p = pdpCurrentPricing();
+      pdpRenderOptions();
+      pdpRenderPricing();
+      if(!pdpVariant && chosen){
+        pdpNotice(HS.notice({kind:'warn', title:'That option is no longer offered',
+          body:'Please choose another option — your other choices are kept.'}));
+        return;
+      }
+      if(!p.available || p.stock <= 0){
+        pdpNotice(HS.notice({kind:'warn', title:'Just sold out',
+          body:`Sorry — ${pdpVariant ? pdpVariant.label : pdpProduct.name} sold out while you were looking. Choose another option below, or save it to your wishlist.`}));
+        HS.announce('That option just sold out. Choose another option.');
+        return;
+      }
+      if(Number(p.price) !== before){
+        pdpNotice(HS.notice({kind:'info', title:'Price updated',
+          body:`The price changed from ${money(before)} to ${money(p.price)} while you were looking. Add to bag again to continue at the new price.`}));
+        return;
+      }
+    }
     const added = cartAdd({
       id: pdpProduct.id,
       variantId: pdpVariant ? pdpVariant.id : null,
@@ -7598,17 +8488,11 @@
     openCart();
   });
 
-  /* ---- Catalog unavailable (API failure) — never fake products ---- */
-  function renderCatalogUnavailable(){
-    return `
-      <div class="catalog-unavailable">
-        <span class="cu-mark">HAIRSHALO</span>
-        <span class="cu-rule"></span>
-        <h3>Our catalog is briefly unavailable</h3>
-        <p>We couldn't load our collection just now. Nothing is wrong with your order — please try again in a moment, or contact us and we'll help personally.</p>
-        <button class="cu-retry" id="catalogRetry" type="button">Try again</button>
-      </div>`;
-  }
+  // A shared or returned-to link: /?product=<id>.
+  document.addEventListener('DOMContentLoaded', () => {
+    const id = new URLSearchParams(location.search).get('product');
+    if(id) openProductById(id);
+  });
 
   /* ---- Non-sellable placeholder card. Same shell, no Quick Add. ---- */
   function renderProductPlaceholder(ph){
@@ -7655,12 +8539,8 @@
     // API failure is NOT the same as "no products". If we could not reach the
     // catalog we say so; we never substitute invented products.
     if(!apiConnected){
-      grid.innerHTML = renderCatalogUnavailable();
-      const retry = document.getElementById('catalogRetry');
-      if(retry) retry.addEventListener('click', async () => {
-        retry.disabled = true; retry.textContent = 'Loading…';
-        await loadProductsFromAPI();
-      });
+      grid.innerHTML = catalogFailureView();
+      toggleSection('bestsellers', true);
       return;
     }
 
@@ -7746,6 +8626,9 @@
   function syncShopUrl(){
     const params = shopScopeParams();
     if(shopColour) params.set('colour', shopColour);
+    // The piece open in the product view keeps its place in the address.
+    const open = new URLSearchParams(location.search).get('product');
+    if(open) params.set('product', open);
     const query = params.toString();
     try{
       history.replaceState(null, '', location.pathname + (query ? '?' + query : '') + location.hash);
@@ -7769,24 +8652,37 @@
     sel.hidden = colours.length === 0;
   }
 
+  // Why the last filter request failed, if it did — never shown as "no results".
+  let shopFailed = null;
   async function refreshShop(){
     const ticket = ++shopRequest;
     await renderShopColours();
     const params = shopScopeParams();
     if(shopColour) params.set('colour', shopColour);
+    shopFailed = null;
     if([...params.keys()].length === 0){
       shopResults = null;
     } else {
       params.set('limit', '200');
+      // Only a slow answer earns the loading placeholders; a quick one would
+      // just flash them.
+      const slow = setTimeout(() => {
+        const grid = document.getElementById('shopGrid');
+        if(grid && ticket === shopRequest) grid.innerHTML = HS.loadingHtml('Finding your matches', 4);
+      }, 300);
       try{
-        const res = await fetch(API_BASE + '/products?' + params.toString());
-        if(!res.ok) throw new Error('filter failed');
+        const res = await HS.fetchWithTimeout(API_BASE + '/products?' + params.toString(), {}, 15000);
+        if(!res.ok) throw Object.assign(new Error('filter failed'), {status: res.status});
         const rows = await res.json();
+        clearTimeout(slow);
         if(ticket !== shopRequest) return;      // a newer choice already won
         shopResults = rows;
       }catch(e){
+        clearTimeout(slow);
         if(ticket !== shopRequest) return;
-        shopResults = [];
+        // A failed request is not an empty collection.
+        shopResults = null;
+        shopFailed = {kind: e.status ? 'server' : await HS.reportNetworkFailure(e)};
       }
     }
     if(ticket !== shopRequest) return;
@@ -7821,9 +8717,27 @@
     else if(sort === 'price_desc') list = list.slice().sort((a, b) => price(b) - price(a));
     else if(sort === 'newest') list = list.slice().sort((a, b) =>
       String(b.published_at || b.created_at).localeCompare(String(a.published_at || a.created_at)));
-    grid.innerHTML = list.length
-      ? list.slice(0, shopShown).map(renderProductCard).join('')
-      : '<div class="shop-empty" style="grid-column:1/-1;">Nothing in this collection yet.</div>';
+    const filtered = !!(shopCategory || shopColour);
+    if(shopFailed){
+      const retry = [{label:'Try again', attrs:{'data-shop-retry':''}},
+                     {label:'Clear filters', variant:'link', attrs:{'data-shop-clear':''}}];
+      grid.innerHTML = shopFailed.kind === 'offline'
+        ? HS.offlineView({wide:true, compact:true, title:'We couldn’t load this selection',
+            body:'Check your connection and try again. Your filters are kept.', actions: retry})
+        : HS.serverErrorView({wide:true, compact:true, title:'We couldn’t load this selection',
+            body:'It’s on our side, not yours. Try again — your filters are kept.', actions: retry});
+      list = [];
+    } else if(!list.length){
+      grid.innerHTML = HS.view({wide:true, compact:true, icon:'search', eyebrow:'No matches found',
+        title: filtered ? 'Nothing matches these filters — yet' : 'Nothing in this collection yet',
+        body: filtered ? 'Try another colour or category, or clear the filters to see every piece.'
+                       : 'New pieces are on their way. Search the collection, or see what’s loved right now.',
+        actions: filtered
+          ? [{label:'Clear filters', attrs:{'data-shop-clear':''}}, {label:'Search the collection', variant:'link', attrs:{'data-open-search':''}}]
+          : [{label:'Search the collection', attrs:{'data-open-search':''}}]});
+    } else {
+      grid.innerHTML = list.slice(0, shopShown).map(renderProductCard).join('');
+    }
     applyProductImages(grid);
     // Cards are written with innerHTML, so every render produces fresh nodes
     // that have never been observed. scan() is idempotent and only ever
@@ -7839,6 +8753,20 @@
     renderShop();          // the chip highlights at once; results follow
     refreshShop();
   }
+  document.addEventListener('click', e => {
+    if(e.target.closest('[data-shop-clear]')){
+      shopCategory = ''; shopColour = ''; shopResults = null; shopFailed = null;
+      shopShown = SHOP_PAGE;
+      const colour = document.getElementById('shopColour');
+      if(colour) colour.value = '';
+      refreshShop();
+      HS.announce('Filters cleared. Showing every piece.');
+    } else if(e.target.closest('[data-shop-retry]')){
+      refreshShop();
+    } else if(e.target.closest('[data-open-search]')){
+      openSearch();
+    }
+  });
   document.getElementById('shopColour').addEventListener('change', e => {
     shopColour = e.target.value;
     shopShown = SHOP_PAGE;
@@ -7957,12 +8885,14 @@
 
   async function loadProductsFromAPI(){
     try{
-      const res = await fetch(API_BASE + '/products?limit=200');
-      if(!res.ok) throw new Error('bad response');
+      const res = await HS.fetchWithTimeout(API_BASE + '/products?limit=200', {}, 15000);
+      if(!res.ok) throw Object.assign(new Error('bad response'), {status: res.status, ref: await HS.requestIdOf(res)});
       liveProducts = await res.json();
       apiConnected = true;
+      catalogFailure = null;
     }catch(err){
       apiConnected = false;
+      catalogFailure = {kind: err.status ? 'server' : await HS.reportNetworkFailure(err), ref: err.ref || ''};
     }
     reservePhotos();
     await renderBestSellers();
@@ -7992,6 +8922,45 @@
     }catch(e){ /* meter stays hidden rather than showing a made-up figure */ }
   }
 
+  /* Until the catalogue answers, the grids hold arch-shaped placeholders the
+     size of the real cards, so nothing jumps when the products land. */
+  function showCatalogLoading(){
+    const best = document.getElementById('bestSellersGrid');
+    const shop = document.getElementById('shopGrid');
+    if(best) best.innerHTML = HS.loadingHtml('Finding your perfect hair', 4);
+    if(shop) shop.innerHTML = HS.loadingHtml('Curating the collection', 4);
+  }
+  showCatalogLoading();
+
+  /* The catalogue could not be loaded. Whose problem it is decides the
+     words: a connection the shopper can fix, or our side. Either way the
+     bag is untouched, and "Try again" asks once more in place. */
+  function catalogFailureView(){
+    const f = catalogFailure || {kind:'server'};
+    const actions = [{label:'Try again', attrs:{'data-catalog-retry':''}}];
+    if(f.kind === 'offline'){
+      return HS.offlineView({wide:true, title:'We can’t load the collection right now',
+        body:'Check your Wi-Fi or mobile data and try again.',
+        safe:['Your bag is saved on this device'], actions});
+    }
+    return HS.serverErrorView({wide:true, title:'Our collection is briefly unavailable',
+      body:'It’s on our side, not yours. Please try again in a moment.',
+      safe:['Your bag is saved on this device'], ref: f.ref,
+      actions: actions.concat([HS.supportAction(f.ref)])});
+  }
+  document.addEventListener('click', async (e) => {
+    const retry = e.target.closest('[data-catalog-retry]');
+    if(!retry) return;
+    retry.disabled = true;
+    showCatalogLoading();
+    HS.announce('Trying again…');
+    await loadProductsFromAPI();
+  });
+  // Back online after a failed load: try again without being asked.
+  document.addEventListener('hs:online', () => {
+    if(!apiConnected){ showCatalogLoading(); loadProductsFromAPI(); }
+  });
+
   (async () => {
     // Page copy first: every section above the fold is empty until the Back
     // Office content arrives, so it is fetched alongside the rate table rather
@@ -8019,21 +8988,29 @@
     // A changed basket invalidates any previous coupon quote.
     if(appliedCoupon && appliedCoupon.subtotal !== subtotal) clearCoupon(true);
 
-    let shipping = 0, discount = 0;
+    let shipping = 0, discount = 0, quoted = true;
     try{
       if(appliedCoupon){
         shipping = appliedCoupon.shippingFee;
         discount = appliedCoupon.discount;
       } else {
         const r = await fetch(`${API_BASE}/coupons/quote?subtotal=${subtotal}`);
-        if(r.ok){
-          const q = await r.json();
-          shipping = Number(q.shipping_fee);
-          if(q.free_shipping_threshold != null) freeShippingThreshold = Number(q.free_shipping_threshold);
-        }
+        if(!r.ok) throw new Error('quote ' + r.status);
+        const q = await r.json();
+        shipping = Number(q.shipping_fee);
+        if(q.free_shipping_threshold != null) freeShippingThreshold = Number(q.free_shipping_threshold);
       }
-    }catch(err){ shipping = 0; }
+    }catch(err){ quoted = false; }
 
+    // Without the server's quote there is no delivery figure to show. It used
+    // to fall back to "Free", which is a promise nobody made; the order total
+    // is always the server's, so the honest line is that it is still to come.
+    if(!quoted){
+      document.getElementById('ttShipping').textContent = 'Confirmed before you pay';
+      document.getElementById('ttDiscountRow').style.display = 'none';
+      document.getElementById('ttTotal').textContent = inr(subtotal) + ' + delivery';
+      return;
+    }
     document.getElementById('ttShipping').textContent = shipping ? inr(shipping) : 'Free';
     const dRow = document.getElementById('ttDiscountRow');
     if(discount > 0 || (appliedCoupon && appliedCoupon.shippingDiscount > 0)){
@@ -8124,6 +9101,14 @@
   document.getElementById('checkoutBtn').addEventListener('click', async (e) => {
     e.preventDefault();
     if(cart.length === 0){ showToast('Your bag is empty'); return; }
+    if(e.currentTarget.getAttribute('aria-disabled') === 'true'){
+      // Blocked by an unavailable line: the notice at the top of the bag says
+      // why and has the one-tap fix.
+      const fix = document.querySelector('#cartItems [data-cart-prune]');
+      if(fix) fix.focus();
+      HS.announce('Remove the unavailable items in your bag to check out.');
+      return;
+    }
     refreshTotals();
     // Only said when it matters to the customer; "the live backend" was
     // developer wording showing on every checkout.
@@ -8131,13 +9116,22 @@
       : 'Our store is temporarily unreachable — orders cannot be placed right now.';
     checkoutNote.hidden = apiConnected;
     ckClearErrors();
+    hidePaymentPanel();
+    document.getElementById('ckBagNotice').innerHTML = '';
     openModal(checkoutModal, checkoutOverlay);
     // Opened first, populated after: the country list and address book are one
     // network round trip each, and the customer should not wait on them to see
     // their own order total.
     await loadShippingCountries();
+    // What this tab typed last time comes first; the profile fills the gaps.
+    ckRestoreDraft();
     prefillCheckoutFromProfile();
     loadSavedAddresses();
+    // Every line re-checked with the server now, not at "Place Order": a
+    // price or stock change is shown before the shopper commits.
+    const changes = await revalidateCart({force:true});
+    ckShowBagNotice(changes);
+    refreshTotals();
   });
 
   /* Prefill contact details for a signed-in customer. Only their OWN profile —
@@ -8681,51 +9675,206 @@
     customer_name: 'ckName', customer_email: 'ckEmail'
   };
 
-  function ckClearErrors(){
-    document.querySelectorAll('#checkoutForm .ck-field.invalid')
-      .forEach(f => f.classList.remove('invalid'));
-    document.querySelectorAll('#checkoutForm .ck-err').forEach(e => { e.textContent = ''; });
-    const box = document.getElementById('ckFormError');
-    if(box){ box.hidden = true; box.textContent = ''; }
+  // Each message is tied to its input (aria-describedby), so a screen reader
+  // reads the fix together with the field, not somewhere else on the page.
+  (function wireCheckoutErrors(){
+    Object.entries(CK_FIELDS).forEach(([key, id]) => {
+      const input = document.getElementById(id);
+      const slot = document.querySelector(`#checkoutForm [data-err="${key}"]`);
+      if(!input || !slot) return;
+      slot.id = 'ckErr_' + key;
+      const field = input.closest('.ck-field');
+      const hint = field && field.querySelector('.ck-hint[id]');
+      input.setAttribute('aria-describedby', [slot.id, hint && hint.id].filter(Boolean).join(' '));
+    });
+  })();
+
+  function ckSetFieldError(key, message){
+    const input = document.getElementById(CK_FIELDS[key] || '');
+    const slot = document.querySelector(`#checkoutForm [data-err="${key}"]`);
+    if(!input || !slot) return false;
+    input.closest('.ck-field').classList.toggle('invalid', !!message);
+    input.setAttribute('aria-invalid', message ? 'true' : 'false');
+    slot.textContent = message || '';
+    return true;
   }
 
-  /* Mark the fields the SERVER rejected. `fields` is the {field: message} map
-     from a 422; anything without a matching input falls back to the summary
-     line, so a message is never silently swallowed. */
+  function ckClearErrors(){
+    Object.keys(CK_FIELDS).forEach(key => ckSetFieldError(key, ''));
+    const submit = document.getElementById('checkoutSubmit');
+    if(submit) submit.hidden = false;
+    const box = document.getElementById('ckFormError');
+    if(box){ box.hidden = true; box.innerHTML = ''; box.classList.remove('is-state'); }
+    const sum = document.getElementById('ckErrSummary');
+    if(sum){ sum.hidden = true; sum.innerHTML = ''; }
+  }
+
+  // The label a shopper sees, for the summary's "fix this" links.
+  function ckLabelFor(key){
+    const input = document.getElementById(CK_FIELDS[key] || '');
+    const label = input && document.querySelector(`#checkoutForm label[for="${input.id}"]`);
+    return label ? label.textContent.replace(/\(optional\)/i, '').trim() : key;
+  }
+
+  /* Mark every field that needs attention — from the browser's own checks or
+     from the SERVER's 422 — and list them at the top with a link to each.
+     Nothing typed is cleared. Focus goes to the summary, so a keyboard or
+     screen-reader user hears how many things need fixing and can jump to
+     each one; on a phone it also brings the summary into view. */
   function ckShowErrors(fields, summary){
     ckClearErrors();
-    const orphans = [];
+    fields = fields || {};
+    const sum = document.getElementById('ckErrSummary');
     // A saved address was chosen, so the typed form is hidden: its problems
-    // must be said in the visible summary, with the way to fix them.
-    if(selectedAddressId){
-      const msgs = Object.values(fields || {});
-      const box = document.getElementById('ckFormError');
-      if(box){
-        box.textContent = [summary, ...msgs,
-          'Choose “Use a new address” to enter it here, or update the saved address under My Account → Addresses.']
-          .filter(Boolean).join(' ');
-        box.hidden = false;
-        box.scrollIntoView({block:'center', behavior:'smooth'});
-      }
-      return;
-    }
-    Object.entries(fields || {}).forEach(([key, message]) => {
-      const input = document.getElementById(CK_FIELDS[key] || '');
-      const slot = document.querySelector(`#checkoutForm [data-err="${key}"]`);
-      if(input && slot){
-        input.closest('.ck-field').classList.add('invalid');
-        slot.textContent = message;
-      } else {
-        orphans.push(message);
-      }
+    // must be said in the summary, with the way to fix them.
+    const addressKeys = ['full_name','phone','line1','line2','city','state','country','postal_code'];
+    const linked = [], orphans = [];
+    // Listed in the order the form reads, top to bottom.
+    const place = key => { const el = document.getElementById(CK_FIELDS[key] || ''); return el ? [...document.querySelectorAll('#checkoutForm input, #checkoutForm select')].indexOf(el) : 999; };
+    Object.entries(fields).sort((a, b) => place(a[0]) - place(b[0])).forEach(([key, message]) => {
+      if(selectedAddressId && addressKeys.includes(key)){ orphans.push(message); return; }
+      if(ckSetFieldError(key, message)) linked.push([key, message]);
+      else orphans.push(message);
     });
+    if(selectedAddressId && orphans.length){
+      orphans.push('Choose “Use a new address” to enter it here, or update the saved address under My Account → Addresses.');
+    }
+    if(!sum) return;
+    const count = linked.length + (orphans.length ? 1 : 0);
+    const items = linked.map(([key, message]) =>
+      `<li><a href="#${CK_FIELDS[key]}" data-ck-jump="${CK_FIELDS[key]}">${esc(ckLabelFor(key))}</a> — ${esc(message)}</li>`)
+      .concat(orphans.map(m => `<li>${esc(m)}</li>`)).join('');
+    sum.innerHTML = `<div class="hs-errsum__title">${HS.svg('alert')}Please check your details</div>
+      <div>${esc(summary || (count === 1 ? '1 thing needs your attention.' : `${count} things need your attention.`))}
+        Everything else you entered is kept.</div>
+      ${items ? `<ul>${items}</ul>` : ''}`;
+    sum.hidden = false;
+    sum.focus({preventScroll:true});
+    sum.scrollIntoView({block:'start', behavior:'smooth'});
+  }
+  document.addEventListener('click', (e) => {
+    const jump = e.target.closest('[data-ck-jump]');
+    if(!jump) return;
+    e.preventDefault();
+    const field = document.getElementById(jump.dataset.ckJump);
+    if(field){ field.focus(); field.scrollIntoView({block:'center', behavior:'smooth'}); }
+  });
+
+  /* The browser's own checks, so a missing field costs no round trip and
+     works offline. They mirror app/addresses.py and go no further: the
+     server stays the only judge, and whatever it rejects is shown the same
+     way. Each message says how to fix the field, not only that it is wrong. */
+  function ckFieldProblem(key){
+    const val = id => ((document.getElementById(id) || {}).value || '').trim();
+    const rule = ckCountryRule(val('ckCountry')) || {};
+    const postalLabel = rule.postal_label || 'postcode';
+    if(key === 'customer_name') return val('ckName') ? '' : 'Enter your full name.';
+    if(key === 'customer_email'){
+      const v = val('ckEmail');
+      if(!v) return 'Enter your email address — your order confirmation goes here.';
+      return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v) ? '' : 'Enter a valid email address, like name@example.com.';
+    }
+    if(selectedAddressId) return '';
+    if(key === 'full_name') return val('ckShipName').length >= 2 ? '' : 'Enter the recipient’s full name.';
+    if(key === 'phone'){
+      const v = val('ckPhone');
+      if(!v) return 'Enter a phone number so the courier can reach you.';
+      if(!/^[0-9+()\-.\s]+$/.test(v)) return 'Use only digits, spaces and + ( ) - in the phone number.';
+      let digits = v.replace(/\D/g, '');
+      if(digits.length < 7 || digits.length > 15) return 'Enter a full phone number, like 98765 43210.';
+      if(rule.code === 'IN'){
+        if(digits.startsWith('91') && digits.length === 12) digits = digits.slice(2);
+        else if(digits.startsWith('0') && digits.length === 11) digits = digits.slice(1);
+        if(digits.length !== 10) return 'An Indian phone number has 10 digits, like 98765 43210.';
+      }
+      return '';
+    }
+    if(key === 'line1'){
+      const v = val('ckLine1');
+      if(!v) return 'Please enter your delivery address.';
+      return v.length >= 4 ? '' : 'Add your house or flat number and the street.';
+    }
+    if(key === 'city') return val('ckCity') ? '' : 'Enter your town or city.';
+    if(key === 'state') return (rule.requires_state && !val('ckState')) ? 'Enter your state.' : '';
+    if(key === 'postal_code'){
+      const v = val('ckPostal');
+      if(!v) return rule.postal_required === false ? '' : `Enter your ${postalLabel}.`;
+      if(rule.code === 'IN' && !/^[1-9][0-9]{5}$/.test(v)) {
+        return `Enter a 6-digit ${postalLabel} that doesn’t start with 0, like ${rule.postal_example || '500001'}.`;
+      }
+      return '';
+    }
+    return '';
+  }
+  function ckValidate(){
+    const problems = {};
+    Object.keys(CK_FIELDS).forEach(key => {
+      const p = ckFieldProblem(key);
+      if(p) problems[key] = p;
+    });
+    return problems;
+  }
+
+  /* ---- The checkout draft: what was typed survives a refresh, a dropped
+     connection or an expired sign-in (this tab only — see HS.draft). */
+  const CK_DRAFT_FIELDS = ['ckName','ckEmail','ckShipName','ckPhone','ckLine1','ckLine2','ckCity','ckState','ckCountry','ckPostal'];
+  function ckSaveDraft(){
+    const values = {};
+    CK_DRAFT_FIELDS.forEach(id => { const el = document.getElementById(id); if(el) values[id] = el.value; });
+    if(CK_DRAFT_FIELDS.some(id => id !== 'ckCountry' && values[id])) HS.draft.save(values);
+  }
+  function ckRestoreDraft(){
+    const d = HS.draft.load();
+    if(!d) return false;
+    let restored = false;
+    CK_DRAFT_FIELDS.forEach(id => {
+      const el = document.getElementById(id);
+      if(!el || !d[id]) return;
+      if(el.tagName === 'SELECT'){
+        if(![...el.options].some(o => o.value === d[id])) return;
+      } else if(el.value) return;          // never overwrite what is on screen
+      el.value = d[id];
+      restored = true;
+    });
+    if(restored) ckApplyCountry();
+    return restored;
+  }
+  function ckHasDraft(){
+    const d = HS.draft.load();
+    return !!(d && CK_DRAFT_FIELDS.some(id => id !== 'ckCountry' && d[id]));
+  }
+
+  /* Once a field has been marked, it is re-checked as the shopper types and
+     the mark lifts the moment it is right — nothing turns red mid-word. */
+  document.getElementById('checkoutForm').addEventListener('input', (e) => {
+    const key = Object.keys(CK_FIELDS).find(k => CK_FIELDS[k] === e.target.id);
+    if(key && e.target.getAttribute('aria-invalid') === 'true' && !ckFieldProblem(key)){
+      ckSetFieldError(key, '');
+    }
+    ckSaveDraft();
+  });
+  document.getElementById('checkoutForm').addEventListener('change', ckSaveDraft);
+  // Leaving a field with something wrong in it says so there and then.
+  document.getElementById('checkoutForm').addEventListener('focusout', (e) => {
+    const key = Object.keys(CK_FIELDS).find(k => CK_FIELDS[k] === e.target.id);
+    if(!key || !e.target.value || !e.target.value.trim()) return;
+    const problem = ckFieldProblem(key);
+    if(problem) ckSetFieldError(key, problem);
+  });
+
+  /* A problem that is not about one field — offline, our server, a bag that
+     changed. Shown by the Place Order button, where the shopper is looking. */
+  function ckShowState(html){
     const box = document.getElementById('ckFormError');
-    const text = [summary, ...orphans].filter(Boolean).join(' ');
-    if(box && text){ box.textContent = text; box.hidden = false; }
-    // Move focus to the first thing that needs fixing — on a phone the invalid
-    // field is usually off-screen, and an untouched form looks like a no-op.
-    const firstBad = document.querySelector('#checkoutForm .ck-field.invalid input, #checkoutForm .ck-field.invalid select');
-    if(firstBad){ firstBad.focus(); firstBad.scrollIntoView({block:'center', behavior:'smooth'}); }
+    if(!box) return;
+    box.classList.add('is-state');
+    box.innerHTML = html;
+    box.hidden = false;
+    // Its own "Try again" stands in for Place Order, so there is one primary
+    // action on screen, not two that do the same thing.
+    const submit = document.getElementById('checkoutSubmit');
+    if(submit && box.querySelector('[data-ck-retry]')) submit.hidden = true;
+    box.scrollIntoView({block:'center', behavior:'smooth'});
   }
 
   function ckCountryRule(name){
@@ -8880,116 +10029,234 @@
     return checkoutKey;
   }
 
+  /* ---- Is a signed-in shopper still signed in? ----
+     Asked just before an order is sent, because an expired sign-in does not
+     fail loudly: the API treats it as a guest, and a saved address then
+     "cannot be found". 'expired' only on a definite 401; anything else is
+     'unknown' and the order goes ahead (it is valid as a guest order). */
+  async function ckSessionState(){
+    const token = authToken();
+    if(!token) return 'none';
+    try{
+      const res = await HS.fetchWithTimeout(API_BASE + '/account/me',
+        {headers:{Authorization:'Bearer ' + token}, cache:'no-store'}, 8000);
+      if(res.status === 401) return 'expired';
+      return res.ok ? 'ok' : 'unknown';
+    }catch(e){ return 'unknown'; }
+  }
+
+  function ckBusy(on){
+    const btn = document.getElementById('checkoutSubmit');
+    btn.disabled = on;
+    btn.setAttribute('aria-busy', on ? 'true' : 'false');
+    btn.textContent = on ? 'Placing your order…' : 'Place Order';
+  }
+
+  // What the error states promise was kept, in the shopper's words.
+  function ckSafeList(extra){
+    const units = cartUnits();
+    return [units ? `Your bag is saved · ${units} ${units === 1 ? 'item' : 'items'}` : '',
+            'The details you entered are kept on this device'].concat(extra || []).filter(Boolean);
+  }
+
+  /* The bag changed under the checkout (sold out, repriced, removed). Said
+     at the top of the form, with the way back to the bag. */
+  function ckShowBagNotice(changes, fallback){
+    const slot = document.getElementById('ckBagNotice');
+    if(!slot) return;
+    const blocked = unavailableLines().length;
+    if(!changes.length && !blocked && !fallback){ slot.innerHTML = ''; return; }
+    slot.innerHTML = HS.notice({
+      kind: blocked ? 'warn' : 'info', role:'status',
+      title: blocked ? 'Your bag needs a quick look' : 'Your bag was updated',
+      body: blocked
+        ? 'Something in your bag is no longer available, so it can’t be ordered. Review your bag to continue — everything else is kept.'
+        : (changes.length ? 'Prices and stock were re-checked just now:' : fallback),
+      items: changes,
+      actions: [{label:'Review bag', attrs:{'data-ck-review-bag':''}}]
+    });
+  }
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('[data-ck-review-bag]')) return;
+    closeModal(checkoutModal, checkoutOverlay);
+    openCart();
+  });
+  document.addEventListener('click', (e) => {
+    if(!e.target.closest('[data-ck-retry]')) return;
+    document.getElementById('checkoutForm').requestSubmit();
+  });
+
+  function ckSessionExpired(){
+    sessionLost('checkout');
+  }
+
+  let ckSubmitting = false;
   document.getElementById('checkoutForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    const name = document.getElementById('ckName').value.trim();
-    const email = document.getElementById('ckEmail').value.trim();
-    const submitBtn = document.getElementById('checkoutSubmit');
+    if(ckSubmitting) return;
     ckClearErrors();
-    submitBtn.disabled = true;
-    submitBtn.textContent = 'Placing order...';
 
-    if(apiConnected){
-      // Resolve cart items to REAL product IDs (and their variant). Anything
-      // that is not a real product — e.g. a placeholder — resolves to nothing
-      // and is dropped, so it can never reach checkout. No price is ever sent:
-      // the backend charges from the database.
-      const items = cart.map(c => {
-        const match = (c.id && liveProducts.find(p => p.id === c.id))
-          || liveProducts.find(p => p.name === c.name);
-        if(!match) return null;
-        let variantId = c.variantId;
-        if(!variantId && match.variants && match.variants.length){
-          const v = match.variants.find(x => x.is_available && x.stock > 0)
-            || match.variants.find(x => x.is_available);
-          variantId = v ? v.id : null;
-        }
-        return {product_id: match.id, variant_id: variantId || null, quantity: c.qty || 1};
-      }).filter(Boolean);
+    // 1. What can be fixed without the network, marked where it is.
+    const problems = ckValidate();
+    if(Object.keys(problems).length){ ckShowErrors(problems); return; }
 
-      if(items.length === 0){
-        showToast('Could not match cart items to live products — try reloading');
-        submitBtn.disabled = false; submitBtn.textContent = 'Place Order';
+    // 2. Only what can actually be bought. An unavailable line blocks, and
+    //    says why, rather than being dropped from the order quietly.
+    if(unavailableLines().length){ ckShowBagNotice([]); document.getElementById('ckBagNotice').scrollIntoView({block:'start', behavior:'smooth'}); return; }
+    const items = sellableLines().map(c => {
+      let variantId = c.variantId;
+      if(!variantId){
+        const match = liveProductList().find(p => p.id === c.id);
+        const v = match && (match.variants || []).find(x => x.is_available && x.stock > 0);
+        variantId = v ? v.id : null;
+      }
+      return c.id ? {product_id: c.id, variant_id: variantId || null, quantity: c.qty || 1} : null;
+    }).filter(Boolean);
+    if(!items.length){ ckShowBagNotice([], 'Your bag is empty.'); return; }
+
+    // 3. No connection: say so now, before anything is sent.
+    if(navigator.onLine === false){
+      HS.showOffline();
+      ckShowState(HS.offlineView({compact:true, level:'h4', title:'We can’t place your order while you’re offline',
+        body:'Reconnect and press Try again. Nothing has been sent yet.',
+        safe: ckSafeList(), actions:[{label:'Try again', attrs:{'data-ck-retry':''}}]}));
+      return;
+    }
+
+    ckSubmitting = true;
+    ckBusy(true);
+    let res;
+    try{
+      // 4. An expired sign-in is caught here, with the form intact.
+      if(await ckSessionState() === 'expired'){
+        ckSubmitting = false; ckBusy(false);
+        ckSessionExpired();
         return;
       }
-
-      try{
-        const res = await fetch(API_BASE + '/orders', {
-          method:'POST',
-          // The token is sent when there is one, so a saved address can be
-          // resolved against its OWNER. A guest checkout simply has none.
-          headers: Object.assign({'Content-Type':'application/json'},
-                                 authToken() ? {Authorization:'Bearer ' + authToken()} : {}),
-          // Only the coupon CODE is sent — never a discount or total. The
-          // server re-validates it and recalculates everything.
-          //
-          // The address goes as fields, not a blob: the server validates it
-          // per country and stores it on the order as an immutable snapshot.
-          // A saved address is referenced by id alone — ownership is decided
-          // by the token, never by anything in this payload.
-          body: JSON.stringify(Object.assign({
-            customer_name:name, customer_email:email, items,
-            coupon_code: appliedCoupon ? appliedCoupon.code : null,
-            display_currency: activeCurrency,
-            // Same key for every retry of THIS checkout: a double-click or a
-            // network retry gets the existing order back, never a second one.
-            idempotency_key: checkoutAttemptKey()
-          }, selectedAddressId
-               ? {shipping_address_id: selectedAddressId}
-               : {shipping: readTypedAddress()}))
-        });
-        if(!res.ok){
-          // Surface the backend's reason (out of stock, unpublished, etc.).
-          // A 422 carries a per-field map, so the offending input is marked
-          // rather than the customer being told "something was wrong" about a
-          // form with ten fields in it.
-          let detail = 'Order failed — please try again';
-          try{
-            const body = await res.json();
-            if(body && body.detail && typeof body.detail === 'object'){
-              ckShowErrors(body.detail.fields, body.detail.message);
-              submitBtn.disabled = false;
-              submitBtn.textContent = 'Place Order';
-              return;
-            }
-            detail = (body && body.detail) || detail;
-          }catch(e){}
-          throw new Error(detail);
-        }
-        const order = await res.json();
-        checkoutKey = null;          // the next checkout is a new attempt
-        // The ORDER exists and stock is reserved, so the bag is emptied here:
-        // leaving it full invites a second, duplicate order while the first is
-        // still awaiting payment. An unpaid order is not lost — it is resumed
-        // from sessionStorage ("Pay now"), not from the cart.
-        cart = [];
-        clearCoupon();
-        const couponInput = document.getElementById('ckCoupon');
-        if(couponInput) couponInput.value = '';
-        renderCart();
-        closeCart();
-        // What happens next depends on the payment provider — and never on
-        // this browser deciding anything.
-        await startPayment(order);
-      }catch(err){
-        showToast(err.message || 'Order failed — please try again');
-      }
-    } else {
-      // No backend: never pretend an order succeeded. The bag is preserved so
-      // the customer can retry once the catalog is reachable again.
-      showToast('We could not reach our store right now — your bag is saved. Please try again shortly.');
+      res = await HS.fetchWithTimeout(API_BASE + '/orders', {
+        method:'POST',
+        // The token is sent when there is one, so a saved address can be
+        // resolved against its OWNER. A guest checkout simply has none.
+        headers: Object.assign({'Content-Type':'application/json'},
+                               authToken() ? {Authorization:'Bearer ' + authToken()} : {}),
+        // Only the coupon CODE is sent — never a discount or total. The
+        // server re-validates it and recalculates everything. The address
+        // goes as fields, validated per country and stored on the order as
+        // an immutable snapshot; a saved address is referenced by id alone.
+        body: JSON.stringify(Object.assign({
+          customer_name: document.getElementById('ckName').value.trim(),
+          customer_email: document.getElementById('ckEmail').value.trim(),
+          items,
+          coupon_code: appliedCoupon ? appliedCoupon.code : null,
+          display_currency: activeCurrency,
+          // Same key for every retry of THIS checkout: a double-click, a
+          // network retry or a "Try again" gets the existing order back,
+          // never a second one.
+          idempotency_key: checkoutAttemptKey()
+        }, selectedAddressId
+             ? {shipping_address_id: selectedAddressId}
+             : {shipping: readTypedAddress()}))
+      }, 25000);
+    }catch(err){
+      // No answer at all. The order may or may not have reached us, which is
+      // exactly what the idempotency key makes safe to retry.
+      ckSubmitting = false; ckBusy(false);
+      const kind = await HS.diagnose(err);
+      if(kind === 'offline') HS.showOffline();
+      const view = kind === 'offline' ? HS.offlineView : HS.serverErrorView;
+      ckShowState(view({compact:true, level:'h4',
+        title: kind === 'offline' ? 'Your connection dropped' : 'We couldn’t confirm your order',
+        body: kind === 'offline'
+          ? 'We couldn’t confirm your order reached us. Reconnect and press Try again.'
+          : 'Our server didn’t answer in time. Please try again in a moment.',
+        safe: ckSafeList(['Trying again won’t place a second order']),
+        actions:[{label:'Try again', attrs:{'data-ck-retry':''}}, HS.supportAction()]}));
+      return;
     }
-    submitBtn.disabled = false;
-    submitBtn.textContent = 'Place Order';
+
+    if(!res.ok){
+      ckSubmitting = false; ckBusy(false);
+      let body = {};
+      try{ body = await res.clone().json(); }catch(e){}
+      const detail = body && body.detail;
+      // A 422 carries a per-field map: mark the fields, keep everything else.
+      if(detail && typeof detail === 'object' && detail.fields){
+        ckShowErrors(detail.fields, detail.message);
+        return;
+      }
+      if(res.status >= 500){
+        ckShowState(HS.serverErrorView({compact:true, level:'h4', title:'We couldn’t place your order',
+          body:'It’s on our side, not yours. Please try again in a moment.',
+          safe: ckSafeList(['Trying again won’t place a second order']),
+          ref: await HS.requestIdOf(res),
+          actions:[{label:'Try again', attrs:{'data-ck-retry':''}}, HS.supportAction(await HS.requestIdOf(res))]}));
+        return;
+      }
+      if(res.status === 429){
+        ckShowState(HS.serverErrorView({compact:true, level:'h4', eyebrow:'Please wait a moment',
+          title:'Too many attempts', body:'Wait a minute, then press Try again. Your details are kept.',
+          safe: ckSafeList(), actions:[{label:'Try again', attrs:{'data-ck-retry':''}}]}));
+        return;
+      }
+      // A saved address that no longer resolves.
+      if(res.status === 404 && selectedAddressId && /address/i.test(String(detail || ''))){
+        ckShowErrors({}, 'That saved address could not be found. Choose “Use a new address” to enter it here.');
+        return;
+      }
+      // Anything else is about the bag or the coupon: stock, a variant, a
+      // price, publication. Re-check every line against the server and say
+      // exactly what changed; the server's own sentence covers the rest.
+      const changes = await revalidateCart({force:true});
+      refreshTotals();
+      if(!changes.length && appliedCoupon){
+        const msg = document.getElementById('ckCouponMsg');
+        clearCoupon(true);
+        if(msg){ msg.className = 'coupon-msg err'; msg.textContent = String(detail || 'That coupon can’t be used on this order.'); }
+        const coupon = document.getElementById('ckCoupon');
+        if(coupon){ coupon.focus(); coupon.scrollIntoView({block:'center', behavior:'smooth'}); }
+        return;
+      }
+      ckShowBagNotice(changes, changes.length ? '' : String(detail || 'Something in your bag changed. Please review it.'));
+      document.getElementById('ckBagNotice').scrollIntoView({block:'start', behavior:'smooth'});
+      return;
+    }
+
+    const order = await res.json();
+    ckSubmitting = false;
+    ckBusy(false);
+    checkoutKey = null;          // the next checkout is a new attempt
+    // The ORDER exists and stock is reserved, so the bag is emptied here:
+    // leaving it full invites a second, duplicate order while the first is
+    // still awaiting payment. The lines are kept aside against this order, so
+    // a payment that fails and releases it can put them straight back.
+    rememberOrderBag(order.id, cart);
+    cart = [];
+    clearCoupon();
+    const couponInput = document.getElementById('ckCoupon');
+    if(couponInput) couponInput.value = '';
+    renderCart();
+    closeCart();
+    HS.draft.clear();
+    lastOrder = {id: order.id, order_number: order.order_number,
+                 customer_name: order.customer_name, customer_email: order.customer_email};
+    // What happens next depends on the payment provider — and never on this
+    // browser deciding anything.
+    await startPayment(order);
   });
 
   /* ================= Payment step =================
      The rule the whole of this block exists to respect: THE BROWSER NEVER
      DECIDES THAT A PAYMENT SUCCEEDED. Razorpay's handler firing means "the
-     customer finished the gateway flow", nothing more. Every success message
-     below is printed only after the BACKEND has said the order is paid, via
-     /payments/confirm (signature verified server-side) or /payments/status
-     (which reflects the webhook).
+     customer finished the gateway flow", nothing more. Every sentence about
+     money below repeats what the BACKEND reported, via /payments/confirm
+     (signature verified server-side) or /payments/status (which reflects
+     the webhook). The four outcomes are kept apart:
+
+       A. not completed      -> "wasn't completed"; never "you weren't charged"
+       B. not known yet      -> "we're checking — please don't pay again"
+       C. paid, order not    -> "payment received, we're confirming your order"
+          confirmed yet
+       D. paid and confirmed -> the order confirmation
 
      It also has to survive the things customers actually do: closing the
      modal, refreshing mid-payment, pressing back, paying twice, or walking
@@ -9002,15 +10269,20 @@
   // discarded after a day so a shared machine does not keep showing it.
   const PENDING_TTL_MS = 24 * 60 * 60 * 1000;
   let paymentConfig = null;
+  let lastOrder = null;         // the order this tab just placed
 
+  // Not cached on failure: "payments are switched off" must never be the
+  // conclusion drawn from a dropped connection.
   async function loadPaymentConfig(){
     if(paymentConfig) return paymentConfig;
     try{
-      paymentConfig = await fetch(API_BASE + '/payments/config').then(r => r.json());
+      const res = await HS.fetchWithTimeout(API_BASE + '/payments/config', {}, 10000);
+      if(!res.ok) throw new Error('config ' + res.status);
+      paymentConfig = await res.json();
+      return paymentConfig;
     }catch(err){
-      paymentConfig = {provider:'none', enabled:false};
+      return null;
     }
-    return paymentConfig;
   }
 
   function rememberPending(state){
@@ -9033,41 +10305,189 @@
     }catch(e){ return null; }
   }
 
+  /* The bag as it was when an order was placed from it. If that order's
+     payment does not complete and the order is released, the shopper gets
+     their pieces back instead of an empty bag. Ids and quantities only. */
+  const ORDER_BAG_KEY = 'hairshalo.orderBag.v1';
+  function rememberOrderBag(orderId, lines){
+    try{
+      localStorage.setItem(ORDER_BAG_KEY, JSON.stringify({order_id: orderId, saved_at: Date.now(),
+        lines: lines.filter(l => l.state !== 'unavailable').map(l => ({id:l.id, variantId:l.variantId || null,
+          variantLabel:l.variantLabel || null, name:l.name, price:l.price, qty:l.qty, max:l.max}))}));
+    }catch(e){}
+  }
+  function forgetOrderBag(){ try{ localStorage.removeItem(ORDER_BAG_KEY); }catch(e){} }
+  async function restoreOrderBag(orderId){
+    let saved = null;
+    try{ saved = JSON.parse(localStorage.getItem(ORDER_BAG_KEY) || 'null'); }catch(e){}
+    if(!saved || !Array.isArray(saved.lines) || (orderId && saved.order_id !== orderId)) return false;
+    saved.lines.forEach(line => {
+      if(!cart.some(c => cartKey(c) === cartKey(line))) cart.push(Object.assign({}, line));
+    });
+    forgetOrderBag();
+    renderCart();
+    // The pieces were reserved for the order; they may have sold since.
+    revalidateCart({force:true});
+    return true;
+  }
+
   function paymentPanel(){ return document.getElementById('paymentPanel'); }
 
-  function showPaymentState(state, {title, body, actions = []} = {}){
+  /* One payment state on screen. `o` is an HS.view description; actions
+     carry data-pay-action ids handled below. */
+  function showPaymentState(state, o){
     const panel = paymentPanel();
     if(!panel) return;
     panel.dataset.state = state;
-    panel.querySelector('[data-pay-title]').textContent = title || '';
-    panel.querySelector('[data-pay-body]').innerHTML = body || '';
-    const actionWrap = panel.querySelector('[data-pay-actions]');
-    actionWrap.innerHTML = actions.map(a =>
-      `<button class="btn ${a.primary ? 'btn-primary' : ''}" data-pay-action="${a.id}">${esc(a.label)}</button>`
-    ).join('');
+    panel.querySelector('[data-pay-body]').innerHTML = HS.view(Object.assign({compact:true, level:'h3', id:'payStateTitle'}, o));
     panel.style.display = '';
-    openModal(checkoutModal, checkoutOverlay);
     document.getElementById('checkoutForm').style.display = 'none';
+    // "Complete your order" is the form's heading; an outcome has its own.
+    const head = checkoutModal.querySelector('.modal-head');
+    if(head) head.hidden = true;
+    checkoutModal.setAttribute('aria-labelledby', 'payStateTitle');
+    openModal(checkoutModal, checkoutOverlay);
+    setTimeout(() => {
+      const heading = document.getElementById('payStateTitle');
+      if(heading){ heading.setAttribute('tabindex', '-1'); heading.focus({preventScroll:true}); }
+    }, 90);
   }
 
   function hidePaymentPanel(){
     const panel = paymentPanel();
     if(panel) panel.style.display = 'none';
     document.getElementById('checkoutForm').style.display = '';
+    const head = checkoutModal.querySelector('.modal-head');
+    if(head) head.hidden = false;
+    checkoutModal.setAttribute('aria-labelledby', 'checkoutTitle');
   }
 
-  // ---- the three provider paths ----------------------------------------
+  const pay = (id, label, variant) => ({label, variant, attrs:{'data-pay-action': id}});
+  const signedIn = () => !!signedInCustomer();
+  const orderLabel = n => `<strong>${esc(n || 'your order')}</strong>`;
+
+  // ---- D. Paid and confirmed ------------------------------------------------
+  function showOrderConfirmed(orderNumber){
+    forgetPending();
+    forgetOrderBag();
+    showPaymentState('paid', {
+      kind:'success', icon:'check', eyebrow:'Order confirmed — thank you',
+      titleHtml:'Your beauty is <em>on the way</em>',
+      bodyHtml:`Order ${orderLabel(orderNumber)} is confirmed and being prepared. Your receipt is on its way to your inbox.`,
+      actions: signedIn()
+        ? [{label:'View my order', href:'/account#orders'}, pay('done', 'Continue shopping', 'outline')]
+        : [pay('done', 'Continue shopping')]
+    });
+    HS.announce('Order confirmed. Thank you.');
+  }
+
+  // ---- C. Payment received, order still being confirmed ----------------------
+  function showPaymentReceivedConfirming(orderNumber){
+    forgetPending();
+    forgetOrderBag();
+    showPaymentState('paid-unconfirmed', {
+      kind:'success', icon:'check', eyebrow:'Payment received',
+      title:'We’re confirming your order',
+      bodyHtml:`Your payment for order ${orderLabel(orderNumber)} has been received. We’re finishing the order confirmation —
+        you don’t need to pay again. We’ll email you as soon as it’s done.`,
+      actions: [signedIn() ? {label:'View my orders', href:'/account#orders'} : pay('done', 'Continue shopping'),
+                HS.supportAction(orderNumber, 'Contact us about this order')]
+    });
+  }
+
+  // ---- B. Status not known ---------------------------------------------------
+  function showPaymentChecking(orderNumber, offline){
+    showPaymentState('pending', {
+      kind: offline ? 'offline' : 'session', icon: offline ? 'offline' : 'clock',
+      eyebrow: offline ? 'You’re offline' : 'Payment status pending',
+      title:'We’re checking your payment',
+      bodyHtml: offline
+        ? `Please don’t pay again. Order ${orderLabel(orderNumber)} is reserved. Reconnect and we’ll check your payment status.`
+        : `Please don’t pay again. Order ${orderLabel(orderNumber)} is reserved while we confirm your payment with the bank — this can take a few minutes. We’ll email you as soon as it’s confirmed.`,
+      actions: [pay('check', 'Check again'), HS.supportAction(orderNumber), pay('done', 'Close', 'link')]
+    });
+  }
+
+  // ---- A. Not completed ------------------------------------------------------
+  async function showPaymentNotCompleted(orderNumber, reason, orderStatus, orderId){
+    if(orderStatus === 'Cancelled'){
+      // The server released the order when the payment failed. Say so, and
+      // give the pieces back rather than leaving an empty bag.
+      const restored = await restoreOrderBag(orderId);
+      forgetPending();
+      showPaymentState('released', {
+        kind:'error', icon:'alert', eyebrow:'Payment not completed',
+        title:'Your payment didn’t go through',
+        bodyHtml:`${reason ? esc(reason) + ' ' : ''}Because the payment wasn’t completed, order ${orderLabel(orderNumber)} was released.` +
+          (restored ? ' We’ve put your pieces back in your bag so you can try again.' : ''),
+        safe: restored ? ['Your pieces are back in your bag'] : [],
+        actions: [restored ? pay('bag', 'Return to bag') : pay('shop', 'Continue shopping'), HS.supportAction(orderNumber)]
+      });
+      return;
+    }
+    showPaymentState('failed', {
+      kind:'error', icon:'alert', eyebrow:'Payment not completed',
+      title:'Your payment didn’t go through',
+      bodyHtml:`${reason ? esc(reason) + ' ' : ''}Order ${orderLabel(orderNumber)} is still reserved for you — try again with the same or a different method.`,
+      actions: [pay('retry', 'Try payment again'), HS.supportAction(orderNumber), pay('done', 'Later', 'link')]
+    });
+  }
+
+  /* Read the server's answer and show the one state it supports. Returns
+     false while the payment is still genuinely pending, so a poller knows to
+     keep asking. */
+  async function settleFromStatus(status, failureHint){
+    const paid = status.is_paid || status.payment_status === 'Paid';
+    if(paid){
+      if(status.order_status === 'Cancelled' || status.order_status === 'Refunded') showPaymentReceivedConfirming(status.order_number);
+      else showOrderConfirmed(status.order_number);
+      return true;
+    }
+    if(status.payment_status === 'Failed' || status.payment_status === 'Cancelled'){
+      await showPaymentNotCompleted(status.order_number, status.error_message || failureHint, status.order_status, status.order_id);
+      return true;
+    }
+    return false;
+  }
+
+  async function fetchPaymentStatus(paymentId){
+    const res = await HS.fetchWithTimeout(`${API_BASE}/payments/status/${encodeURIComponent(paymentId)}`,
+      {headers: authHeaders(), cache:'no-store'}, 10000);
+    if(!res.ok) throw Object.assign(new Error('status ' + res.status), {status: res.status});
+    return res.json();
+  }
+
+  // ---- the provider paths ---------------------------------------------------
+  function paymentStepUnavailable(order, kind){
+    showPaymentState('intent-failed', {
+      kind: kind === 'offline' ? 'offline' : 'error', icon: kind === 'offline' ? 'offline' : 'alert',
+      eyebrow: kind === 'offline' ? 'You’re offline' : 'Payment step unavailable',
+      title:'We couldn’t open the payment step',
+      bodyHtml:`Order ${orderLabel(order.order_number)} is saved and reserved for you. No payment has been started yet.`,
+      actions:[pay('retry', 'Try again'), HS.supportAction(order.order_number), pay('done', 'Later', 'link')]
+    });
+  }
+
   async function startPayment(order){
+    lastOrder = Object.assign({}, lastOrder || {}, order);
     const config = await loadPaymentConfig();
+    if(!config){
+      paymentStepUnavailable(order, await HS.diagnose({name:'TypeError'}));
+      return;
+    }
 
     if(!config.enabled){
-      // Payments are switched off on this deployment: the order is already
-      // Processing. Say exactly that, and nothing about a payment.
+      // Payments are switched off on this deployment: the order is placed and
+      // the shop arranges payment. Say exactly that, and nothing about money.
       forgetPending();
+      forgetOrderBag();
       showPaymentState('placed', {
-        title: 'Order ' + order.order_number + ' placed',
-        body: `<p>We have your order and will be in touch about payment.</p>`,
-        actions: [{id:'done', label:'Done', primary:true}]
+        kind:'success', icon:'check', eyebrow:'Order placed — thank you',
+        title:'We have your order',
+        bodyHtml:`Order ${orderLabel(order.order_number)} is placed. We’ll be in touch about payment.`,
+        actions: signedIn()
+          ? [{label:'View my order', href:'/account#orders'}, pay('done', 'Continue shopping', 'outline')]
+          : [pay('done', 'Continue shopping')]
       });
       return;
     }
@@ -9076,14 +10496,14 @@
     try{
       intent = await postJson('/payments/intent', {order_id: order.id});
     }catch(err){
+      const detail = String(err.message || '');
+      if(/cancelled|refunded/i.test(detail)){
+        await showPaymentNotCompleted(order.order_number, '', 'Cancelled', order.id);
+        return;
+      }
+      if(/already been paid/i.test(detail)){ showOrderConfirmed(order.order_number); return; }
       // The order exists and stock is reserved — do not lose it.
-      showPaymentState('intent-failed', {
-        title: 'Order ' + order.order_number + ' is saved',
-        body: `<p>We could not open the payment step: ${esc(err.message)}</p>
-               <p class="pay-muted">Your order is held, nothing has been charged.</p>`,
-        actions: [{id:'retry', label:'Try payment again', primary:true},
-                  {id:'done', label:'Later'}]
-      });
+      paymentStepUnavailable(order, err.network ? await HS.diagnose(err.cause || err) : 'server');
       return;
     }
 
@@ -9101,15 +10521,19 @@
       // The instructions' first paragraph is the shop's own wording; the
       // account lines are rendered from the structured details instead.
       const lead = String(intent.instructions || '').split('\n')[0];
+      // An order placed and waiting for a transfer — not a paid order, so it
+      // is worded as a reservation, never as a confirmation of payment.
       showPaymentState('awaiting', {
-        title: 'Order ' + order.order_number + ' — payment pending',
-        body: `<p>${esc(lead)}</p>
-               <p class="pay-amount">${fmtMoney(intent.amount)}</p>
+        icon:'clock', eyebrow:'Order placed — payment pending',
+        titleHtml:`Order ${esc(order.order_number)} is reserved for you`,
+        bodyHtml: esc(lead),
+        extraHtml: `<p class="pay-amount">${fmtMoney(intent.amount)}</p>
                ${rows ? `<div class="pay-details">${rows}
                    <div><span>Reference</span><strong>${esc(order.order_number)}</strong></div></div>` : ''}
-               <p class="pay-muted">Your order is reserved. We confirm it as soon as the
-                  payment reaches us${authToken() ? ', and you can follow it under My Account' : ''}.</p>`,
-        actions: [{id:'done', label:'Done', primary:true}]
+               <p class="hs-state__body">We confirm your order as soon as the payment reaches us${signedIn() ? ', and you can follow it under My Account' : ''}.</p>`,
+        actions: signedIn()
+          ? [{label:'View my order', href:'/account#orders'}, pay('done', 'Continue shopping', 'outline')]
+          : [pay('done', 'Continue shopping')]
       });
       return;
     }
@@ -9119,11 +10543,7 @@
       return;
     }
 
-    showPaymentState('awaiting', {
-      title: 'Order ' + order.order_number + ' placed',
-      body: `<p>Awaiting payment confirmation.</p>`,
-      actions: [{id:'done', label:'Done', primary:true}]
-    });
+    showPaymentChecking(order.order_number, false);
   }
 
   function loadRazorpayScript(){
@@ -9140,19 +10560,14 @@
   async function openRazorpay(order, intent){
     const loaded = await loadRazorpayScript();
     if(!loaded){
-      showPaymentState('intent-failed', {
-        title: 'Order ' + order.order_number + ' is saved',
-        body: `<p>We could not reach the payment provider from this browser.</p>
-               <p class="pay-muted">Nothing has been charged. Your order is held.</p>`,
-        actions: [{id:'retry', label:'Try again', primary:true}, {id:'done', label:'Later'}]
-      });
+      // The gateway never opened, so no payment was started — that much is known.
+      paymentStepUnavailable(order, await HS.diagnose({name:'TypeError'}));
       return;
     }
 
     showPaymentState('paying', {
-      title: 'Complete your payment',
-      body: `<p>The payment window is open. Do not close this tab.</p>`,
-      actions: []
+      icon:'lock', eyebrow:'Secure payment', title:'Complete your payment',
+      body:'The payment window is open. Please keep this tab open until it’s done.'
     });
 
     const rzp = new Razorpay({
@@ -9170,26 +10585,31 @@
       theme: {color: '#8b5e3c'},
       handler: (response) => confirmPayment(intent.payment_id, response),
       modal: {
-        ondismiss: () => {
-          // Cancelled: the order stays exactly as it was — pending, stock held.
-          // Nothing is marked paid, nothing is marked failed.
+        ondismiss: async () => {
+          // Closed without finishing. Ask the server before saying anything:
+          // a payment can complete a moment before the window is closed.
+          try{
+            const status = await fetchPaymentStatus(intent.payment_id);
+            if(await settleFromStatus(status)) return;
+          }catch(e){ /* fall through to the reserved order */ }
           showPaymentState('cancelled', {
-            title: 'Payment cancelled',
-            body: `<p>Order ${esc(order.order_number)} is still saved and nothing was charged.</p>`,
-            actions: [{id:'retry', label:'Pay now', primary:true}, {id:'done', label:'Later'}]
+            icon:'clock', eyebrow:'Payment not completed', title:'You closed the payment window',
+            bodyHtml:`Order ${orderLabel(order.order_number)} is still reserved for you. You can pay now, or come back to it later.`,
+            actions:[pay('retry', 'Pay now'), pay('done', 'Later', 'link')]
           });
         }
       }
     });
 
-    rzp.on('payment.failed', (event) => {
-      const reason = (event && event.error && event.error.description) || 'The payment did not go through.';
-      showPaymentState('failed', {
-        title: 'Payment failed',
-        body: `<p>${esc(reason)}</p>
-               <p class="pay-muted">Order ${esc(order.order_number)} is still saved. You have not been charged.</p>`,
-        actions: [{id:'retry', label:'Try again', primary:true}, {id:'done', label:'Later'}]
-      });
+    rzp.on('payment.failed', async (event) => {
+      const reason = (event && event.error && event.error.description) || '';
+      // The gateway says this attempt failed; the server decides what that
+      // means for the order (it may already have been released).
+      try{
+        const status = await fetchPaymentStatus(intent.payment_id);
+        if(await settleFromStatus(status, reason)) return;
+      }catch(e){}
+      await showPaymentNotCompleted(order.order_number, reason, null, order.id);
     });
 
     rzp.open();
@@ -9202,10 +10622,10 @@
     if(confirming) return;              // duplicate callback: ignore the second
     confirming = true;
     showPaymentState('verifying', {
-      title: 'Verifying your payment',
-      body: `<p>Checking with our server — this takes a second.</p>`,
-      actions: []
+      icon:'clock', eyebrow:'One moment', title:'Confirming your payment',
+      body:'Checking with our server — please keep this window open.'
     });
+    const pending = readPending() || {};
     try{
       const payment = await postJson('/payments/confirm', {
         payment_id: paymentId,
@@ -9218,59 +10638,44 @@
         }
       });
       if(payment.status === 'Paid'){
-        await paymentSucceeded(paymentId);
+        // The server has verified the payment. Whether the ORDER is confirmed
+        // is a second question; if it cannot be answered right now, the
+        // shopper is told the payment arrived — case C — never asked to pay again.
+        try{
+          const status = await fetchPaymentStatus(paymentId);
+          if(!(await settleFromStatus(status))) showPaymentReceivedConfirming(status.order_number);
+        }catch(e){
+          showPaymentReceivedConfirming(pending.order_number || (lastOrder && lastOrder.order_number));
+        }
       }else{
         await pollPaymentStatus(paymentId);
       }
     }catch(err){
-      // Verification failed server-side. Never show success — ask the server
-      // what actually happened, because a webhook may still settle it.
-      await pollPaymentStatus(paymentId, err.message);
+      // Verification did not succeed or did not answer. Never show success —
+      // ask the server what actually happened; a webhook may still settle it.
+      await pollPaymentStatus(paymentId, err.network ? '' : err.message);
     }
     confirming = false;
   }
 
   async function pollPaymentStatus(paymentId, failureHint){
     // The webhook may arrive after the browser does. Poll briefly, then hand
-    // the customer an honest "we are still confirming" rather than a guess.
+    // the customer an honest "we are still checking" rather than a guess.
+    const pending = readPending() || {};
+    let orderNumber = pending.order_number || (lastOrder && lastOrder.order_number);
+    let reached = false;
     for(let attempt = 0; attempt < 6; attempt++){
       try{
-        const status = await fetch(`${API_BASE}/payments/status/${paymentId}`)
-          .then(r => r.json());
-        if(status.is_paid || status.payment_status === 'Paid'){
-          await paymentSucceeded(paymentId, status);
-          return;
-        }
-        if(status.payment_status === 'Failed' || status.payment_status === 'Cancelled'){
-          showPaymentState('failed', {
-            title: 'Payment not completed',
-            body: `<p>${esc(status.error_message || failureHint || 'The payment was not completed.')}</p>
-                   <p class="pay-muted">Order ${esc(status.order_number)} is saved and you have not been charged.</p>`,
-            actions: [{id:'retry', label:'Try again', primary:true}, {id:'done', label:'Later'}]
-          });
-          return;
-        }
+        const status = await fetchPaymentStatus(paymentId);
+        reached = true;
+        orderNumber = status.order_number || orderNumber;
+        if(await settleFromStatus(status, failureHint)) return;
       }catch(err){ /* keep trying */ }
       await new Promise(r => setTimeout(r, 1500));
     }
-    showPaymentState('pending', {
-      title: 'Still confirming your payment',
-      body: `<p>Your bank has not confirmed yet. This can take a few minutes.</p>
-             <p class="pay-muted">We will email you the moment it settles — you do not
-                need to pay again. ${failureHint ? esc(failureHint) : ''}</p>`,
-      actions: [{id:'check', label:'Check again', primary:true}, {id:'done', label:'Close'}]
-    });
-  }
-
-  async function paymentSucceeded(paymentId, status){
-    status = status || await fetch(`${API_BASE}/payments/status/${paymentId}`).then(r => r.json());
-    forgetPending();
-    showPaymentState('paid', {
-      title: 'Payment received',
-      body: `<p>Order <strong>${esc(status.order_number)}</strong> is confirmed and being
-                prepared. A receipt is on its way to your inbox.</p>`,
-      actions: [{id:'done', label:'Done', primary:true}]
-    });
+    const offline = !reached && (await HS.diagnose({name:'TypeError'})) === 'offline';
+    if(offline) HS.showOffline();
+    showPaymentChecking(orderNumber, offline);
   }
 
   // ---- resume after a refresh or a back button -------------------------
@@ -9278,18 +10683,14 @@
     const pending = readPending();
     if(!pending || !pending.payment_id) return;
     try{
-      const status = await fetch(`${API_BASE}/payments/status/${pending.payment_id}`)
-        .then(r => r.json());
-      if(status.is_paid || status.payment_status === 'Paid'){
-        await paymentSucceeded(pending.payment_id, status);
-        return;
-      }
+      const status = await fetchPaymentStatus(pending.payment_id);
+      if(await settleFromStatus(status)) return;
       if(status.payment_status === 'Pending'){
+        lastOrder = {id: pending.order_id, order_number: status.order_number};
         showPaymentState('resume', {
-          title: 'You have an unpaid order',
-          body: `<p>Order <strong>${esc(status.order_number)}</strong> is saved and waiting
-                    for payment. Nothing has been charged.</p>`,
-          actions: [{id:'retry', label:'Pay now', primary:true}, {id:'done', label:'Later'}]
+          icon:'clock', eyebrow:'Payment pending', title:'You have an unpaid order',
+          bodyHtml:`Order ${orderLabel(status.order_number)} is reserved and waiting for payment.`,
+          actions:[pay('retry', 'Pay now'), pay('done', 'Later', 'link')]
         });
         return;
       }
@@ -9304,36 +10705,56 @@
     const action = button.dataset.payAction;
     const pending = readPending();
 
-    if(action === 'done'){
+    if(action === 'done' || action === 'shop'){
       hidePaymentPanel();
       closeModal(checkoutModal, checkoutOverlay);
+      if(action === 'shop'){ const shop = document.getElementById('shop'); if(shop) shop.scrollIntoView({behavior:'smooth'}); }
       return;
     }
-    if(action === 'check' && pending){
-      await pollPaymentStatus(pending.payment_id);
+    if(action === 'bag'){
+      hidePaymentPanel();
+      closeModal(checkoutModal, checkoutOverlay);
+      openCart();
       return;
     }
-    if(action === 'retry' && pending){
+    if(action === 'check'){
+      const paymentId = pending && pending.payment_id;
+      if(!paymentId){ hidePaymentPanel(); closeModal(checkoutModal, checkoutOverlay); return; }
+      button.disabled = true; button.textContent = 'Checking…';
+      await pollPaymentStatus(paymentId);
+      return;
+    }
+    if(action === 'retry'){
       // A retry creates a NEW intent for the same order. The old pending
       // payment row stays as a record of the attempt; it never becomes paid.
+      const order = pending
+        ? {id: pending.order_id, order_number: pending.order_number}
+        : (lastOrder && lastOrder.id ? lastOrder : null);
+      if(!order){ hidePaymentPanel(); closeModal(checkoutModal, checkoutOverlay); return; }
+      order.customer_name = order.customer_name || document.getElementById('ckName').value;
+      order.customer_email = order.customer_email || document.getElementById('ckEmail').value;
       button.disabled = true;
-      try{
-        const order = {id: pending.order_id, order_number: pending.order_number,
-                       customer_name: document.getElementById('ckName').value,
-                       customer_email: document.getElementById('ckEmail').value};
-        await startPayment(order);
-      }catch(err){ showToast(err.message); }
-      button.disabled = false;
+      await startPayment(order);
     }
   });
 
   async function postJson(path, body){
-    const res = await fetch(API_BASE + path, {
-      method:'POST', headers:{'Content-Type':'application/json'},
-      body: JSON.stringify(body)
-    });
+    let res;
+    try{
+      res = await HS.fetchWithTimeout(API_BASE + path, {
+        method:'POST', headers:{'Content-Type':'application/json'},
+        body: JSON.stringify(body)
+      }, 20000);
+    }catch(err){
+      // No answer at all: callers word this as a connection problem, not as
+      // anything the server decided.
+      throw Object.assign(new Error('No response'), {network:true, cause:err});
+    }
     const data = await res.json().catch(() => ({}));
-    if(!res.ok) throw new Error(data.detail || 'Request failed');
+    if(!res.ok){
+      throw Object.assign(new Error(typeof data.detail === 'string' ? data.detail : 'Request failed'),
+                          {status: res.status});
+    }
     return data;
   }
 
@@ -9365,25 +10786,119 @@
     return Object.assign({}, extra || {}, token ? {Authorization: 'Bearer ' + token} : {});
   }
 
-  async function accountRequest(path, {method = 'GET', body} = {}){
-    const res = await fetch(API_BASE + path, {
-      method,
-      headers: authHeaders(body ? {'Content-Type':'application/json'} : {}),
-      body: body ? JSON.stringify(body) : undefined
-    });
-    const data = res.status === 204 ? {} : await res.json().catch(() => ({}));
-    if(res.status === 401){
-      // The token expired, or a password change invalidated it.
-      setAuthToken(null); customer = null; renderAccountUI();
+  /* `context` names what the shopper was doing, for the session sheet if the
+     sign-in turns out to have expired: 'checkout', 'account', 'wishlist',
+     or 'quiet' for a background check that should not interrupt anyone. */
+  async function accountRequest(path, {method = 'GET', body, context, retry} = {}){
+    const hadToken = !!authToken();
+    let res;
+    try{
+      res = await HS.fetchWithTimeout(API_BASE + path, {
+        method,
+        headers: authHeaders(body ? {'Content-Type':'application/json'} : {}),
+        body: body ? JSON.stringify(body) : undefined
+      }, 15000);
+    }catch(err){
+      const kind = await HS.reportNetworkFailure(err);
+      throw Object.assign(new Error(kind === 'offline'
+        ? 'You’re offline. Check your connection and try again.'
+        : 'We couldn’t reach Hairshalo just now. Please try again in a moment.'), {kind});
     }
-    if(!res.ok) throw new Error(data.detail || 'Something went wrong');
+    const data = res.status === 204 ? {} : await res.json().catch(() => ({}));
+    // A 401 on a request that carried a token is an expired sign-in (or a
+    // password change elsewhere). A 401 from the sign-in form itself is just
+    // wrong details, and is left to that form.
+    if(res.status === 401 && hadToken && !/^\/account\/(login|google)\b/.test(path)){
+      sessionLost(context || currentContext(), retry);
+    }
+    if(!res.ok){
+      const message = typeof data.detail === 'string' ? data.detail
+        : (res.status >= 500 ? 'Something went wrong on our side. Please try again in a moment.' : 'Something went wrong');
+      throw Object.assign(new Error(message), {status: res.status, kind: res.status >= 500 ? 'server' : 'client'});
+    }
     return data;
+  }
+
+  /* ---- Session expired ----
+     What the shopper was in the middle of decides what the sheet offers and
+     where signing in again takes them back to. */
+  let afterSignIn = null;
+  let sessionSheetUp = false;
+  function currentContext(){
+    if(checkoutModal.classList.contains('active')) return 'checkout';
+    if(document.getElementById('accountModal').classList.contains('active')) return 'account';
+    return 'browse';
+  }
+  function sessionLost(context, retry){
+    const email = customer && customer.email;
+    setAuthToken(null); customer = null; renderAccountUI();
+    if(context === 'quiet'){
+      // Found on arrival, not in the middle of anything: a word, not a sheet.
+      showToast('You were signed out for your security — sign in to see your orders');
+      return;
+    }
+    if(sessionSheetUp) return;
+    sessionSheetUp = true;
+    const units = cartUnits();
+    const saved = [];
+    if(units) saved.push(`Your bag · ${units} ${units === 1 ? 'item' : 'items'}`);
+    if(context === 'checkout' && (ckHasDraft() || document.getElementById('ckEmail').value)) saved.push('The details you entered at checkout');
+    if(context === 'wishlist' && pdpProduct) saved.push(`${pdpProduct.name}, with the options you chose`);
+    const accountTabNow = (document.querySelector('.acct-tab-btn.active') || {}).dataset;
+    HS.sessionExpired({
+      saved,
+      guest: context === 'checkout',
+      onSignIn: () => { sessionSheetUp = false; reauthenticate(context, email, retry, accountTabNow && accountTabNow.acctTabBtn); },
+      onGuest: () => {
+        sessionSheetUp = false;
+        // Signed out already; the saved-address list gives way to the typed
+        // form, which still holds everything entered.
+        loadSavedAddresses();
+        HS.announce('Continuing as a guest. Your details are still filled in.');
+      },
+      onDismiss: () => {
+        sessionSheetUp = false;
+        // Dismissed without signing in: checkout carries on as a guest, so a
+        // saved address (which needs the sign-in) gives way to the typed form.
+        if(context === 'checkout') loadSavedAddresses();
+      }
+    });
+  }
+  function reauthenticate(context, email, retry, tab){
+    afterSignIn = () => {
+      closeModal(accountModal, accountOverlay);
+      if(context === 'checkout'){
+        // Checkout is still open underneath with every field as it was.
+        prefillCheckoutFromProfile();
+        loadSavedAddresses();
+        HS.announce('Signed in. Your checkout is just as you left it.');
+      } else if(context === 'account'){
+        openAccount(tab && tab !== 'signin' ? tab : 'orders');
+      } else {
+        showToast('Signed in — welcome back');
+      }
+      if(typeof retry === 'function') retry();
+    };
+    openAccount('signin');
+    const field = document.getElementById('loginEmail');
+    if(field && email && !field.value) field.value = email;
+    setTimeout(() => {
+      const next = email ? document.getElementById('loginPassword') : field;
+      if(next) next.focus();
+    }, 120);
+  }
+  function finishSignIn(){
+    if(!afterSignIn) return false;
+    const next = afterSignIn;
+    afterSignIn = null;
+    next();
+    return true;
   }
 
   async function loadCustomer(){
     if(!authToken()){ customer = null; return null; }
-    try{ customer = await accountRequest('/account/me'); }
-    catch(err){ customer = null; }
+    try{ customer = await accountRequest('/account/me', {context:'quiet'}); }
+    catch(err){ if(err.status === 401) customer = null; }
     renderAccountUI();
     return customer;
   }
@@ -9426,7 +10941,7 @@
         setAuthToken(data.access_token);
         customer = data.customer;
         renderAccountUI();
-        accountTab('orders');
+        if(!finishSignIn()) accountTab('orders');
       },
       onError: (message) => accountMessage(msg, message, true)
     });
@@ -9504,7 +11019,7 @@
       accountMessage('loginMsg', '');
       pwEl.value = '';
       renderAccountUI();
-      accountTab('orders');
+      if(!finishSignIn()) accountTab('orders');
       // A saved currency preference is deliberately NOT applied while there is
       // no picker: it would switch the whole shop to a currency the customer
       // has no way to switch back from.
@@ -9573,10 +11088,16 @@
   // ---- my orders --------------------------------------------------------
   async function loadMyOrders(){
     const wrap = document.getElementById('acctOrders');
-    wrap.innerHTML = '<p class="acct-muted">Loading…</p>';
+    wrap.innerHTML = HS.inlineLoading('Loading your orders…');
     try{
-      const orders = await accountRequest('/account/orders');
-      if(!orders.length){ wrap.innerHTML = '<p class="acct-muted">No orders yet.</p>'; return; }
+      const orders = await accountRequest('/account/orders', {context:'account'});
+      if(!orders.length){
+        wrap.innerHTML = HS.view({compact:true, level:'h4', icon:'box', eyebrow:'No orders yet',
+          title:'Your first Hairshalo look is waiting',
+          body:'When you place an order, you’ll find it here with its progress.',
+          actions:[{label:'Start shopping', attrs:{'data-acct-shop':''}}]});
+        return;
+      }
       wrap.innerHTML = orders.map(o => `
         <div class="acct-order">
           <div class="acct-order-head">
@@ -9604,7 +11125,8 @@
             orders keep the rate they were placed at.</div>` : ''}
         </div>`).join('');
     }catch(err){
-      wrap.innerHTML = `<p class="acct-muted">${esc(err.message)}</p>`;
+      if(err.status === 401){ wrap.innerHTML = ''; return; }   // the session sheet has it
+      wrap.innerHTML = accountErrorView(err, 'orders');
     }
   }
 
@@ -9616,9 +11138,9 @@
 
   async function loadMyLoyalty(){
     const wrap = document.getElementById('acctLoyalty');
-    wrap.innerHTML = '<p class="acct-muted">Loading…</p>';
+    wrap.innerHTML = HS.inlineLoading('Loading your points…');
     try{
-      const data = await accountRequest('/account/loyalty');
+      const data = await accountRequest('/account/loyalty', {context:'account'});
       wrap.innerHTML = `
         <div class="acct-points">
           <div><span class="acct-points-value">${data.balance}</span> points</div>
@@ -9641,67 +11163,117 @@
           </li>`).join('')}</ul>`
           : '<p class="acct-muted">No movements yet. Points are added when an order is paid for.</p>'}`;
     }catch(err){
-      wrap.innerHTML = `<p class="acct-muted">${esc(err.message)}</p>`;
+      if(err.status === 401){ wrap.innerHTML = ''; return; }
+      wrap.innerHTML = accountErrorView(err, 'loyalty');
     }
   }
 
   // ---- wishlist ---------------------------------------------------------
+  /* A saved piece can change after it was saved: it sells out, or it leaves
+     the collection. Each says which — "Out of stock" for a piece still
+     offered, "No longer available" for one that is not — and only a piece
+     that can be bought offers the way to it. */
   async function loadMyWishlist(){
     const wrap = document.getElementById('acctWishlist');
-    wrap.innerHTML = '<p class="acct-muted">Loading…</p>';
+    wrap.innerHTML = HS.inlineLoading('Loading your wishlist…');
     try{
-      const items = await accountRequest('/account/wishlist');
-      if(!items.length){ wrap.innerHTML = '<p class="acct-muted">Nothing saved yet.</p>'; return; }
-      wrap.innerHTML = items.map(i => `
+      const items = await accountRequest('/account/wishlist', {context:'account'});
+      if(!items.length){
+        wrap.innerHTML = HS.view({compact:true, level:'h4', icon:'heart', eyebrow:'Your wishlist is empty',
+          title:'Save the looks you love',
+          body:'Tap “Save to wishlist” on any piece to keep it here until you’re ready.',
+          actions:[{label:'Explore the collection', attrs:{'data-acct-shop':''}}]});
+        return;
+      }
+      wrap.innerHTML = items.map(i => {
+        const status = !i.is_available
+          ? '<span class="cart-line-status is-warn">' + HS.svg('alert') + '<span>No longer available</span></span>'
+          : (i.in_stock ? 'In stock' : 'Out of stock');
+        return `
         <div class="acct-wish">
           <div>
             <strong>${esc(i.product_name)}</strong>
             ${i.variant_label ? `<span class="acct-muted"> — ${esc(i.variant_label)}</span>` : ''}
-            <div class="acct-muted">${i.price ? fmtMoney(i.price) : ''} ·
-              ${i.in_stock ? 'In stock' : 'Out of stock'}</div>
+            <div class="acct-muted">${i.is_available && i.price ? fmtMoney(i.price) + ' · ' : ''}${status}</div>
           </div>
-          <button class="btn" data-wish-remove="${i.id}">Remove</button>
-        </div>`).join('');
+          <div style="display:flex;gap:8px;flex-wrap:wrap;">
+            ${i.is_available ? `<button class="btn" data-view-product="${esc(i.product_id)}" aria-label="View ${esc(i.product_name)}">View</button>` : ''}
+            <button class="btn" data-wish-remove="${esc(i.id)}" aria-label="Remove ${esc(i.product_name)} from your wishlist">Remove</button>
+          </div>
+        </div>`;
+      }).join('');
     }catch(err){
-      wrap.innerHTML = `<p class="acct-muted">${esc(err.message)}</p>`;
+      if(err.status === 401) { wrap.innerHTML = ''; return; }   // the session sheet has it
+      wrap.innerHTML = accountErrorView(err, 'wishlist');
     }
   }
+
+  /* One failure view for the account tabs: offline and our-side look
+     different, and both can be retried where they stand. */
+  function accountErrorView(err, tab){
+    const retry = [{label:'Try again', attrs:{'data-acct-retry': tab}}];
+    return err.kind === 'offline'
+      ? HS.offlineView({compact:true, level:'h4', actions: retry})
+      : HS.serverErrorView({compact:true, level:'h4', body: err.message, actions: retry});
+  }
+  document.addEventListener('click', (e) => {
+    const retry = e.target.closest('[data-acct-retry]');
+    if(retry){ accountTab(retry.dataset.acctRetry); return; }
+    if(e.target.closest('[data-acct-shop]')){
+      closeModal(accountModal, accountOverlay);
+      const shop = document.getElementById('shop');
+      if(shop) shop.scrollIntoView({behavior:'smooth'});
+    }
+  });
 
   document.addEventListener('click', async (e) => {
     const remove = e.target.closest('[data-wish-remove]');
     if(remove){
+      remove.disabled = true;
       try{
-        await accountRequest('/account/wishlist/' + remove.dataset.wishRemove, {method:'DELETE'});
+        await accountRequest('/account/wishlist/' + remove.dataset.wishRemove, {method:'DELETE', context:'account'});
+        HS.announce('Removed from your wishlist');
         loadMyWishlist();
-      }catch(err){ showToast(err.message); }
+      }catch(err){ remove.disabled = false; if(err.status !== 401) showToast(err.message); }
       return;
     }
     const save = e.target.closest('[data-wish-add]');
     if(save){
+      const productId = save.dataset.wishAdd;
+      const variantId = save.dataset.wishVariant || null;
+      const doSave = async () => {
+        save.disabled = true;
+        try{
+          await accountRequest('/account/wishlist', {method:'POST', context:'wishlist', retry: doSave,
+            body:{product_id: productId, variant_id: variantId}});
+          save.setAttribute('aria-pressed', 'true');
+          save.setAttribute('aria-label', 'Saved to your wishlist');
+          showToast('Saved to your wishlist');
+        }catch(err){ if(err.status !== 401) showToast(err.message); }
+        save.disabled = false;
+      };
       if(!customer){
-        // Popup rather than a redirect: the customer keeps their place on the
-        // page they were browsing.
-        openAccount('signin');
-        showToast('Sign in to save items');
+        // Sign in first, then the save happens by itself — the shopper keeps
+        // their place and their choice of options.
+        reauthenticate('browse', null, doSave);
+        showToast('Sign in to save pieces to your wishlist');
         return;
       }
-      try{
-        await accountRequest('/account/wishlist', {method:'POST', body:{
-          product_id: save.dataset.wishAdd,
-          variant_id: save.dataset.wishVariant || null
-        }});
-        showToast('Saved to your wishlist');
-      }catch(err){ showToast(err.message); }
+      doSave();
     }
   });
-
   // ---- wiring -----------------------------------------------------------
   const accountModal = document.getElementById('accountModal');
   const accountOverlay = document.getElementById('accountOverlay');
 
   function openAccount(tab){
     accountModal.classList.toggle('is-guest', !customer);
-    openModal(accountModal, accountOverlay);
+    // Closing the panel without signing in drops any "take me back to…".
+    openModal(accountModal, accountOverlay, null, () => {
+      if(customer) return;
+      afterSignIn = null;
+      if(checkoutModal.classList.contains('active')) loadSavedAddresses();
+    });
     accountTab(tab || (customer ? 'orders' : 'signin'));
   }
 

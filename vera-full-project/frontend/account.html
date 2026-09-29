@@ -171,12 +171,17 @@
   function api(path, opts) {
     opts = opts || {}; opts.auth = true;
     return A.api(path, opts).catch(function (err) {
-      if (err.status === 401) { A.redirect('/signin?next=' + encodeURIComponent('/account' + location.hash)); }
+      // An expired sign-in: back here, to this same section, once signed in
+      // again — and the sign-in page says why the customer was sent there.
+      if (err.status === 401) { A.redirect('/signin?reason=expired&next=' + encodeURIComponent('/account' + location.hash)); }
       throw err;
     });
   }
+  // A section that could not load says so and can be asked again in place.
   function failed(title, err) {
-    panel.innerHTML = '<h2>' + esc(title) + '</h2><p class="muted">' + esc(err.message) + '</p>';
+    if (err.status === 401) return;      // on its way to the sign-in page
+    panel.innerHTML = '<h2>' + esc(title) + '</h2><div class="empty" role="alert">' + esc(err.message) +
+      '<br><button type="button" class="btn btn-outline btn-sm" data-retry style="margin-top:12px">Try again</button></div>';
   }
 
   /* The backend's own statuses, explained in customer language. The order's
@@ -241,7 +246,7 @@
             : '') +
           '<h3>Recent orders</h3>' +
           (orders.length ? orders.slice(0, 3).map(orderCard).join('')
-            : '<div class="empty">No orders yet.<br><a href="/#shop">Start shopping</a></div>') +
+            : '<div class="empty"><strong>No orders yet.</strong><br>Your first Hairshalo look is waiting.<br><a href="/#shop">Start shopping</a></div>') +
           '<h3>Account</h3>' +
           '<div class="detail-grid">' +
             '<div class="box"><h4>Profile</h4>' + esc(customer.name) + '<br>' + esc(customer.email) +
@@ -278,7 +283,7 @@
     loadOrders(true).then(function (orders) {
       panel.innerHTML = '<h2>My orders</h2>' + (orders.length
         ? orders.map(orderCard).join('')
-        : '<div class="empty">No orders yet.<br><a href="/#shop">Start shopping</a></div>');
+        : '<div class="empty"><strong>No orders yet.</strong><br>Your first Hairshalo look is waiting.<br><a href="/#shop">Start shopping</a></div>');
     }).catch(function (err) { failed('My orders', err); });
   }
 
@@ -457,11 +462,15 @@
         return '<div class="card-row wish">' + thumb(i.image_url, 64) +
           '<div><strong>' + esc(i.product_name) + '</strong>' +
             (i.variant_label ? ' <span class="muted">— ' + esc(i.variant_label) + '</span>' : '') +
-            '<div class="muted">' + (i.price ? money(i.price) + ' · ' : '') +
-            (i.in_stock ? 'In stock' : 'Out of stock') + '</div></div>' +
-          '<div class="row-actions"><a class="btn btn-outline btn-sm" href="/#shop">Shop</a>' +
+            // Out of stock is a piece still offered; no longer available is
+            // one that has left the collection or had its option withdrawn.
+            '<div class="muted">' + (i.is_available && i.price ? money(i.price) + ' · ' : '') +
+            (!i.is_available ? 'No longer available' : (i.in_stock ? 'In stock' : 'Out of stock')) + '</div></div>' +
+          '<div class="row-actions">' + (i.is_available
+            ? '<a class="btn btn-outline btn-sm" href="/?product=' + encodeURIComponent(i.product_id) + '">View</a>'
+            : '<a class="btn btn-outline btn-sm" href="/#shop">Shop similar</a>') +
           '<button class="btn btn-outline btn-sm" data-wish-remove="' + esc(i.id) + '">Remove</button></div></div>';
-      }).join('') : '<div class="empty">Nothing saved yet.<br><a href="/#shop">Browse the collection</a></div>');
+      }).join('') : '<div class="empty"><strong>Your wishlist is empty.</strong><br>Save the looks you love and they’ll wait here for you.<br><a href="/#shop">Explore the collection</a></div>');
     }).catch(function (err) { failed('Wishlist', err); });
   }
 
@@ -665,6 +674,7 @@
     var t = e.target.closest('button, a');
     if (!t) return;
     if (t.dataset.tab) { go(t.dataset.tab); return; }
+    if (t.hasAttribute('data-retry')) { route(); return; }
     if (t.dataset.go) { go(t.dataset.go); return; }
     if (t.dataset.openOrder) { go('order/' + encodeURIComponent(t.dataset.openOrder)); return; }
     if (t.hasAttribute('data-addr-new')) { addressForm(null); return; }
