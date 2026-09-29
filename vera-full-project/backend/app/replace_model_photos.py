@@ -87,6 +87,14 @@ def plan_entry(db, e):
         rows.append(match[0])
     if not e.get("new"):
         return product, variant, rows, "no new photos listed"
+    # Safe to run twice: a manifest that has already been applied would
+    # otherwise add its photos again (each pair sharing one stored file, so
+    # deleting either in the admin panel would break the other).
+    have = {m.storage_key for m in product.media if m.storage_key}
+    already = [n["key"] for n in e["new"] if n["key"] in have]
+    if already:
+        return product, variant, [], (f"already applied: {len(already)} of the new photos are "
+                                       "on this product")
     return product, variant, rows, None
 
 
