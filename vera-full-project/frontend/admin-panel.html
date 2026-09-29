@@ -4104,7 +4104,24 @@
       }
 
       if(publish){
-        product = await apiSend('POST', `/products/${pfEditingId}/status`, {action:'publish'});
+        try{
+          product = await apiSend('POST', `/products/${pfEditingId}/status`, {action:'publish'});
+        }catch(err){
+          // The server refuses a product with readiness gaps unless told to
+          // publish anyway, and it never waives a missing category or
+          // variants (a product customers could see but never buy). Anything
+          // else, a missing price above all ("Price on request"), is the
+          // admin's call: say what is missing and ask.
+          const msg = String(err.message || '');
+          if(!/^Cannot publish this product:/.test(msg)
+             || /Choose a category|Add at least one variant/.test(msg)) throw err;
+          const gaps = msg.replace(/^Cannot publish this product:\s*/, '').replace(/\.$/, '');
+          const priceNote = /Set a price/.test(msg)
+            ? '\n\nWithout a price it is listed as "Price on request": customers can see it and enquire, but cannot add it to a bag.'
+            : '';
+          if(!confirm(`Publish anyway? Still missing: ${gaps}.${priceNote}`)) throw err;
+          product = await apiSend('POST', `/products/${pfEditingId}/status`, {action:'publish', force:true});
+        }
       } else {
         const wanted = el('pfStatus').value;
         if(wanted !== 'Published' && wanted !== product.status){
