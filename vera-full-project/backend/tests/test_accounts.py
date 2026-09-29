@@ -97,6 +97,30 @@ def _register(db, email=None, password=GOOD_PASSWORD):
     return customer
 
 
+def test_a_wishlist_entry_says_when_its_piece_has_left_the_collection(db):
+    """`in_stock` alone called an archived piece "In stock". `is_available`
+    is what the storefront uses to say "No longer available" instead."""
+    from app.routers.account import list_wishlist_item
+    product = db.query(models.Product).filter(
+        models.Product.status == models.ProductStatus.published).first()
+    if product is None:
+        pytest.skip("no published product to save")
+    customer = _register(db)
+    row = models.WishlistItem(customer_id=customer.id, product_id=product.id)
+    db.add(row)
+    db.flush()
+    db.refresh(row)
+    assert list_wishlist_item(db, row).is_available is True
+
+    # Archived in this session only; the fixture rolls it back.
+    product.status = models.ProductStatus.archived
+    db.flush()
+    out = list_wishlist_item(db, row)
+    assert out.is_available is False
+    # Still named, so the shopper can see what it was and remove it.
+    assert out.product_name == product.name
+
+
 def test_registering_never_reveals_that_an_address_is_taken(db):
     """A second registration on the same address must not raise — the endpoint
     answers identically either way, so it cannot be used to test addresses."""

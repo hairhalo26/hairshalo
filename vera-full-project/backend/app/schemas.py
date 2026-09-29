@@ -1224,6 +1224,9 @@ class WishlistItemOut(BaseModel):
     price: Optional[Decimal] = None
     image_url: Optional[str] = None
     in_stock: bool = False
+    # False when the product was archived, unpublished or deleted, or the
+    # chosen option withdrawn — "In stock" alone said nothing about that.
+    is_available: bool = False
     added_at: Optional[datetime] = None
 
 

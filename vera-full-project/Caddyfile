@@ -58,14 +58,24 @@
 		file_server
 	}
 
-	# The panel used to be /admin-dashboard.html. The old paths have to be named
-	# explicitly, because the catch-all's try_files ends at /index.html: without
-	# this a stale bookmark would not 404, it would quietly serve the storefront
-	# with a 200 and look like the panel had been deleted. 308 keeps the method,
-	# so a POST from an old open tab is not downgraded to GET on the way over.
+	# The panel used to be /admin-dashboard.html. A stale bookmark is sent on
+	# to the panel rather than meeting the not-found page, which would read as
+	# if the panel had been deleted. 308 keeps the method, so a POST from an
+	# old open tab is not downgraded to GET on the way over.
 	@admin_legacy path /admin-dashboard /admin-dashboard.html
 	handle @admin_legacy {
 		redir * /admin-panel 308
+	}
+
+	# Linked from emails (unsubscribe, newsletter confirmation) but without a
+	# page of their own yet. They land on the storefront exactly as they did
+	# when every unknown path did, so no email already sent gets a 404.
+	@email_links path /unsubscribe /confirm-subscription
+	handle @email_links {
+		header Cache-Control "no-cache"
+		root * /srv/frontend
+		rewrite * /index.html
+		file_server
 	}
 
 	handle {
@@ -77,8 +87,25 @@
 		@pages not path /assets/*
 		header @pages Cache-Control "no-cache"
 		root * /srv/frontend
-		try_files {path} {path}.html /index.html
+		# No /index.html fallback: an address that is not a page is a 404, not
+		# a copy of the home page served with a 200. The storefront itself is
+		# /, and everything in it (product views, filters) lives in the query.
+		try_files {path} {path}.html
 		file_server
+	}
+
+	# The branded not-found page, with the 404 status a browser, crawler or
+	# link checker needs. The status is kept by file_server inside an error
+	# route. Only errors raised here are affected — a 404 the API returns is
+	# passed through by reverse_proxy untouched.
+	handle_errors {
+		@not_found expression {err.status_code} == 404
+		handle @not_found {
+			header Cache-Control "no-cache"
+			root * /srv/frontend
+			rewrite * /404.html
+			file_server
+		}
 	}
 
 	# Rate limiting at the edge is the real defence; the limiter inside the app

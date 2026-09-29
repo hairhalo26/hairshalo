@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Page not found | Hairshalo</title>
+<!-- Served with a real 404 status for any address that is not a page (see
+     the Caddyfile's handle_errors). A "not found" answer must not be indexed
+     as a page of its own. -->
+<meta name="robots" content="noindex">
+<meta name="theme-color" content="#17100C">
+<!-- Absolute paths throughout: this page is served AT the missing address,
+     /some/deep/path, where a relative "assets/…" would resolve to nothing. -->
+<link rel="icon" href="/assets/favicon.ico" sizes="any">
+<link rel="apple-touch-icon" href="/assets/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;1,9..144,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  @font-face{
+    font-family:'Balldoug';
+    src:url('/assets/fonts/balldoug-regular.woff2') format('woff2');
+    font-display:swap;
+  }
+  :root{
+    --espresso:#17100C;--charcoal:#221814;--ivory:#F4ECE0;--ivory-soft:rgba(244,236,224,.72);
+    --champagne:#DCC193;--line-dark:rgba(244,236,224,.14);--noir:#0D0907;
+  }
+  *{box-sizing:border-box;}
+  html,body{margin:0;}
+  body{min-height:100vh;background:var(--espresso);color:var(--ivory);
+    font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased;
+    display:flex;flex-direction:column;}
+  a{color:inherit;}
+  :focus-visible{outline:2px solid var(--champagne);outline-offset:3px;border-radius:4px;}
+  .skip{position:absolute;left:-999px;top:8px;background:var(--champagne);color:var(--noir);padding:10px 14px;border-radius:8px;z-index:10;}
+  .skip:focus{left:8px;}
+  .sr-only{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0;}
+
+  header{height:64px;display:flex;align-items:center;justify-content:center;
+    border-bottom:1px solid var(--line-dark);padding:0 16px;}
+  .logo{display:inline-flex;align-items:center;gap:8px;min-height:44px;text-decoration:none;
+    font-family:'Balldoug','Fraunces',serif;font-size:19px;letter-spacing:.05em;color:var(--ivory);}
+  .logo img{height:24px;width:auto;}
+
+  main{flex:1;display:flex;flex-direction:column;align-items:center;text-align:center;
+    padding:28px 16px 48px;width:100%;max-width:560px;margin:0 auto;}
+  .frame{position:relative;width:min(220px,58vw);aspect-ratio:206/246;margin-bottom:44px;}
+  .frame img{width:100%;height:100%;object-fit:cover;object-position:56% 18%;display:block;
+    border-radius:50% 50% 4px 4px / 22% 22% 0 0;background:var(--charcoal);}
+  .frame .code{position:absolute;left:-40px;right:-40px;bottom:-38px;text-align:center;
+    font-family:'Fraunces',serif;font-style:italic;font-weight:400;font-size:clamp(84px,24vw,112px);
+    line-height:1;letter-spacing:-.04em;color:var(--champagne);}
+  .eyebrow{font-size:11px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;color:var(--champagne);margin:0 0 10px;}
+  h1{font-family:'Fraunces',serif;font-weight:400;font-size:clamp(28px,6vw,40px);line-height:1.08;letter-spacing:-.02em;margin:0 0 12px;}
+  h1 em{font-style:italic;}
+  .lede{font-size:15px;line-height:1.65;color:var(--ivory-soft);margin:0 0 22px;max-width:30em;}
+
+  form{width:100%;display:flex;align-items:center;gap:8px;height:52px;padding:0 6px 0 16px;
+    border:1px solid rgba(244,236,224,.22);border-radius:100px;background:var(--charcoal);margin-bottom:12px;}
+  form:focus-within{border-color:var(--champagne);}
+  form svg{width:18px;height:18px;flex-shrink:0;fill:none;stroke:var(--ivory-soft);stroke-width:1.6;stroke-linecap:round;}
+  form input{flex:1;min-width:0;height:100%;border:0;background:transparent;color:var(--ivory);font:inherit;font-size:15px;}
+  form input::placeholder{color:rgba(244,236,224,.6);}
+  form input:focus{outline:none;}
+  form button{height:40px;padding:0 16px;border-radius:100px;border:0;background:transparent;color:var(--ivory);
+    font:inherit;font-size:12.5px;font-weight:600;cursor:pointer;}
+
+  .actions{width:100%;display:flex;flex-direction:column;gap:10px;}
+  .row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;}
+  .btn{display:inline-flex;align-items:center;justify-content:center;min-height:52px;padding:0 18px;border-radius:100px;
+    text-decoration:none;font-size:11.5px;letter-spacing:.2em;text-transform:uppercase;font-weight:600;text-align:center;}
+  .btn-primary{background:var(--champagne);color:var(--noir);}
+  .btn-primary:hover{background:#F3DDB0;}
+  .btn-outline{border:1.5px solid rgba(244,236,224,.45);color:var(--ivory);}
+  .btn-outline:hover{border-color:var(--ivory);}
+  footer{padding:18px 16px 26px;text-align:center;font-size:12px;color:rgba(244,236,224,.6);border-top:1px solid var(--line-dark);}
+  footer a{color:rgba(244,236,224,.8);}
+  @media (max-width:359px){ .row{grid-template-columns:1fr;} }
+  @media (min-width:720px){
+    main{padding-top:48px;}
+    .actions{flex-direction:row;flex-wrap:wrap;justify-content:center;}
+    .actions > .btn{flex:1 1 100%;}
+    .row{flex:1 1 100%;}
+  }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+<header>
+  <a class="logo" href="/" aria-label="Hairshalo — home"><img src="/assets/hairshalo-mark.png" alt="" width="23" height="30">HAIRSHALO</a>
+</header>
+
+<main id="main">
+  <div class="frame" aria-hidden="true">
+    <img src="/assets/campaign/difference-portrait.webp" alt="" width="206" height="246">
+    <span class="code">404</span>
+  </div>
+  <p class="eyebrow">404 — This look isn’t here</p>
+  <h1>This look has <em>moved on</em></h1>
+  <p class="lede">The page you’re looking for may have moved or no longer exists. Let’s find you something just as beautiful.</p>
+
+  <!-- Hands the words to the storefront's own search (/?search=…). -->
+  <form action="/" method="get" role="search">
+    <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="6.5"/><path d="M16 16l4 4"/></svg>
+    <label for="q" class="sr-only">Search Hairshalo</label>
+    <input id="q" name="search" type="search" placeholder="Search wigs, closures, toppers" autocomplete="off" maxlength="80">
+    <button type="submit">Search</button>
+  </form>
+
+  <nav class="actions" aria-label="Where to next">
+    <a class="btn btn-primary" href="/">Back to home</a>
+    <div class="row">
+      <a class="btn btn-outline" href="/#shop">Shop the collection</a>
+      <a class="btn btn-outline" href="/#bestsellers">Best sellers</a>
+    </div>
+  </nav>
+</main>
+
+<footer>
+  Need a hand? <a href="/#faq">Read the FAQ</a> or <a href="/account">view your orders</a>.
+</footer>
+</body>
+</html>

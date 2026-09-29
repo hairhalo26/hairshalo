@@ -429,23 +429,7 @@ def list_wishlist(current: models.Customer = Depends(get_current_customer),
         .filter(models.WishlistItem.customer_id == current.id)
         .all()
     )
-    out = []
-    for row in rows:
-        product = row.product
-        out.append(schemas.WishlistItemOut(
-            id=row.id, product_id=row.product_id, variant_id=row.variant_id,
-            product_name=product.name if product else "(removed)",
-            variant_label=row.variant.label if row.variant else None,
-            # Live values, not a snapshot: a wishlist is a pointer at a product,
-            # not a promise about its price.
-            price=(row.variant.effective_price(product) if row.variant and product
-                   else (product.price if product else None)),
-            image_url=product.primary_image_url if product else None,
-            in_stock=bool(row.variant.stock) if row.variant
-                     else bool(product and product.total_stock),
-            added_at=row.created_at,
-        ))
-    return out
+    return [list_wishlist_item(db, row) for row in rows]
 
 
 @router.post("/wishlist", response_model=schemas.WishlistItemOut, status_code=201)
@@ -489,11 +473,18 @@ def list_wishlist_item(db: Session, row: models.WishlistItem) -> schemas.Wishlis
         id=row.id, product_id=row.product_id, variant_id=row.variant_id,
         product_name=product.name if product else "(removed)",
         variant_label=row.variant.label if row.variant else None,
+        # Live values, not a snapshot: a wishlist is a pointer at a product,
+        # not a promise about its price.
         price=(row.variant.effective_price(product) if row.variant and product
                else (product.price if product else None)),
         image_url=product.primary_image_url if product else None,
         in_stock=bool(row.variant.stock) if row.variant
                  else bool(product and product.total_stock),
+        is_available=bool(
+            product is not None
+            and product.status == models.ProductStatus.published
+            and (row.variant is None or row.variant.is_available)
+        ),
         added_at=row.created_at,
     )
 

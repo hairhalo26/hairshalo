@@ -109,8 +109,11 @@
       .catch(function () { /* stale token was cleared by the client */ });
   }
 
-  // A customer sent here by a protected page gets told why, once.
-  if (A.queryParam('next')) {
+  // A customer sent here by a protected page gets told why, once. An expired
+  // sign-in says so plainly; signing in returns them to where they were.
+  if (A.queryParam('reason') === 'expired') {
+    A.showNotice(notice, 'info', 'Your session has expired. For your security, please sign in again to continue — you’ll return to where you left off.');
+  } else if (A.queryParam('next')) {
     A.showNotice(notice, 'info', 'Please sign in to continue.');
   }
 
