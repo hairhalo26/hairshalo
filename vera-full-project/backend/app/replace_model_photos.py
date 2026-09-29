@@ -11,6 +11,8 @@ A manifest is JSON:
        {"product": "human-hair-crochet",         # slug, or a name "like:Burmese%"
         "sku": "HS-HUMAN-HAIR-CROCHET-14-1",     # null = product-level photos
         "remove": [0, 1, 2],                      # sort orders of rows to replace
+                                                  # ([] = add, before the colour's first photo)
+        "primary": false,                         # true = the first new photo becomes MAIN
         "new": [{"key": "products/<uuid>.jpg", "size": 123456, "alt": "..."}]}
     ]}
 
@@ -128,20 +130,28 @@ def run(manifest, apply, exists=default_exists, out=print):
                 alt_text=n.get("alt") or product.name, storage_key=n["key"],
                 content_type="image/jpeg", file_size=n.get("size"), is_primary=False)
                 for n in e["new"]]
-            if len(new_rows) == len(positions):
+            rest = sorted((m for m in product.media if m not in rows), key=lambda m: m.sort_order or 0)
+            if positions and len(new_rows) == len(positions):
                 for r, so in zip(new_rows, positions):
                     r.sort_order = so
                 db.add_all(new_rows)
             else:
-                # Renumber: the new photographs go where the first removed one was.
-                at = positions[0] if positions else 0
-                rest = sorted((m for m in product.media if m not in rows), key=lambda m: m.sort_order or 0)
+                # Renumber: the new photographs go where the first removed one
+                # was; with nothing removed, before the colour's first photo
+                # (or at the end if the colour has none yet).
+                vid = variant.id if variant else None
+                own = [m.sort_order or 0 for m in rest if m.variant_id == vid]
+                at = positions[0] if positions else (min(own) if own else
+                     (max((m.sort_order or 0) for m in rest) + 1 if rest else 0))
                 ordered = [m for m in rest if (m.sort_order or 0) < at] + new_rows + \
                           [m for m in rest if (m.sort_order or 0) >= at]
                 db.add_all(new_rows)
                 for i, m in enumerate(ordered):
                     m.sort_order = i
-            if was_primary:
+            if was_primary or e.get("primary"):
+                for m in product.media:
+                    if m.is_primary and m not in rows:
+                        m.is_primary = False
                 new_rows[0].is_primary = True
             db.commit()
             db.refresh(product)

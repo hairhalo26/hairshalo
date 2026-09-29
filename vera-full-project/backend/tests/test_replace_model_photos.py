@@ -124,3 +124,18 @@ def test_nothing_changes_until_every_new_file_is_uploaded(s3, piece):
     missing = m["entries"][1]["new"][0]["key"]
     assert run(m, True, exists=lambda u: not u.endswith(missing), out=quiet) == 2
     assert gallery(pid) == before
+
+
+def test_adding_without_removing_goes_before_the_colour(s3, piece):
+    """remove=[] adds the photographs in front of that colour's own, and
+    primary=true makes the first of them MAIN."""
+    pid, slug, _, b, tag = piece
+    e = entry(slug, b, [], 2)
+    e["primary"] = True
+    assert run({"entries": [e]}, True, exists=lambda u: True, out=quiet) == 0
+    g = gallery(pid)
+    assert [so for so, _, _ in g] == list(range(10))
+    assert [k for _, k, _ in g[5:7]] == [n["key"] for n in e["new"]]   # before B's first (was 5)
+    assert g[7][1] == f"products/old5-{tag}.jpg"
+    assert [k for _, k, p in g if p] == [e["new"][0]["key"]]             # only one MAIN
+    assert s3.client.deleted == []
