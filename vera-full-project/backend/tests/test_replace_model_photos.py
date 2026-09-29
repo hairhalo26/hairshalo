@@ -139,3 +139,15 @@ def test_adding_without_removing_goes_before_the_colour(s3, piece):
     assert g[7][1] == f"products/old5-{tag}.jpg"
     assert [k for _, k, p in g if p] == [e["new"][0]["key"]]             # only one MAIN
     assert s3.client.deleted == []
+
+
+def test_running_the_same_manifest_twice_adds_nothing(s3, piece):
+    """A second run of an applied manifest is refused, so photos are never
+    added twice (two rows sharing one stored file)."""
+    pid, slug, _, b, _ = piece
+    m = {"entries": [entry(slug, b, [], 2)]}
+    assert run(m, True, exists=lambda u: True, out=quiet) == 0
+    after_first = gallery(pid)
+    assert run(m, True, exists=lambda u: True, out=quiet) == 1     # skipped, reported
+    assert gallery(pid) == after_first
+    assert s3.client.deleted == []
