@@ -999,6 +999,74 @@ usual.
   (`?v=`), and `/media` (UUID filenames, never rewritten) is cached as immutable.
 - `scripts/check_frontend_js.py` parses every inline script; CI runs it.
 
+## Order lifecycle, colour photos and map pins (October 2026)
+
+Migration `0017_packed_and_map_pins` is additive: one new order status and
+eight nullable columns. Take a backup first as usual.
+
+**Packed is a required step.** The order lifecycle is
+
+```
+Pending Payment -> Paid -> Processing -> Packed -> Shipped -> (Out for Delivery) -> Delivered
+```
+
+(with payments disabled an order starts at Processing). `Processing -> Shipped`
+is refused by the API (`ALLOWED_TRANSITIONS` in `app/routers/orders.py`) and
+not offered by the Admin Panel. Cancelled / Refunded stay available as before.
+
+**Tracking follows the parcel, not the order:**
+
+| Stage | Staff can record tracking | Customer sees it | Email |
+|---|---|---|---|
+| Placed / Paid / Processing | no — a new value is a 400 | no | confirmation only, no tracking |
+| Packed | yes | **no** | none |
+| Shipped / Out for Delivery / Delivered | yes | yes | the *shipped* email carries carrier, number and link |
+
+The two sets are `TRACKING_EDITABLE_STATUSES` and `TRACKING_VISIBLE_STATUSES`
+in `app/models.py`. The customer schema reads tracking through
+`Order.customer_tracking_*`, so the API itself returns `null` before Shipped —
+hiding it is not left to the page. Only staff tokens reach the status and
+fulfilment endpoints.
+
+**Colour photos.** A photo filed on one variant pictures every variant of the
+same colour (same managed colour, else same colour text), so a photo of 1B
+filed on 1B · 14" also shows for 1B · 18". The rule is `variant_colour_key` in
+`app/models.py` and `colourKey` in `index.html`; the product page, the bag and
+order history all use it. The Admin Panel's media dropdown offers one choice
+per colour. No existing media was moved: a photo already filed on another
+length of a colour simply shows as that colour. Choosing a length on the
+product page keeps the chosen colour (and vice versa).
+
+**Map pins (Google Maps).** Checkout and the address book can show a place
+search and a map pin (`frontend/assets/address-map.js`, Maps JavaScript API +
+Places API (New)). The typed fields remain the delivery address; the pin —
+`latitude`, `longitude`, `place_id`, `formatted_address` — is extra, validated
+in `app/addresses.py` (both coordinates or neither, in range; a plain place id;
+length limits), snapshotted onto the order and shown to staff as an
+"Open in Google Maps" link. With no key configured nothing is shown and
+checkout is unchanged. Google Login is untouched.
+
+Environment variables (set in `.env.prod`, never committed):
+
+| Variable | Needed | What it is |
+|---|---|---|
+| `GOOGLE_MAPS_API_KEY` | to show the picker | A **browser** API key with *Maps JavaScript API* and *Places API (New)* enabled, on a Cloud project with billing. Restrict it to the websites `https://hairshalo.com/*` and `https://www.hairshalo.com/*` and to those two APIs. It is sent to browsers by design (`GET /api/orders/maps-config`); the restrictions are what protect it. Empty = picker hidden. |
+| `GOOGLE_MAPS_MAP_ID` | optional | A Map ID from Map Management, for Advanced Markers. Empty = the classic pin. |
+
+Caddy's `Permissions-Policy` denies geolocation, so there is no "use my
+location" button.
+
+**Still to verify before deploying** — not done when this was written:
+
+1. **Postgres.** The suite passed on SQLite (Docker was unavailable). `0017` was
+   only rendered as SQL (`alembic upgrade 0016_hair_colours:0017_packed_and_map_pins --sql`);
+   it has **not** been applied to PostgreSQL. Apply it to a Postgres copy of the
+   data and run the suite against it before production. Its `downgrade()` drops
+   the columns but cannot remove the `packed` enum value (Postgres cannot).
+2. **Real Google Maps.** Tested with no key and with a rejected key (the picker
+   removes itself; checkout keeps working). The real place search, map and pin
+   need one browser test once `GOOGLE_MAPS_API_KEY` is set.
+
 ## What's real vs. what's still a stub
 
 **Fully wired to the database:** products, orders, customers, inventory,

@@ -499,7 +499,8 @@ def test_the_stored_message_is_readable_for_support(auth, placed_order):
 def test_each_delivery_step_produces_exactly_one_message(auth, placed_order):
     order_id = placed_order["id"]
     start = placed_order["status"]
-    steps = ["Shipped", "Out for Delivery", "Delivered"]
+    # Packed is a required step before Shipped; it sends no email of its own.
+    steps = ["Packed", "Shipped", "Out for Delivery", "Delivered"]
     if start == "Pending Payment":
         pytest.skip("payments enabled; this order cannot be shipped without paying")
 

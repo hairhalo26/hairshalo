@@ -364,6 +364,10 @@ def test_customers_see_tracking_and_timeline_but_never_internal_notes(auth, prod
                      json={"status": "Processing"})
     requests.patch(f"{API}/orders/{oid}/fulfilment", headers=auth, timeout=10,
                    json={"internal_notes": "Customer asked for discreet packaging"})
+    # Packed is required before Shipped.
+    r = requests.put(f"{API}/orders/{oid}/status", headers=auth, timeout=10,
+                     json={"status": "Packed"})
+    assert r.status_code == 200, r.text
     r = requests.put(f"{API}/orders/{oid}/status", headers=auth, timeout=10, json={
         "status": "Shipped", "carrier": "Delhivery", "tracking_number": "DLV998877",
         "tracking_url": "https://www.delhivery.com/track/package/DLV998877"})

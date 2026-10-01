@@ -52,6 +52,8 @@ def _address_out(a: models.CustomerAddress) -> schemas.AddressOut:
         id=a.id, label=a.label, full_name=a.full_name, phone=a.phone,
         line1=a.line1, line2=a.line2, city=a.city, state=a.state,
         postal_code=a.postal_code, country=a.country, is_default=a.is_default,
+        latitude=a.latitude, longitude=a.longitude, place_id=a.place_id,
+        formatted_address=a.formatted_address,
     )
 
 

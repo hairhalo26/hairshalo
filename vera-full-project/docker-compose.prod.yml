@@ -91,6 +91,9 @@ services:
       STOREFRONT_URL: ${STOREFRONT_URL:-}
       # "Sign in with Google" (OAuth client id, Web application). Empty = off.
       GOOGLE_CLIENT_ID: ${GOOGLE_CLIENT_ID:-}
+      # Google Maps address picker (browser key, referrer-restricted). Empty = off.
+      GOOGLE_MAPS_API_KEY: ${GOOGLE_MAPS_API_KEY:-}
+      GOOGLE_MAPS_MAP_ID: ${GOOGLE_MAPS_MAP_ID:-}
       # Mail cannot load a relative path, so the logo needs an absolute URL.
       BRAND_LOGO_URL: ${BRAND_LOGO_URL:-}
       LOW_STOCK_ALERT_THRESHOLD: ${LOW_STOCK_ALERT_THRESHOLD:-5}

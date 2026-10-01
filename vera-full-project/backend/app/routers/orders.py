@@ -10,6 +10,7 @@ from sqlalchemy import or_
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session, joinedload
 
+from app.config import settings
 from app.database import get_db
 from app.deps import get_current_admin, get_optional_customer
 from app import (
@@ -32,7 +33,11 @@ ALLOWED_TRANSITIONS = {
     # Payment states. Pending Payment -> Paid happens via the gateway, not here.
     "Pending Payment": {"Cancelled"},
     "Paid": {"Processing", "Cancelled", "Refunded"},
-    "Processing": {"Shipped", "Cancelled", "Refunded"},
+    # Packed is REQUIRED between Processing and Shipped: an order is packed
+    # before it ships, and tracking can only be recorded from Packed on, so
+    # skipping it would let a parcel ship with no packing step on record.
+    "Processing": {"Packed", "Cancelled", "Refunded"},
+    "Packed": {"Shipped", "Cancelled", "Refunded"},
     "Shipped": {"Out for Delivery", "Delivered", "Cancelled", "Refunded"},
     "Out for Delivery": {"Delivered", "Cancelled", "Refunded"},
     "Delivered": {"Refunded"},
@@ -484,11 +489,30 @@ def _remember_address(db: Session, customer, shipping: dict) -> None:
         state=shipping["state"],
         postal_code=shipping["postal_code"],
         country=shipping["country"],
+        latitude=shipping.get("latitude"),
+        longitude=shipping.get("longitude"),
+        place_id=shipping.get("place_id"),
+        formatted_address=shipping.get("formatted_address"),
         # The first address saved becomes the default; later ones do not steal
         # that from it silently.
         is_default=not has_any,
     ))
     db.commit()
+
+
+@router.get("/maps-config")
+def maps_config():
+    """The browser key for the Google Maps address picker, or null when unset.
+
+    A Maps JavaScript key is public by design — the browser has to send it to
+    Google — so this hands it out the same way /account/google/config hands
+    out the OAuth client id. What protects it is the HTTP-referrer and API
+    restriction set on the key in Google Cloud Console, not secrecy. It lives
+    in the environment so it is never committed. Null hides the picker and the
+    typed address form works exactly as before.
+    """
+    key = settings.GOOGLE_MAPS_API_KEY or None
+    return {"api_key": key, "map_id": (settings.GOOGLE_MAPS_MAP_ID or None) if key else None}
 
 
 @router.get("/shipping-countries", response_model=List[schemas.CountryOut])
@@ -506,6 +530,10 @@ def shipping_countries():
 def admin_out(order: models.Order) -> schemas.OrderAdminOut:
     """The staff view of an order: the customer view plus internal fields."""
     base = schemas.OrderOut.model_validate(order).model_dump()
+    # The customer view hides tracking until the order ships; staff always
+    # see what is stored, including details recorded at packing.
+    base.update(tracking_number=order.tracking_number, carrier=order.carrier,
+                tracking_url=order.tracking_url)
     payment = order.payment
     return schemas.OrderAdminOut(
         **base,
@@ -568,11 +596,27 @@ def get_order(
     return admin_out(order)
 
 
-def _apply_tracking(order: models.Order, payload) -> None:
+def _apply_tracking(order: models.Order, payload, stage: str) -> None:
+    """Record tracking details sent by staff, if `stage` allows it.
+
+    `stage` is the status the order is in (or moving to). Before Packed there
+    is no parcel, so a NEW tracking value is refused rather than quietly kept
+    for later. Values that are unchanged or blank pass at any stage: the admin
+    form sends its tracking fields with every status change.
+    """
     for field in ("tracking_number", "carrier", "tracking_url"):
         value = getattr(payload, field, None)
-        if value is not None:
-            setattr(order, field, value.strip() or None)
+        if value is None:
+            continue
+        value = value.strip() or None
+        if (value is not None and value != getattr(order, field)
+                and stage not in models.TRACKING_EDITABLE_STATUSES):
+            raise HTTPException(
+                status_code=400,
+                detail=(f"Tracking details can be added once the order is Packed or "
+                        f"Shipped. This order is {stage}."),
+            )
+        setattr(order, field, value)
     if order.tracking_url and not order.tracking_url.lower().startswith(("https://", "http://")):
         raise HTTPException(status_code=400, detail="The tracking link must start with https://")
 
@@ -588,7 +632,8 @@ def update_fulfilment(
     order = _admin_query(db).filter(models.Order.id == order_id).first()
     if not order:
         raise HTTPException(status_code=404, detail="Order not found")
-    _apply_tracking(order, payload)
+    _apply_tracking(order, payload,
+                    order.status.value if order.status else models.OrderStatus.processing.value)
     if payload.internal_notes is not None:
         order.internal_notes = payload.internal_notes.strip() or None
     db.commit()
@@ -628,7 +673,7 @@ def update_order_status(
             ),
         )
 
-    _apply_tracking(order, payload)
+    _apply_tracking(order, payload, target)
 
     # Cancelling or refunding also unwinds loyalty: points earned on this
     # order are clawed back, points spent on it are returned.

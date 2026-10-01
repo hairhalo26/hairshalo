@@ -136,6 +136,12 @@ class Settings:
     # (APIs & Services -> Credentials -> OAuth client ID, type "Web
     # application"). Empty means the Google button is not shown at all.
     GOOGLE_CLIENT_ID: str = os.getenv("GOOGLE_CLIENT_ID", "")
+    # Google Maps address picker at checkout and in the address book. A
+    # BROWSER key (Maps JavaScript API + Places API (New)); it reaches the
+    # browser by design, so restrict it to the shop's domains in Cloud Console.
+    # Empty hides the picker. The map id is optional (Advanced Markers).
+    GOOGLE_MAPS_API_KEY: str = os.getenv("GOOGLE_MAPS_API_KEY", "")
+    GOOGLE_MAPS_MAP_ID: str = os.getenv("GOOGLE_MAPS_MAP_ID", "")
     # Stock at or below this triggers a low-stock alert to ADMIN_ALERT_EMAILS.
     LOW_STOCK_ALERT_THRESHOLD: int = int(os.getenv("LOW_STOCK_ALERT_THRESHOLD", "5"))
 

@@ -308,7 +308,8 @@ def test_valid_status_transition_is_allowed(auth, product):
         "customer_name": "L", "customer_email": f"l{uuid.uuid4().hex[:6]}@example.com",
         "items": [{"product_id": product["id"], "variant_id": variant["id"], "quantity": 1}],
     }).json()
-    next_status = "Cancelled" if order["status"] == "Pending Payment" else "Shipped"
+    # From Processing the only forward step is Packed (it cannot skip to Shipped).
+    next_status = "Cancelled" if order["status"] == "Pending Payment" else "Packed"
     r = requests.put(f"{API}/orders/{order['id']}/status", headers=auth, timeout=15,
                      json={"status": next_status})
     assert r.status_code == 200

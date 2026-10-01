@@ -288,12 +288,21 @@ def order_shipped(ctx) -> Rendered:
         track = f'Tracking: {ctx["tracking_number"]}'
         if ctx.get("carrier"):
             track = f'{ctx["carrier"]} — {track}'
+    # Only a web address becomes a link; anything else is left out entirely.
+    url = ctx.get("tracking_url") if track else None
+    if url and not str(url).lower().startswith(("https://", "http://")):
+        url = None
     text = (f'Hi {ctx["customer_name"]},\n\n{lead}\n\nOrder {ctx["order_number"]}\n'
             + (f'{track}\n' if track else "")
+            + (f'Track your parcel: {url}\n' if url else "")
             + f'\n{_items_text(ctx.get("items"))}\n\n'
             f'Shipping to:\n  {ctx.get("shipping_address") or "—"}{_signoff_text()}')
     track_html = (f'<p style="margin:0 0 10px;font-size:14px;">{esc(track)}</p>'
                   if track else "")
+    if url:
+        track_html += (f'<p style="margin:0 0 14px;"><a href="{esc(url)}" style="display:inline-block;'
+                       f'background:{ACCENT};color:#ffffff;text-decoration:none;padding:11px 20px;'
+                       f'border-radius:6px;font-size:15px;">Track your parcel</a></p>')
     html = _wrap(subject, f"""
     {_greeting(ctx)}
     <p style="margin:0 0 14px;">{esc(lead)}</p>
