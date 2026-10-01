@@ -1056,13 +1056,24 @@ Environment variables (set in `.env.prod`, never committed):
 Caddy's `Permissions-Policy` denies geolocation, so there is no "use my
 location" button.
 
-**Still to verify before deploying** — not done when this was written:
+**Still to verify before deploying:**
 
-1. **Postgres.** The suite passed on SQLite (Docker was unavailable). `0017` was
-   only rendered as SQL (`alembic upgrade 0016_hair_colours:0017_packed_and_map_pins --sql`);
-   it has **not** been applied to PostgreSQL. Apply it to a Postgres copy of the
-   data and run the suite against it before production. Its `downgrade()` drops
-   the columns but cannot remove the `packed` enum value (Postgres cannot).
+1. **Postgres — tested on PostgreSQL 16, not yet on production data.** `0017`
+   was tested on a throwaway PostgreSQL 16.2 (production runs 16):
+   - the full chain `0001 -> 0017` on an empty database, then `downgrade -1` and
+     `upgrade head` again;
+   - a database built and seeded at `0016` with the pre-merge code (12 orders in
+     every old status, a saved address, a shipped order with tracking), upgraded
+     to `0017`: all 81 existing rows across 28 tables were unchanged, the new
+     columns NULL, and a pre-existing Processing order then went
+     Packed -> Shipped -> Delivered (Processing -> Shipped refused);
+   - the full suite against that database: 479 passed / 2 skipped (manual
+     payments), 461 passed / 20 skipped (payments disabled) — the same as SQLite.
+
+   It has **not** been applied to a copy of the real production data. Take a
+   backup, then apply it there (or to a restored copy) before relying on it.
+   Its `downgrade()` drops the columns but cannot remove the `packed` enum value
+   (Postgres cannot).
 2. **Real Google Maps.** Tested with no key and with a rejected key (the picker
    removes itself; checkout keeps working). The real place search, map and pin
    need one browser test once `GOOGLE_MAPS_API_KEY` is set.
