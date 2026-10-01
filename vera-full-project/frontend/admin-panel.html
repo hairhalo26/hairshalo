@@ -593,7 +593,8 @@
       <div class="pf-hint" id="odStatusHint"></div>
     </div>
     <div class="pf-section">
-      <h4>Shipping &amp; tracking <span class="pf-hint" style="display:inline;">shown to the customer</span></h4>
+      <h4>Shipping &amp; tracking <span class="pf-hint" style="display:inline;">shown to the customer once Shipped</span></h4>
+      <div class="pf-hint" id="odTrackingHint"></div>
       <div class="ph-row">
         <div class="ph-field"><label for="odCarrier">Courier</label><input id="odCarrier" type="text" maxlength="120" placeholder="Delhivery, Blue Dart, India Post…"></div>
         <div class="ph-field"><label for="odTracking">Tracking number</label><input id="odTracking" type="text" maxlength="120"></div>
@@ -1241,7 +1242,7 @@
       <div class="topbar">
         <div><h1>Orders</h1><p>Track, fulfill, and manage every order</p></div>
         <div class="topbar-actions">
-          <div class="panel-head tabs" style="margin:0;flex-wrap:wrap;"><button class="active">All</button><button>Pending Payment</button><button>Paid</button><button>Processing</button><button>Shipped</button><button>Out for Delivery</button><button>Delivered</button><button>Cancelled</button><button>Refunded</button></div>
+          <div class="panel-head tabs" style="margin:0;flex-wrap:wrap;"><button class="active">All</button><button>Pending Payment</button><button>Paid</button><button>Processing</button><button>Packed</button><button>Shipped</button><button>Out for Delivery</button><button>Delivered</button><button>Cancelled</button><button>Refunded</button></div>
         </div>
       </div>
       <div class="orders-search">
@@ -1689,7 +1690,7 @@
   function statusBadge(status){
     const map = {
       'Delivered':'ok', 'Active':'ok', 'Published':'ok', 'Confirmed':'ok', 'In Stock':'ok',
-      'Out for Delivery':'warn', 'Shipped':'warn', 'Processing':'warn', 'Pending':'warn',
+      'Out for Delivery':'warn', 'Shipped':'warn', 'Packed':'warn', 'Processing':'warn', 'Pending':'warn',
       'Review':'warn', 'Low Stock':'warn', 'Out of Stock':'warn',
       'Draft':'neutral', 'Archived':'neutral',
       'Cancelled':'danger', 'Critical':'danger',
@@ -1916,13 +1917,33 @@
   const ORDER_TRANSITIONS = {
     'Pending Payment': ['Cancelled'],
     'Paid': ['Processing','Cancelled','Refunded'],
-    'Processing': ['Shipped','Cancelled','Refunded'],
+    'Processing': ['Packed','Cancelled','Refunded'],
+    'Packed': ['Shipped','Cancelled','Refunded'],
     'Shipped': ['Out for Delivery','Delivered','Cancelled','Refunded'],
     'Out for Delivery': ['Delivered','Cancelled','Refunded'],
     'Delivered': ['Refunded'],
     'Cancelled': [],
     'Refunded': []
   };
+
+  // Mirrors TRACKING_EDITABLE_STATUSES / TRACKING_VISIBLE_STATUSES in
+  // app/models.py. The server enforces both; this only keeps the form honest.
+  const TRACKING_EDITABLE = ['Packed','Shipped','Out for Delivery','Delivered'];
+  const TRACKING_VISIBLE = ['Shipped','Out for Delivery','Delivered'];
+
+  /* Tracking can be typed once the order is Packed — or when the move being
+     made is to Packed/Shipped, so it can go with that update. Never earlier:
+     there is no parcel yet. */
+  function odSyncTrackingLock(current){
+    const target = document.getElementById('odStatus').value;
+    const open = TRACKING_EDITABLE.includes(current) || TRACKING_EDITABLE.includes(target);
+    ['odCarrier','odTracking','odTrackingUrl'].forEach(id => { document.getElementById(id).disabled = !open; });
+    document.getElementById('odTrackingHint').textContent = !open
+      ? 'Tracking can be added once the order is Packed or Shipped. The customer sees no tracking before then.'
+      : (TRACKING_VISIBLE.includes(current)
+          ? 'The customer can see these details on their order page.'
+          : 'Saved now, shown to the customer when the order moves to Shipped.');
+  }
 
   /* The delivery address as labelled fields, with the postal field named the
      way the destination country names it. The address shown is the order's own
@@ -1949,8 +1970,17 @@
       ['Country', ship.country],
       [ship.postal_label || 'Postal Code', ship.postal_code]
     ].filter(row => row[1]);
+    // The pin the customer placed with Google Maps, when they placed one.
+    let pin = '';
+    if(ship.latitude != null && ship.longitude != null){
+      const url = 'https://www.google.com/maps/search/?api=1&query=' +
+        encodeURIComponent(Number(ship.latitude) + ',' + Number(ship.longitude)) +
+        (ship.place_id ? '&query_place_id=' + encodeURIComponent(ship.place_id) : '');
+      pin = `<dt>Map pin</dt><dd><a href="${escAttr(url)}" target="_blank" rel="noopener noreferrer">Open in Google Maps</a>
+        <span style="color:var(--text-soft);font-size:11px;">${Number(ship.latitude).toFixed(6)}, ${Number(ship.longitude).toFixed(6)}</span></dd>`;
+    }
     return `<dl class="od-addr">${rows.map(([label, value]) =>
-      `<dt>${escAttr(label)}</dt><dd>${escAttr(value)}</dd>`).join('')}</dl>`;
+      `<dt>${escAttr(label)}</dt><dd>${escAttr(value)}</dd>`).join('')}${pin}</dl>`;
   }
 
   async function openOrderDetail(orderId, fresh){
@@ -2012,6 +2042,8 @@
     document.getElementById('odCarrier').value = o.carrier || '';
     document.getElementById('odTracking').value = o.tracking_number || '';
     document.getElementById('odTrackingUrl').value = o.tracking_url || '';
+    sel.onchange = () => odSyncTrackingLock(o.status);
+    odSyncTrackingLock(o.status);
     document.getElementById('odNotes').value = o.internal_notes || '';
     document.getElementById('odFulfilmentMsg').textContent = '';
     document.getElementById('odTimeline').innerHTML = (o.timeline || []).map(t =>
@@ -3693,9 +3725,24 @@
   function pfRenderMedia(){
     const ordered = pfMediaSorted();
     // Only variants that have been saved can own a file; unsaved rows have no id.
-    const variantOptions = (pfVariantRows || [])
-      .filter(v => v.id)
-      .map(v => ({id: v.id, label: [v.color, v.length].filter(Boolean).join(' · ') || v.sku}));
+    // One choice per COLOUR: a photo of 1B shows for every length of 1B on the
+    // storefront (colourKey in index.html), so offering "1B · 14in" and
+    // "1B · 18in" separately would suggest a difference that is not there.
+    // The file is stored on the colour's first variant; a photo already filed
+    // on another length of that colour simply shows as that colour.
+    const colourKeyOf = v => v.colour_id ? 'id:' + v.colour_id
+      : (String(v.color || '').trim() ? 'text:' + String(v.color).trim().toLowerCase() : null);
+    const saved = (pfVariantRows || []).filter(v => v.id);
+    const groupOf = {};          // variant id -> option id
+    const variantOptions = [];
+    saved.forEach(v => {
+      const key = colourKeyOf(v);
+      const existing = key && variantOptions.find(o => o.key === key);
+      if(existing){ groupOf[v.id] = existing.id; return; }
+      groupOf[v.id] = v.id;
+      variantOptions.push({id: v.id, key,
+        label: key ? String(v.color).trim() : ([v.length, v.density].filter(Boolean).join(' · ') || v.sku)});
+    });
 
     el('pfMediaGrid').innerHTML = ordered.map((m, idx) => `
       <div class="pf-media-card ${m.is_primary ? 'primary' : ''}" data-mcard="${m.id}">
@@ -3711,7 +3758,7 @@
           <select data-mvariant="${m.id}" aria-label="Which colour this file shows">
             <option value=""${m.variant_id ? '' : ' selected'}>All colours</option>
             ${variantOptions.map(v => `
-              <option value="${v.id}"${m.variant_id === v.id ? ' selected' : ''}>${v.label}</option>`).join('')}
+              <option value="${v.id}"${groupOf[m.variant_id] === v.id ? ' selected' : ''}>${esc(v.label)}</option>`).join('')}
           </select>` : ''}
         <div class="mc-row">
           <button type="button" data-mmove="${m.id}" data-dir="-1" ${idx === 0 ? 'disabled' : ''} title="Move earlier">◀</button>

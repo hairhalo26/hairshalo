@@ -632,6 +632,12 @@ class ShippingAddressIn(BaseModel):
     state: Optional[str] = None
     postal_code: Optional[str] = None
     country: str = "India"
+    # Optional map pin from the Google Maps picker. Advisory only: the typed
+    # fields remain the address. Range-checked in app/addresses.py.
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    place_id: Optional[str] = Field(None, max_length=255)
+    formatted_address: Optional[str] = Field(None, max_length=300)
     # Offer to keep this in the customer's address book. Only honoured for a
     # signed-in customer; a guest has no address book to save into.
     save_to_address_book: bool = False
@@ -654,6 +660,10 @@ class ShippingAddressOut(BaseModel):
     # False for orders placed before the structured snapshot existed; those
     # carry only `shipping_address` text.
     structured: bool = False
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    place_id: Optional[str] = None
+    formatted_address: Optional[str] = None
 
 
 class CountryOut(BaseModel):
@@ -739,14 +749,20 @@ class OrderOut(BaseModel):
     status: str
     created_at: datetime
     items: List[OrderItemOut] = []
-    tracking_number: Optional[str] = None
-    carrier: Optional[str] = None
-    tracking_url: Optional[str] = None
+    # Read through Order.customer_* — None until the order has SHIPPED, even
+    # when staff recorded the details while packing. OrderAdminOut overrides
+    # these to show staff the stored values.
+    tracking_number: Optional[str] = Field(None, validation_alias="customer_tracking_number")
+    carrier: Optional[str] = Field(None, validation_alias="customer_carrier")
+    tracking_url: Optional[str] = Field(None, validation_alias="customer_tracking_url")
     timeline: List[OrderTimelineStep] = []
 
 
 class OrderAdminOut(OrderOut):
     """What staff see. Adds the fields a customer must never receive."""
+    tracking_number: Optional[str] = None
+    carrier: Optional[str] = None
+    tracking_url: Optional[str] = None
     customer_id: Optional[str] = None
     internal_notes: Optional[str] = None
     placed_signed_in: bool = False
@@ -1202,6 +1218,12 @@ class AddressIn(BaseModel):
     state: Optional[str] = None
     postal_code: Optional[str] = None
     country: str = "India"
+    # Optional map pin from the Google Maps picker. Advisory only: the typed
+    # fields remain the address. Range-checked in app/addresses.py.
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
+    place_id: Optional[str] = Field(None, max_length=255)
+    formatted_address: Optional[str] = Field(None, max_length=300)
     is_default: bool = False
 
 

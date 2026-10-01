@@ -40,6 +40,7 @@
      the JS is shared: assets/auth.css resets *, html and body and would
      restyle the storefront. -->
 <script src="assets/auth.js?v=20260927"></script>
+<script src="assets/address-map.js?v=20261001" defer></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,400;0,9..144,500;0,9..144,600;1,9..144,500&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
@@ -289,6 +290,10 @@
   .pay-details div{display:flex;justify-content:space-between;gap:12px;font-size:14px;flex-wrap:wrap;}
   .pay-details span{color:var(--text-soft);}
   .pay-details strong{word-break:break-all;}
+  .order-summary strong{word-break:normal;overflow-wrap:anywhere;text-align:right;}
+  .order-summary .os-line span{color:var(--ink);}
+  .order-summary .os-total{border-top:1px solid var(--line);padding-top:8px;}
+  .order-summary .os-addr strong{font-weight:500;line-height:1.5;}
   .prod-badge{
     position:absolute;top:12px;left:12px;background:var(--wine);color:#fff;
     font-size:10.5px;font-weight:700;padding:5px 10px;border-radius:100px;letter-spacing:.02em;
@@ -6665,10 +6670,14 @@
         const key = cartKey(item);
         const gone = item.state === 'unavailable';
         const atMax = !gone && item.max != null && item.qty >= item.max;
-        // The line's own product photo, from the catalogue already loaded.
+        // The line's own photo, from the catalogue already loaded: the chosen
+        // colour's when it has one, else the product's main image.
         const product = liveProductList().find(p => p.id === item.id);
-        const photo = product && product.image_url
-          ? ` style="background:#fff url('${cssUrl(resolveMediaUrl(product.image_url))}') center / contain no-repeat"` : '';
+        const colourShot = product && item.variantId && typeof colourMediaFor === 'function'
+          ? colourMediaFor(product, item.variantId).find(m => m.media_type !== 'video' && m.url) : null;
+        const shotUrl = colourShot ? colourShot.url : (product && product.image_url);
+        const photo = shotUrl
+          ? ` style="background:#fff url('${cssUrl(resolveMediaUrl(shotUrl))}') center / contain no-repeat"` : '';
         const status = item.note
           ? `<div class="cart-line-status${gone ? ' is-warn' : ''}">${HS.svg(gone ? 'alert' : 'info')}<span>${esc(item.note)}</span></div>`
           : '';
@@ -7583,6 +7592,9 @@
 
     <div class="ck-section" id="ckAddressWrap">
       <h4 class="ck-legend">Delivery address</h4>
+      <!-- Google Maps search + pin. Filled only when a Maps key is configured;
+           otherwise this stays empty and the form below is unchanged. -->
+      <div id="ckMapMount"></div>
       <div class="ck-grid">
         <div class="ck-field ck-span2">
           <label for="ckShipName">Recipient's full name</label>
@@ -8059,16 +8071,38 @@
     return list.slice().sort((a,b) => (a.sort_order||0)-(b.sort_order||0));
   }
 
+  /* What makes two variants "the same colour": the managed colour when there
+     is one, else the colour text. Same rule as variant_colour_key in
+     app/models.py, which picks the photo shown in order history. */
+  function colourKey(v){
+    if(!v) return null;
+    if(v.colour_id) return 'id:' + v.colour_id;
+    const text = String(v.color || '').trim().toLowerCase();
+    return text ? 'text:' + text : null;
+  }
+
+  /* The photographs of this variant's colour, in gallery order. A photo is
+     filed on one variant, but it shows every length of that colour — so a
+     photo of 1B filed on 1B · 14" is shown for 1B · 18" too. [] = none. */
+  function colourMediaFor(product, variantId){
+    const variants = (product && product.variants) || [];
+    const chosen = variants.find(v => v.id === variantId);
+    if(!chosen) return [];
+    const key = colourKey(chosen);
+    const ids = new Set(key ? variants.filter(v => colourKey(v) === key).map(v => v.id) : [chosen.id]);
+    return pdpSortMedia((product.media || []).filter(m => m.variant_id && ids.has(m.variant_id)));
+  }
+
   /* The gallery for the CURRENT selection.
 
-     Variant photographs first, then product-level media, so choosing a colour
-     changes what you see without hiding the studio video. A colour with no
-     photographs of its own falls back to the whole set rather than showing an
-     empty frame. */
+     The chosen colour's photographs first, then product-level media, so
+     choosing a colour changes what you see without hiding the studio video. A
+     colour with no photographs of its own falls back to the whole set rather
+     than showing an empty frame. */
   function pdpMediaList(){
     const all = pdpSortMedia(pdpProduct.media || []);
     if(!pdpVariant) return all;
-    const mine = all.filter(m => m.variant_id === pdpVariant.id);
+    const mine = colourMediaFor(pdpProduct, pdpVariant.id);
     if(mine.length === 0) return all;
     const shared = all.filter(m => !m.variant_id);
     return mine.concat(shared);
@@ -8224,17 +8258,25 @@
     pdpEl('pdpOptions').innerHTML = html;
   }
 
+  const PDP_DIMS = ['length', 'density', 'color', 'lace_type', 'cap_size'];
+
+  /* Choosing one option keeps the others: picking 18" while on 1B looks for
+     1B · 18" first, not whichever 18" variant happens to come first (which
+     could silently switch the colour, and the photographs with it). In stock
+     beats out of stock, then the most other choices kept. */
   function pdpSelectVariantBy(key, value){
-    const variants = pdpProduct.variants || [];
-    const match = variants.find(v => v[key] === value && v.is_available && v.stock > 0)
-      || variants.find(v => v[key] === value);
-    if(!match) return;
-    const changed = !pdpVariant || pdpVariant.id !== match.id;
+    const variants = (pdpProduct.variants || []).filter(v => v[key] === value);
+    if(!variants.length) return;
+    const kept = v => pdpVariant
+      ? PDP_DIMS.filter(d => d !== key && v[d] === pdpVariant[d]).length : 0;
+    const score = v => ((v.is_available && v.stock > 0) ? 100 : 0) + kept(v);
+    const match = variants.reduce((best, v) => score(v) > score(best) ? v : best, variants[0]);
+    const colourChanged = colourKey(pdpVariant) !== colourKey(match);
     pdpVariant = match;
     pdpRenderOptions();
     pdpRenderPricing();
     pdpSyncWish();
-    if(changed && pdpHasVariantMedia()){
+    if(colourChanged && pdpHasVariantMedia()){
       // Back to the first image of the newly chosen colour: keeping the old
       // index would land on an unrelated photograph, or out of range.
       pdpMediaIndex = 0;
@@ -9127,6 +9169,7 @@
     ckRestoreDraft();
     prefillCheckoutFromProfile();
     loadSavedAddresses();
+    ckMountMap();
     // Every line re-checked with the server now, not at "Place Order": a
     // price or stock change is shown before the shopper commits.
     const changes = await revalidateCart({force:true});
@@ -10001,6 +10044,32 @@
   const ckCountrySelect = document.getElementById('ckCountry');
   if(ckCountrySelect) ckCountrySelect.addEventListener('change', ckApplyCountry);
 
+  /* The optional Maps picker. Mounted on first open; null when no key is
+     configured or Google is unreachable, and then nothing below changes. */
+  let ckMapPicker = null, ckMapMounting = false;
+  function ckMountMap(){
+    if(ckMapPicker || ckMapMounting || !window.HSAddressMap) return;
+    ckMapMounting = true;
+    HSAddressMap.mount(document.getElementById('ckMapMount'), {apiBase: API_BASE, onPlace: ckFillFromPlace})
+      .then(p => { ckMapPicker = p; ckMapMounting = false; });
+  }
+  // A chosen place fills the fields Google returned; the shopper reviews and
+  // can edit every one. Country only when it is one the shop ships to.
+  function ckFillFromPlace(f){
+    const sel = document.getElementById('ckCountry');
+    if(sel && f.country && [...sel.options].some(o => o.value === f.country)){
+      sel.value = f.country; ckApplyCountry();
+    }
+    const put = (id, v, onlyIfEmpty) => {
+      const el = document.getElementById(id);
+      if(!el || !v || (onlyIfEmpty && el.value.trim())) return;
+      el.value = v;
+      el.dispatchEvent(new Event('input', {bubbles:true}));
+    };
+    put('ckLine1', f.line1); put('ckLine2', f.line2, true);
+    put('ckCity', f.city); put('ckState', f.state); put('ckPostal', f.postal_code);
+  }
+
   /* Read the typed address. No validation happens here beyond trimming —
      the server is the authority, and duplicating its rules in the browser
      would mean two sets of rules to keep in step. */
@@ -10015,18 +10084,34 @@
       state: val('ckState').trim(),
       country: val('ckCountry'),
       postal_code: val('ckPostal').trim(),
-      save_to_address_book: !!(document.getElementById('ckSaveAddress') || {}).checked
+      save_to_address_book: !!(document.getElementById('ckSaveAddress') || {}).checked,
+      // The map pin, when one was placed: latitude, longitude, place_id,
+      // formatted_address. Range-checked by the server like everything else.
+      ...(ckMapPicker ? ckMapPicker.value() : {})
     };
   }
 
+  /* One key per checkout ATTEMPT, kept in sessionStorage until an order comes
+     back. If the order was created but the answer was lost and the shopper
+     refreshes, the bag is still full and the next submit carries the SAME
+     key — so the server returns that order instead of placing a second. */
+  const CHECKOUT_KEY_STORE = 'hairshalo.checkoutKey.v1';
   let checkoutKey = null;
   function checkoutAttemptKey(){
+    if(!checkoutKey){
+      try{ checkoutKey = sessionStorage.getItem(CHECKOUT_KEY_STORE); }catch(e){}
+    }
     if(!checkoutKey){
       checkoutKey = (window.crypto && crypto.randomUUID)
         ? crypto.randomUUID()
         : Date.now().toString(36) + Math.random().toString(36).slice(2);
+      try{ sessionStorage.setItem(CHECKOUT_KEY_STORE, checkoutKey); }catch(e){}
     }
     return checkoutKey;
+  }
+  function forgetCheckoutKey(){
+    checkoutKey = null;
+    try{ sessionStorage.removeItem(CHECKOUT_KEY_STORE); }catch(e){}
   }
 
   /* ---- Is a signed-in shopper still signed in? ----
@@ -10224,7 +10309,7 @@
     const order = await res.json();
     ckSubmitting = false;
     ckBusy(false);
-    checkoutKey = null;          // the next checkout is a new attempt
+    forgetCheckoutKey();         // the next checkout is a new attempt
     // The ORDER exists and stock is reserved, so the bag is emptied here:
     // leaving it full invites a second, duplicate order while the first is
     // still awaiting payment. The lines are kept aside against this order, so
@@ -10366,14 +10451,40 @@
   const signedIn = () => !!signedInCustomer();
   const orderLabel = n => `<strong>${esc(n || 'your order')}</strong>`;
 
+  /* The order as the SERVER recorded it — number, date, lines, total, where
+     it is going and its status — so the shopper can check it on the spot.
+     Built only from the API's answer; nothing here is the bag's own copy.
+     `statusOverride` is the latest status when it is newer than `o`. */
+  function orderSummaryHtml(o, statusOverride){
+    if(!o || !o.order_number || !Array.isArray(o.items)) return '';
+    const at = o.created_at ? new Date(/[zZ]|[+-]\d\d:?\d\d$/.test(o.created_at) ? o.created_at : o.created_at + 'Z') : null;
+    const when = at && !isNaN(at) ? at.toLocaleString('en-IN', {day:'numeric', month:'long', year:'numeric', hour:'numeric', minute:'2-digit'}) : '';
+    const s = o.shipping || {};
+    const address = s.structured
+      ? [s.full_name, s.line1, s.line2, [s.city, s.state, s.postal_code].filter(Boolean).join(', '), s.country, s.phone]
+      : [o.shipping_address];
+    const lines = o.items.map(i => `<div class="os-line"><span>${esc(i.product_name)}${i.variant_label ? ' · ' + esc(i.variant_label) : ''} × ${Number(i.quantity)}</span><strong>${fmtMoney(Number(i.price) * Number(i.quantity))}</strong></div>`).join('');
+    return `<div class="pay-details order-summary" aria-label="Order summary">
+        <div><span>Order number</span><strong>${esc(o.order_number)}</strong></div>
+        ${when ? `<div><span>Order date</span><strong>${esc(when)}</strong></div>` : ''}
+        <div><span>Status</span><strong>${esc(statusOverride || o.status || '')}</strong></div>
+        ${lines}
+        <div class="os-total"><span>Total</span><strong>${fmtMoney(o.total)}</strong></div>
+        <div class="os-addr"><span>Delivering to</span><strong>${address.filter(Boolean).map(esc).join('<br>')}</strong></div>
+      </div>`;
+  }
+  const summaryFor = (orderNumber, status) =>
+    lastOrder && lastOrder.order_number === orderNumber ? orderSummaryHtml(lastOrder, status) : '';
+
   // ---- D. Paid and confirmed ------------------------------------------------
-  function showOrderConfirmed(orderNumber){
+  function showOrderConfirmed(orderNumber, orderStatus){
     forgetPending();
     forgetOrderBag();
     showPaymentState('paid', {
       kind:'success', icon:'check', eyebrow:'Order confirmed — thank you',
       titleHtml:'Your beauty is <em>on the way</em>',
       bodyHtml:`Order ${orderLabel(orderNumber)} is confirmed and being prepared. Your receipt is on its way to your inbox.`,
+      extraHtml: summaryFor(orderNumber, orderStatus || 'Paid'),
       actions: signedIn()
         ? [{label:'View my order', href:'/account#orders'}, pay('done', 'Continue shopping', 'outline')]
         : [pay('done', 'Continue shopping')]
@@ -10440,7 +10551,7 @@
     const paid = status.is_paid || status.payment_status === 'Paid';
     if(paid){
       if(status.order_status === 'Cancelled' || status.order_status === 'Refunded') showPaymentReceivedConfirming(status.order_number);
-      else showOrderConfirmed(status.order_number);
+      else showOrderConfirmed(status.order_number, status.order_status);
       return true;
     }
     if(status.payment_status === 'Failed' || status.payment_status === 'Cancelled'){
@@ -10482,9 +10593,10 @@
       forgetPending();
       forgetOrderBag();
       showPaymentState('placed', {
-        kind:'success', icon:'check', eyebrow:'Order placed — thank you',
+        kind:'success', icon:'check', eyebrow:'Order placed successfully',
         title:'We have your order',
         bodyHtml:`Order ${orderLabel(order.order_number)} is placed. We’ll be in touch about payment.`,
+        extraHtml: orderSummaryHtml(order),
         actions: signedIn()
           ? [{label:'View my order', href:'/account#orders'}, pay('done', 'Continue shopping', 'outline')]
           : [pay('done', 'Continue shopping')]
@@ -10524,13 +10636,14 @@
       // An order placed and waiting for a transfer — not a paid order, so it
       // is worded as a reservation, never as a confirmation of payment.
       showPaymentState('awaiting', {
-        icon:'clock', eyebrow:'Order placed — payment pending',
+        icon:'clock', eyebrow:'Order placed successfully — payment pending',
         titleHtml:`Order ${esc(order.order_number)} is reserved for you`,
         bodyHtml: esc(lead),
         extraHtml: `<p class="pay-amount">${fmtMoney(intent.amount)}</p>
                ${rows ? `<div class="pay-details">${rows}
                    <div><span>Reference</span><strong>${esc(order.order_number)}</strong></div></div>` : ''}
-               <p class="hs-state__body">We confirm your order as soon as the payment reaches us${signedIn() ? ', and you can follow it under My Account' : ''}.</p>`,
+               <p class="hs-state__body">We confirm your order as soon as the payment reaches us${signedIn() ? ', and you can follow it under My Account' : ''}.</p>
+               ${orderSummaryHtml(order)}`,
         actions: signedIn()
           ? [{label:'View my order', href:'/account#orders'}, pay('done', 'Continue shopping', 'outline')]
           : [pay('done', 'Continue shopping')]

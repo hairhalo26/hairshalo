@@ -128,6 +128,7 @@
 </div>
 
 <script src="assets/auth.js?v=20260927"></script>
+<script src="assets/address-map.js?v=20261001"></script>
 <script>
 (function () {
   var A = window.HairshaloAuth;
@@ -191,6 +192,7 @@
     'Pending Payment': ['wait', 'Waiting for your payment'],
     'Paid': ['go', 'Payment received — we are preparing your order'],
     'Processing': ['go', 'Being prepared for dispatch'],
+    'Packed': ['go', 'Packed and waiting for the courier'],
     'Shipped': ['go', 'On its way'],
     'Out for Delivery': ['go', 'Out for delivery today'],
     'Delivered': ['ok', 'Delivered'],
@@ -299,6 +301,8 @@
       var ship = o.shipping || {};
       var address = ship.structured ? addressText(ship)
         : esc(o.shipping_address || 'No delivery address recorded.');
+      var pin = window.HSAddressMap && HSAddressMap.link(ship);
+      if (pin) address += '<br><a href="' + esc(pin) + '" target="_blank" rel="noopener noreferrer">View pin on Google Maps →</a>';
       var status = STATUS[o.status] || ['', o.status];
       var tracking = o.tracking_number
         ? (o.carrier ? esc(o.carrier) + ' · ' : '') + '<strong>' + esc(o.tracking_number) + '</strong>' +
@@ -409,6 +413,7 @@
             field('aLabel', 'Label (e.g. Home, Work)', a.label, 'full') +
             field('aName', 'Full name', a.full_name) +
             field('aPhone', 'Phone', a.phone, '', 'tel') +
+            '<div class="full" id="aMapMount"></div>' +
             field('aLine1', 'Address line 1', a.line1, 'full') +
             field('aLine2', 'Address line 2 (optional)', a.line2, 'full') +
             field('aCity', 'City', a.city) +
@@ -427,8 +432,28 @@
       }
       A.$('#aCountry').addEventListener('change', relabel); relabel();
       A.$('#aName').focus();
+      // The saved pin travels with the form, so saving without the map (no
+      // Maps key, or Google unreachable) never wipes a pin set earlier.
+      addrPin = { latitude: a.latitude, longitude: a.longitude,
+                  place_id: a.place_id, formatted_address: a.formatted_address };
+      addrPicker = null;
+      if (window.HSAddressMap) {
+        HSAddressMap.mount(A.$('#aMapMount'), { apiBase: A.API_BASE, initial: addrPin, onPlace: fillFromPlace })
+          .then(function (p) { addrPicker = p; });
+      }
+      function fillFromPlace(f) {
+        if (f.country && list.some(function (c) { return c.name === f.country; })) {
+          A.$('#aCountry').value = f.country; relabel();
+        }
+        [['aLine1', f.line1], ['aLine2', f.line2], ['aCity', f.city], ['aState', f.state], ['aPostal', f.postal_code]]
+          .forEach(function (pair) {
+            var el = A.$('#' + pair[0]);
+            if (el && pair[1] && !(pair[0] === 'aLine2' && el.value.trim())) el.value = pair[1];
+          });
+      }
     });
   }
+  var addrPin = null, addrPicker = null;
 
   var ADDR_FIELDS = { full_name: 'aName', phone: 'aPhone', line1: 'aLine1', line2: 'aLine2',
                       city: 'aCity', state: 'aState', country: 'aCountry', postal_code: 'aPostal' };
@@ -438,6 +463,10 @@
     var body = { label: A.$('#aLabel').value.trim() || null, is_default: A.$('#aDefault').checked };
     Object.keys(ADDR_FIELDS).forEach(function (k) { body[k] = A.$('#' + ADDR_FIELDS[k]).value.trim() || null; });
     Object.keys(ADDR_FIELDS).forEach(function (k) { A.fieldError(A.$('#' + ADDR_FIELDS[k]), ''); });
+    var pinNow = addrPicker ? addrPicker.value() : (addrPin || {});
+    ['latitude', 'longitude', 'place_id', 'formatted_address'].forEach(function (k) {
+      body[k] = pinNow[k] != null ? pinNow[k] : null;
+    });
     var btn = A.$('#aSave');
     A.setBusy(btn, true, 'Saving…');
     api('/account/addresses' + (id ? '/' + encodeURIComponent(id) : ''),
@@ -450,7 +479,8 @@
             if (ADDR_FIELDS[k]) A.fieldError(A.$('#' + ADDR_FIELDS[k]), err.fields[k]);
           });
         }
-        A.showNotice(notice, 'error', err.message);
+        A.showNotice(notice, 'error', err.fields && err.fields.location
+          ? err.message + ' ' + err.fields.location : err.message);
       });
   }
 

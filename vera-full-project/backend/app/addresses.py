@@ -139,6 +139,7 @@ MAX_LEN = {
     "postal_code": 16,
     "country": 60,
     "label": 40,
+    "formatted_address": 300,
 }
 
 
@@ -307,6 +308,8 @@ def validate(data: dict, *, require_phone: bool = True) -> dict:
     if len(country) > MAX_LEN["country"]:
         errors["country"] = "That country name is too long."
 
+    location = _location(data, errors)
+
     if errors:
         raise AddressError(errors)
 
@@ -322,7 +325,46 @@ def validate(data: dict, *, require_phone: bool = True) -> dict:
         # and it cannot change which address is meant.
         "postal_code": postal or None,
         "country": country,
+        **location,
     }
+
+
+PLACE_ID = re.compile(r"^[A-Za-z0-9_\-]{1,255}$")
+
+
+def _location(data: dict, errors: Dict[str, str]) -> dict:
+    """The optional map pin (Google Maps) that may come with an address.
+
+    Advisory only — it never replaces or rewrites the typed fields, which are
+    what a label is printed from. Coordinates come as a pair or not at all;
+    one without the other is a pin nobody can find.
+    """
+    lat, lng = data.get("latitude"), data.get("longitude")
+    out = {"latitude": None, "longitude": None, "place_id": None, "formatted_address": None}
+    if lat is None and lng is None:
+        pass
+    elif lat is None or lng is None:
+        errors["location"] = "The map location is incomplete. Choose it on the map again."
+    else:
+        try:
+            lat, lng = float(lat), float(lng)
+        except (TypeError, ValueError):
+            lat = lng = float("nan")
+        if not (-90 <= lat <= 90 and -180 <= lng <= 180):    # NaN fails both
+            errors["location"] = "That map location is not valid."
+        else:
+            out["latitude"], out["longitude"] = round(lat, 7), round(lng, 7)
+
+    place_id = _clean(data.get("place_id"))
+    if place_id:
+        if not PLACE_ID.match(place_id):
+            errors["location"] = "That map location is not valid."
+        else:
+            out["place_id"] = place_id
+    formatted = _clean(data.get("formatted_address"))
+    if formatted:
+        out["formatted_address"] = formatted[:MAX_LEN["formatted_address"]]
+    return out
 
 
 def as_text(address: dict) -> str:
@@ -357,6 +399,10 @@ def from_saved(row) -> dict:
         "state": row.state,
         "postal_code": row.postal_code,
         "country": row.country,
+        "latitude": row.latitude,
+        "longitude": row.longitude,
+        "place_id": row.place_id,
+        "formatted_address": row.formatted_address,
     }
 
 
@@ -376,4 +422,8 @@ def snapshot_onto_order(order, address: dict) -> None:
     order.shipping_state = address.get("state")
     order.shipping_postal_code = address.get("postal_code")
     order.shipping_country = address.get("country")
+    order.shipping_latitude = address.get("latitude")
+    order.shipping_longitude = address.get("longitude")
+    order.shipping_place_id = address.get("place_id")
+    order.shipping_formatted_address = address.get("formatted_address")
     order.shipping_address = as_text(address)

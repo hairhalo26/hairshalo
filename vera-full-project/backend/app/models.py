@@ -23,11 +23,22 @@ class OrderStatus(str, enum.Enum):
     pending_payment = "Pending Payment"
     paid = "Paid"
     processing = "Processing"
+    # Boxed and labelled, not yet handed to the courier. Required: Processing
+    # -> Packed -> Shipped (see ALLOWED_TRANSITIONS). Migration 0017.
+    packed = "Packed"
     shipped = "Shipped"
     out_for_delivery = "Out for Delivery"
     delivered = "Delivered"
     cancelled = "Cancelled"
     refunded = "Refunded"
+
+
+#: Where staff may record a carrier, tracking number and link. Nothing earlier:
+#: an order that is not even packed has no parcel to track.
+TRACKING_EDITABLE_STATUSES = frozenset({"Packed", "Shipped", "Out for Delivery", "Delivered"})
+#: Where the CUSTOMER sees those details. Packed is deliberately absent — a
+#: label printed at the packing bench is not a parcel on its way yet.
+TRACKING_VISIBLE_STATUSES = frozenset({"Shipped", "Out for Delivery", "Delivered"})
 
 
 class PaymentStatus(str, enum.Enum):
@@ -393,6 +404,27 @@ class Product(Base):
         """Back-compat alias — media is now the source of truth."""
         return self.primary_image_url
 
+    def colour_media(self, variant_id):
+        """The media photographed for this variant's COLOUR, in gallery order.
+
+        A photo is filed on one variant, but a colour usually comes in several
+        lengths: a photo of 1B filed on "1B · 14in" is just as much a photo of
+        "1B · 18in". So siblings count — matched on the managed colour when the
+        variant has one, else on its free-text colour. A variant with no colour
+        at all only gets photos filed on itself. The storefront applies the
+        same rule (colourKey in index.html). [] means "use the product gallery".
+        """
+        variant = next((v for v in self.variants if v.id == variant_id), None)
+        if variant is None:
+            return []
+        key = variant_colour_key(variant)
+        if key is None:
+            ids = {variant.id}
+        else:
+            ids = {v.id for v in self.variants if variant_colour_key(v) == key}
+        return sorted((m for m in self.media if m.variant_id in ids),
+                      key=lambda m: m.sort_order or 0)
+
     @property
     def is_purchasable(self):
         return self.status == ProductStatus.published
@@ -562,6 +594,14 @@ class ProductVariant(Base):
 Index("ix_product_variants_product_available", ProductVariant.product_id, ProductVariant.is_available)
 
 
+def variant_colour_key(variant):
+    """What makes two variants "the same colour", or None when it has none."""
+    if variant.colour_id:
+        return "id:" + variant.colour_id
+    text = (variant.color or "").strip().lower()
+    return "text:" + text if text else None
+
+
 class InventoryMovement(Base):
     """Append-only audit trail for stock.
 
@@ -639,6 +679,13 @@ class Order(Base):
     shipping_state = Column(String, nullable=True)
     shipping_postal_code = Column(String, nullable=True)
     shipping_country = Column(String, nullable=True)
+    # Where the customer put the pin on the map at checkout (migration 0017).
+    # Optional and advisory: the typed fields above are the address; these
+    # help a courier find a door the address alone does not describe well.
+    shipping_latitude = Column(Numeric(10, 7), nullable=True)
+    shipping_longitude = Column(Numeric(10, 7), nullable=True)
+    shipping_place_id = Column(String, nullable=True)
+    shipping_formatted_address = Column(String, nullable=True)
     subtotal = Column(Money, nullable=True)        # goods, before coupon
     discount_total = Column(Money, nullable=True)  # coupon discount applied
     shipping_fee = Column(Money, nullable=True)    # charged shipping (0 when waived)
@@ -707,7 +754,30 @@ class Order(Base):
             "country": self.shipping_country,
             "postal_label": addresses.postal_label_for(self.shipping_country),
             "structured": self.has_structured_shipping,
+            "latitude": self.shipping_latitude,
+            "longitude": self.shipping_longitude,
+            "place_id": self.shipping_place_id,
+            "formatted_address": self.shipping_formatted_address,
         }
+
+    @property
+    def tracking_visible(self):
+        """Whether the customer may see tracking yet. See TRACKING_VISIBLE_STATUSES."""
+        status = getattr(self.status, "value", self.status)
+        return status in TRACKING_VISIBLE_STATUSES
+
+    # What the CUSTOMER schema reads. Staff read the plain columns.
+    @property
+    def customer_tracking_number(self):
+        return self.tracking_number if self.tracking_visible else None
+
+    @property
+    def customer_carrier(self):
+        return self.carrier if self.tracking_visible else None
+
+    @property
+    def customer_tracking_url(self):
+        return self.tracking_url if self.tracking_visible else None
 
     @property
     def has_structured_shipping(self):
@@ -824,17 +894,18 @@ class OrderItem(Base):
     def image_url(self):
         """A picture of what was bought, for order history.
 
-        The variant's own photograph when it has one (the colour the customer
-        chose), else the product's primary image. Looked up live rather than
-        snapshotted: a replaced photo should update, and a deleted product
-        simply yields None — the order line itself is a snapshot and survives.
+        A photograph of the colour the customer chose when there is one (see
+        Product.colour_media), else the product's primary image. Looked up live
+        rather than snapshotted: a replaced photo should update, and a deleted
+        product simply yields None — the order line itself is a snapshot and
+        survives.
         """
         product = self.product
         if product is None:
             return None
         if self.variant_id:
-            own = [m for m in product.media
-                   if m.variant_id == self.variant_id and m.media_type == MediaType.image]
+            own = [m for m in product.colour_media(self.variant_id)
+                   if m.media_type == MediaType.image]
             if own:
                 return sorted(own, key=lambda m: (not m.is_primary, m.sort_order or 0))[0].url
         return product.primary_image_url
@@ -1189,6 +1260,11 @@ class CustomerAddress(Base):
     state = Column(String, nullable=True)
     postal_code = Column(String, nullable=True)
     country = Column(String, default="India", nullable=False)
+    # Optional map pin chosen with Google Maps (migration 0017); see Order.
+    latitude = Column(Numeric(10, 7), nullable=True)
+    longitude = Column(Numeric(10, 7), nullable=True)
+    place_id = Column(String, nullable=True)
+    formatted_address = Column(String, nullable=True)
     is_default = Column(Boolean, default=False, nullable=False)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

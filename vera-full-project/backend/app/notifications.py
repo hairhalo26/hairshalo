@@ -552,8 +552,15 @@ def notify_order_placed(db, order, payment_instructions: str = None) -> None:
 
 def notify_order_status_change(db, order, new_status: str) -> None:
     event_type = ORDER_STATUS_EVENTS.get(new_status)
-    if event_type:
-        notify_order_event(db, order, event_type)
+    if not event_type:
+        return
+    extra = {}
+    # Tracking goes out only with a status the customer may see it at — never
+    # with the order confirmation, and never while the parcel is only packed.
+    if new_status in models.TRACKING_VISIBLE_STATUSES and order.tracking_number:
+        extra = {"tracking_number": order.tracking_number, "carrier": order.carrier,
+                 "tracking_url": order.tracking_url}
+    notify_order_event(db, order, event_type, **extra)
 
 
 def notify_payment_paid(db, payment) -> None:
